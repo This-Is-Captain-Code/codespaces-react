@@ -98,6 +98,9 @@ export const railwayService = {
     console.log(`Setting ${Object.keys(variables).length} environment variables...`);
     console.log(`  Project: ${projectId}, Environment: ${environmentId}, Service: ${serviceId}`);
     
+    const criticalVars = ['PORT', 'SETUP_PASSWORD', 'OPENAI_API_KEY', 'OPENAI_BASE_URL'];
+    let failedCount = 0;
+    
     for (const [name, value] of Object.entries(variables)) {
       try {
         await graphqlRequest(`
@@ -114,12 +117,16 @@ export const railwayService = {
           }
         });
         console.log(`  Set ${name}`);
+        await new Promise(resolve => setTimeout(resolve, 200));
       } catch (error) {
         console.error(`  Failed to set ${name}: ${error.message}`);
-        throw error;
+        if (criticalVars.includes(name)) {
+          throw error;
+        }
+        failedCount++;
       }
     }
-    console.log(`Variables set`);
+    console.log(`Variables set (${failedCount} non-critical failures)`);
   },
 
   createVolume: async (serviceId, projectId, environmentId, mountPath) => {
