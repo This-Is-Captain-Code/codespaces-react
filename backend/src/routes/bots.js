@@ -13,14 +13,9 @@ router.use(authMiddleware);
 router.post('/create', async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { systemPrompt = '', model = 'gpt-3.5-turbo', botName = '' } = req.body;
-    const openrouterApiKey = process.env.OPENROUTER_API_KEY;
+    const { systemPrompt = '', model = 'gpt-3.5-turbo', botName = '', apiKey = '' } = req.body;
+    const openrouterApiKey = apiKey || process.env.OPENROUTER_API_KEY || '';
 
-    if (!openrouterApiKey) {
-      return res.status(500).json({ error: 'OpenRouter API key not configured' });
-    }
-
-    // Create bot on Railway
     const bot = await botService.createBot(userId, openrouterApiKey, {
       systemPrompt,
       model,
@@ -157,8 +152,7 @@ router.delete('/delete', async (req, res, next) => {
  */
 router.get('/admin/list', async (req, res, next) => {
   try {
-    // In production, verify admin role
-    const bots = botService.getAllBots();
+    const bots = await botService.getAllBots();
     res.json({
       total: bots.length,
       bots,
