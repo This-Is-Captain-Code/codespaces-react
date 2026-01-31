@@ -136,6 +136,31 @@ export const flyService = {
     // Allocate public IPs for the app
     await flyService.allocateIps(appName);
 
+    // Create config with actual values baked in (not shell variables)
+    const openclawConfig = {
+      gateway: {
+        auth: {
+          mode: 'token',
+          token: gatewayToken
+        },
+        http: {
+          endpoints: {
+            chatCompletions: { enabled: true }
+          }
+        }
+      },
+      agents: {
+        defaults: {
+          model: {
+            primary: 'openrouter/openai/gpt-4o'
+          }
+        }
+      }
+    };
+    
+    // Base64 encode config to avoid shell escaping issues
+    const configBase64 = Buffer.from(JSON.stringify(openclawConfig)).toString('base64');
+
     const machineConfig = {
       name: 'gateway',
       config: {
@@ -143,20 +168,11 @@ export const flyService = {
         env: {
           NODE_ENV: 'production',
           OPENCLAW_STATE_DIR: '/data',
-          OPENCLAW_TOKEN: gatewayToken,
+          OPENCLAW_CONFIG_PATH: '/data/config.json',
           NODE_OPTIONS: '--max-old-space-size=1536',
           OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
           OPENAI_API_KEY: openrouterApiKey || process.env.OPENROUTER_API_KEY,
-          OPENCLAW_CONFIG: JSON.stringify({
-            gateway: {
-              auth: { mode: 'token', token: gatewayToken },
-              http: {
-                endpoints: {
-                  chatCompletions: { enabled: true }
-                }
-              }
-            }
-          }),
+          OPENCLAW_CONFIG_B64: configBase64,
         },
         guest: {
           cpu_kind: 'shared',
@@ -181,37 +197,10 @@ export const flyService = {
         ],
         restart: {
           policy: 'on-failure',
-          max_retries: 5,
+          max_retries: 10,
         },
         init: {
-          cmd: ['sh', '-c', `
-            cat > /data/openclaw.json << 'EOF'
-{
-  "env": {
-    "OPENROUTER_API_KEY": "$OPENAI_API_KEY"
-  },
-  "gateway": {
-    "auth": {
-      "mode": "token",
-      "token": "$OPENCLAW_TOKEN"
-    },
-    "http": {
-      "endpoints": {
-        "chatCompletions": { "enabled": true }
-      }
-    }
-  },
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "openrouter/openai/gpt-4o"
-      }
-    }
-  }
-}
-EOF
-            node dist/index.js gateway --port 3000 --bind lan
-          `]
+          cmd: ['sh', '-c', 'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && exec node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan']
         }
       },
       region,
@@ -321,35 +310,30 @@ EOF
     const machine = machines[0];
     const openrouterApiKey = process.env.OPENROUTER_API_KEY;
     
-    // Create config JSON with the chat completions endpoint enabled
-    const config = {
+    // Create config with actual values baked in
+    const openclawConfig = {
       gateway: {
         auth: {
-          mode: "token",
+          mode: 'token',
           token: gatewayToken
         },
         http: {
           endpoints: {
-            chatCompletions: { enabled: true },
-            toolsInvoke: { enabled: true }
+            chatCompletions: { enabled: true }
           }
         }
       },
       agents: {
         defaults: {
           model: {
-            primary: "openrouter/openai/gpt-4o"
-          },
-          models: {
-            "openrouter/openai/gpt-4o": {},
-            "openrouter/anthropic/claude-sonnet-4": {}
+            primary: 'openrouter/openai/gpt-4o'
           }
         }
       }
     };
     
-    // Pass config as base64 env var and decode at startup
-    const configBase64 = Buffer.from(JSON.stringify(config)).toString('base64');
+    // Base64 encode config to avoid shell escaping issues
+    const configBase64 = Buffer.from(JSON.stringify(openclawConfig)).toString('base64');
     
     const updatedConfig = {
       config: {
@@ -357,12 +341,14 @@ EOF
         env: {
           NODE_ENV: 'production',
           OPENCLAW_STATE_DIR: '/data',
-          OPENCLAW_CONFIG_BASE64: configBase64,
-          OPENROUTER_API_KEY: openrouterApiKey,
+          OPENCLAW_CONFIG_PATH: '/data/config.json',
           NODE_OPTIONS: '--max-old-space-size=1536',
+          OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
+          OPENAI_API_KEY: openrouterApiKey,
+          OPENCLAW_CONFIG_B64: configBase64,
         },
         init: {
-          cmd: ['sh', '-c', 'mkdir -p /data && echo "$OPENCLAW_CONFIG_BASE64" | base64 -d > /data/openclaw.json && OPENCLAW_CONFIG_PATH=/data/openclaw.json exec node dist/index.js gateway --port 3000 --bind lan']
+          cmd: ['sh', '-c', 'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && exec node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan']
         }
       },
     };

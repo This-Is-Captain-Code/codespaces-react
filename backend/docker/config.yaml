@@ -3,5 +3,3 @@ gateway:
     endpoints:
       chatCompletions:
         enabled: true
-      toolsInvoke:
-        enabled: true

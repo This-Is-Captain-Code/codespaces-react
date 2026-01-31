@@ -71,13 +71,21 @@ Optional:
 - `VITE_PRIVY_APP_ID` - Privy App ID for X/Twitter login
 
 ## Fly.io Gateway Deployment
-Shared OpenClaw gateways are deployed on Fly.io:
+Shared OpenClaw gateways are deployed on Fly.io via the Machines API:
 - Image: `ghcr.io/openclaw/openclaw:latest`
 - Command: `node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan`
 - Port: 3000 (internal), exposed via HTTPS on fly.dev domain
-- Volume: 1GB at /data for persistent state
+- Volume: 10GB at /data for persistent state
 - Memory: 2GB RAM, 2 shared CPUs
 - Each gateway can host ~200 agents
+
+### Config Injection Approach
+OpenClaw requires config before process start. The solution:
+1. Base64-encode the config JSON and pass via `OPENCLAW_CONFIG_B64` env var
+2. Set `OPENCLAW_CONFIG_PATH=/data/config.json` env var
+3. Use init command: `echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && exec node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan`
+
+This ensures config exists before PID 1 starts OpenClaw, avoiding race conditions.
 
 ## Gateway Status Values
 - **creating**: Gateway deployment in progress
@@ -116,6 +124,12 @@ Located in `backend/docker/`:
 To enable pure OpenClaw chat, build this image and deploy to a container registry, then update `flyService.js` to use the custom image URL.
 
 ## Recent Changes
+- 2026-01-31: Fixed OpenClaw Fly.io config injection
+  - Root cause: OpenClaw loads config before process start, causing race conditions
+  - Solution: Base64-encode config, decode before exec, use `--allow-unconfigured` flag
+  - Use `OPENCLAW_CONFIG_PATH` env var (not `OPENCLAW_CONFIG`)
+  - Write config to `/data/config.json` (writable volume, not `/etc/` which requires root)
+  - Gateway now starts correctly on Fly.io Machines
 - 2026-01-31: Custom OpenClaw Docker setup
   - Created Dockerfile and config for pre-enabled chat completions API
   - OpenClaw's HTTP API disabled by default, requires config file
