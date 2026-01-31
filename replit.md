@@ -54,6 +54,8 @@ Backend verifies Privy JWT tokens using `@privy-io/node` SDK when `PRIVY_APP_SEC
 - `PUT /api/bots/update` - Update bot config
 - `POST /api/bots/regenerate-token` - Get new token
 - `DELETE /api/bots/delete` - Delete bot agent
+- `POST /api/chat/message` - Send message to bot via gateway tools/invoke API
+- `GET /api/chat/history` - Get chat history (via gateway)
 
 ## Database Schema
 - **users**: id, email, auth_token, created_at
@@ -99,6 +101,11 @@ After agent creation, users access:
 - Control UI at gateway endpoint with token: `https://gateway.fly.dev/?token=TOKEN`
 
 ## Recent Changes
+- 2026-01-31: Custom chat interface (bypasses WebSocket pairing bug #4941)
+  - Built custom chat UI in BotDashboard with ChatInterface component
+  - Backend proxies messages via OpenClaw tools/invoke REST API
+  - Includes per-bot sessionKey for agent routing
+  - Avoids device pairing requirement that doesn't work through reverse proxies
 - 2026-01-31: Fly.io OpenClaw deployment (following official docs)
   - Deploy OpenClaw gateways to Fly.io via Machines API
   - Use `--allow-unconfigured --port 3000 --bind lan` for headless startup
