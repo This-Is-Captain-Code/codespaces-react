@@ -141,6 +141,7 @@ export const flyService = {
           OPENAI_API_KEY: openrouterApiKey || process.env.OPENROUTER_API_KEY,
         },
         guest: {
+          cpu_kind: 'shared',
           cpus,
           memory_mb: memoryMb,
         },
