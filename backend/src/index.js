@@ -10,6 +10,7 @@ import chatRoutes from './routes/chat.js';
 import agentRoutes from './routes/agents.js';
 import billingRoutes from './routes/billing.js';
 import authRoutes from './routes/auth.js';
+import { autoApprovalService } from './services/autoApprovalService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -58,6 +59,7 @@ async function start() {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`MoltRack Backend running on port ${PORT}`);
     });
+    
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
