@@ -96,18 +96,29 @@ export const railwayService = {
 
   upsertVariables: async (serviceId, projectId, environmentId, variables) => {
     console.log(`Setting ${Object.keys(variables).length} environment variables...`);
-    await graphqlRequest(`
-      mutation VariableCollectionUpsert($input: VariableCollectionUpsertInput!) {
-        variableCollectionUpsert(input: $input)
+    console.log(`  Project: ${projectId}, Environment: ${environmentId}, Service: ${serviceId}`);
+    
+    for (const [name, value] of Object.entries(variables)) {
+      try {
+        await graphqlRequest(`
+          mutation VariableUpsert($input: VariableUpsertInput!) {
+            variableUpsert(input: $input)
+          }
+        `, {
+          input: {
+            projectId,
+            environmentId,
+            serviceId,
+            name,
+            value,
+          }
+        });
+        console.log(`  Set ${name}`);
+      } catch (error) {
+        console.error(`  Failed to set ${name}: ${error.message}`);
+        throw error;
       }
-    `, {
-      input: {
-        projectId,
-        environmentId,
-        serviceId,
-        variables,
-      }
-    });
+    }
     console.log(`Variables set`);
   },
 
