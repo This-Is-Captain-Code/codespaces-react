@@ -100,12 +100,18 @@ Shared OpenClaw gateways are deployed on Fly.io:
 After agent creation, users access:
 - Control UI at gateway endpoint with token: `https://gateway.fly.dev/?token=TOKEN`
 
+## Chat Architecture
+The chat system uses a hybrid approach:
+- **OpenRouter**: Handles AI model inference using the bot's configured model and system prompt
+- **OpenClaw Gateway**: Provides persistent agent infrastructure on Fly.io (for future tool/skill expansion)
+
+This architecture gives users a one-click bot creation experience while keeping costs low ($0.50/user vs $62/user for full per-user containers).
+
 ## Recent Changes
-- 2026-01-31: Custom chat interface (bypasses WebSocket pairing bug #4941)
-  - Built custom chat UI in BotDashboard with ChatInterface component
-  - Backend proxies messages via OpenClaw tools/invoke REST API
-  - Includes per-bot sessionKey for agent routing
-  - Avoids device pairing requirement that doesn't work through reverse proxies
+- 2026-01-31: Chat via OpenRouter
+  - Chat messages go through OpenRouter using bot's model (e.g., openai/gpt-4o)
+  - Bot's system prompt is applied to each conversation
+  - OpenClaw gateway on Fly.io provides persistent infrastructure
 - 2026-01-31: Fly.io OpenClaw deployment (following official docs)
   - Deploy OpenClaw gateways to Fly.io via Machines API
   - Use `--allow-unconfigured --port 3000 --bind lan` for headless startup

@@ -147,6 +147,16 @@ export const flyService = {
           NODE_OPTIONS: '--max-old-space-size=1536',
           OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
           OPENAI_API_KEY: openrouterApiKey || process.env.OPENROUTER_API_KEY,
+          OPENCLAW_CONFIG: JSON.stringify({
+            gateway: {
+              auth: { mode: 'token', token: gatewayToken },
+              http: {
+                endpoints: {
+                  chatCompletions: { enabled: true }
+                }
+              }
+            }
+          }),
         },
         guest: {
           cpu_kind: 'shared',
@@ -174,7 +184,34 @@ export const flyService = {
           max_retries: 5,
         },
         init: {
-          cmd: ['node', 'dist/index.js', 'gateway', '--allow-unconfigured', '--port', '3000', '--bind', 'lan']
+          cmd: ['sh', '-c', `
+            cat > /data/openclaw.json << 'EOF'
+{
+  "env": {
+    "OPENROUTER_API_KEY": "$OPENAI_API_KEY"
+  },
+  "gateway": {
+    "auth": {
+      "mode": "token",
+      "token": "$OPENCLAW_TOKEN"
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": { "enabled": true }
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openrouter/openai/gpt-4o"
+      }
+    }
+  }
+}
+EOF
+            node dist/index.js gateway --port 3000 --bind lan
+          `]
         }
       },
       region,
@@ -271,6 +308,71 @@ export const flyService = {
 
     await flyService.deleteApp(appName);
     return true;
+  },
+
+  updateGatewayConfig: async (gatewayId, gatewayToken) => {
+    const appName = `openclaw-gw-${gatewayId}`;
+    
+    const machines = await flyService.listMachines(appName);
+    if (machines.length === 0) {
+      throw new Error('No machines found for gateway');
+    }
+    
+    const machine = machines[0];
+    const openrouterApiKey = process.env.OPENROUTER_API_KEY;
+    
+    const startupCmd = `
+cat > /data/openclaw.json << 'EOF'
+{
+  "env": {
+    "OPENROUTER_API_KEY": "${openrouterApiKey}"
+  },
+  "gateway": {
+    "auth": {
+      "mode": "token",
+      "token": "${gatewayToken}"
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": { "enabled": true }
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openrouter/openai/gpt-4o"
+      }
+    }
+  }
+}
+EOF
+node dist/index.js gateway --port 3000 --bind lan
+`;
+    
+    const updatedConfig = {
+      config: {
+        ...machine.config,
+        env: {
+          ...machine.config.env,
+          OPENAI_API_KEY: openrouterApiKey,
+          OPENCLAW_TOKEN: gatewayToken,
+        },
+        init: {
+          cmd: ['sh', '-c', startupCmd]
+        }
+      },
+    };
+    
+    console.log(`Updating gateway ${gatewayId} machine config...`);
+    await flyService.stopMachine(appName, machine.id);
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    const result = await flyService.updateMachine(appName, machine.id, updatedConfig);
+    await flyService.startMachine(appName, machine.id);
+    await flyService.waitForMachine(appName, machine.id, 'started');
+    console.log(`Gateway ${gatewayId} updated successfully`);
+    
+    return result;
   },
 
   getGatewayStatus: async (gatewayId) => {

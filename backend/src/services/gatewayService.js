@@ -123,4 +123,14 @@ export const gatewayService = {
       flyStatus: flyStatus.status,
     };
   },
+
+  updateGatewayConfig: async (gatewayId) => {
+    const gateway = await gatewayService.getGateway(gatewayId);
+    if (!gateway) {
+      throw new Error('Gateway not found');
+    }
+
+    await flyService.updateGatewayConfig(gatewayId, gateway.gateway_token);
+    return { success: true, gatewayId };
+  },
 };

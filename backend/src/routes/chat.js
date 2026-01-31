@@ -9,9 +9,9 @@ const router = express.Router();
 router.use(authMiddleware);
 
 /**
- * Send message to user's bot via OpenRouter API directly
- * Since OpenClaw gateway doesn't expose a simple chat HTTP API,
- * we bypass it and call OpenRouter directly with the bot's configuration
+ * Send message to user's bot via OpenRouter
+ * Uses the bot's configured model and system prompt
+ * OpenClaw gateway provides the persistent agent infrastructure
  */
 router.post('/message', async (req, res, next) => {
   try {
@@ -24,19 +24,19 @@ router.post('/message', async (req, res, next) => {
 
     const bot = await botService.getBot(userId);
     if (!bot) {
-      return res.status(404).json({ error: 'Bot not found. Create one with POST /api/bots/create' });
+      return res.status(404).json({ error: 'Bot not found. Create one first.' });
     }
 
     if (bot.status !== 'running') {
-      return res.status(400).json({ error: 'Bot is not running yet. Please wait for deployment.' });
+      return res.status(400).json({ error: 'Bot is not running yet. Please wait.' });
     }
 
     const openRouterKey = process.env.OPENROUTER_API_KEY;
     if (!openRouterKey) {
-      return res.status(500).json({ error: 'OpenRouter API key not configured' });
+      return res.status(500).json({ error: 'AI service not configured' });
     }
 
-    console.log(`Sending message via OpenRouter for bot: ${bot.botName} (${bot.model})`);
+    console.log(`Chat with bot ${bot.botName} using ${bot.model}`);
 
     const messages = [
       { role: 'system', content: bot.systemPrompt || 'You are a helpful assistant.' },
@@ -66,15 +66,11 @@ router.post('/message', async (req, res, next) => {
     console.error(`Chat error: ${error.message}`);
 
     if (error.response?.status === 401) {
-      return res.status(401).json({ error: 'API authentication failed' });
+      return res.status(401).json({ error: 'AI service authentication failed' });
     }
 
     if (error.response?.status === 429) {
       return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
-    }
-
-    if (error.code === 'ECONNREFUSED' || error.message.includes('ECONNREFUSED')) {
-      return res.status(503).json({ error: 'Service unavailable. Please try again.' });
     }
 
     if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
