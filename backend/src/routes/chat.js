@@ -9,8 +9,9 @@ const router = express.Router();
 router.use(authMiddleware);
 
 /**
- * Send message to user's bot via OpenClaw tools/invoke API
- * Bypasses WebSocket pairing requirement
+ * Send message to user's bot via OpenRouter API directly
+ * Since OpenClaw gateway doesn't expose a simple chat HTTP API,
+ * we bypass it and call OpenRouter directly with the bot's configuration
  */
 router.post('/message', async (req, res, next) => {
   try {
@@ -30,64 +31,54 @@ router.post('/message', async (req, res, next) => {
       return res.status(400).json({ error: 'Bot is not running yet. Please wait for deployment.' });
     }
 
-    const gatewayResult = await db.query(
-      'SELECT * FROM gateways WHERE id = $1 LIMIT 1',
-      [bot.gatewayId]
-    );
-    if (!gatewayResult.rows.length) {
-      return res.status(500).json({ error: 'Gateway not found' });
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+      return res.status(500).json({ error: 'OpenRouter API key not configured' });
     }
 
-    const gateway = gatewayResult.rows[0];
-    const gatewayEndpoint = gateway.endpoint;
-    const gatewayToken = gateway.gateway_token;
+    console.log(`Sending message via OpenRouter for bot: ${bot.botName} (${bot.model})`);
 
-    console.log(`Sending message to OpenClaw gateway: ${gatewayEndpoint} for agent: ${bot.agentId}`);
+    const messages = [
+      { role: 'system', content: bot.systemPrompt || 'You are a helpful assistant.' },
+      { role: 'user', content: message.trim() },
+    ];
 
-    const response = await axios.post(`${gatewayEndpoint}/tools/invoke`, {
-      tool: 'agent_chat',
-      action: 'json',
-      args: {
-        message: message.trim(),
-        agentId: bot.agentId,
-      },
-      sessionKey: `${bot.id}-${sessionId}`,
+    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+      model: bot.model || 'openai/gpt-4o',
+      messages,
     }, {
       timeout: 60000,
       headers: {
-        'Authorization': `Bearer ${gatewayToken}`,
+        'Authorization': `Bearer ${openRouterKey}`,
         'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://moltrack.replit.app',
+        'X-Title': 'MoltRack',
       },
     });
 
-    if (response.data.ok === false) {
-      return res.status(400).json({ 
-        error: response.data.error?.message || 'Agent error',
-        response: null 
-      });
-    }
+    const assistantMessage = response.data.choices?.[0]?.message?.content || 'No response';
 
     res.json({
-      response: response.data.result?.content || response.data.result?.message || response.data.result || 'No response',
+      response: assistantMessage,
       model: bot.model,
     });
   } catch (error) {
     console.error(`Chat error: ${error.message}`);
 
     if (error.response?.status === 401) {
-      return res.status(401).json({ error: 'Gateway authentication failed' });
+      return res.status(401).json({ error: 'API authentication failed' });
     }
 
-    if (error.response?.status === 404) {
-      return res.status(404).json({ error: 'Agent tool not found. The gateway may not support chat.' });
+    if (error.response?.status === 429) {
+      return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
     }
 
     if (error.code === 'ECONNREFUSED' || error.message.includes('ECONNREFUSED')) {
-      return res.status(503).json({ error: 'Bot service unavailable. Please try again.' });
+      return res.status(503).json({ error: 'Service unavailable. Please try again.' });
     }
 
     if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
-      return res.status(504).json({ error: 'Request timed out. The agent is taking too long.' });
+      return res.status(504).json({ error: 'Request timed out. Please try again.' });
     }
 
     next(error);
