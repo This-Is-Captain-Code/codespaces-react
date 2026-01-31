@@ -35,6 +35,9 @@ export const botAPI = {
 
   delete: (confirm) =>
     apiClient.delete('/bots/delete', { data: { confirm } }),
+
+  sendMessage: (message, sessionId = 'main') =>
+    apiClient.post('/chat/message', { message, sessionId }),
 };
 
 export const agentAPI = {

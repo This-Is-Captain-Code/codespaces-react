@@ -259,3 +259,30 @@
   color: #16a34a;
   font-size: 14px;
 }
+
+.chat-toggle-section {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.chat-toggle-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chat-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.chat-toggle-btn.active {
+  background: #6b7280;
+}
