@@ -1,0 +1,56 @@
+.billing-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.billing-card h3 {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+.balance {
+  margin-bottom: 20px;
+}
+
+.balance-value {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.balance small {
+  opacity: 0.9;
+  font-size: 13px;
+}
+
+.credit-packages {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.credit-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.credit-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.pricing-info {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.9;
+}

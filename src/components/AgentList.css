@@ -1,0 +1,145 @@
+.agent-list {
+  margin-top: 20px;
+}
+
+.agent-list h2 {
+  color: #333;
+}
+
+.agent-list-empty {
+  text-align: center;
+  padding: 40px;
+  background: #f9f9f9;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  color: #666;
+}
+
+.agents {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.agent-card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.agent-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.agent-card.status-running {
+  border-left: 4px solid #28a745;
+}
+
+.agent-card.status-stopped {
+  border-left: 4px solid #6c757d;
+}
+
+.agent-card.status-errored {
+  border-left: 4px solid #dc3545;
+}
+
+.agent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.agent-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-badge.status-running {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.status-stopped {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.status-badge.status-errored {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.system-prompt {
+  color: #666;
+  font-size: 13px;
+  margin: 10px 0;
+  line-height: 1.4;
+}
+
+.agent-meta {
+  color: #999;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.agent-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.agent-actions button {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #545b62;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c82333;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
