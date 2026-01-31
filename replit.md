@@ -1,7 +1,9 @@
 # MoltRack v0
 
 ## Overview
-MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, create AI bots that can run on Railway as OpenClaw instances, and have those bots persist over time.
+MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, create AI bots that deploy to Railway as OpenClaw instances, and receive tokens to interact with their bots.
+
+**Model**: 1 user → 1 bot → 1 token
 
 ## Project Structure
 - `/` - Frontend (React + Vite)
@@ -19,54 +21,81 @@ MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, c
 - **Frontend**: React 18, Vite, Axios
 - **Backend**: Express.js, Node.js, PostgreSQL
 - **Database**: PostgreSQL (Replit built-in)
-- **Deployment**: Railway API for bot deployment (optional)
+- **Deployment**: Railway API for OpenClaw deployment
+- **AI**: OpenRouter API for model access
 
 ## Running the Application
 - **Frontend**: Runs on port 5000 (Vite dev server)
 - **Backend**: Runs on port 3001 (Express server)
 - The Vite config proxies API requests from the frontend to the backend
 
+## User Flow
+1. User enters username → logs in
+2. User fills bot creation form (name, system prompt, model)
+3. Bot is deployed to Railway as OpenClaw instance
+4. User receives:
+   - Bot endpoint URL
+   - Setup URL with password
+   - OpenClaw control panel URL
+   - One-time access token
+
 ## Authentication
-Currently using simple username-based login (stored in localStorage). Privy with X/Twitter login can be added later by providing VITE_PRIVY_APP_ID.
+Simple username-based login (stored in localStorage). Privy with X/Twitter login can be added later by providing VITE_PRIVY_APP_ID.
 
 ## Key Endpoints
-- `POST /api/bots/create` - Create a new bot
-- `GET /api/bots/me` - Get user's bot
-- `GET /api/bots/status` - Check bot status
+- `POST /api/bots/create` - Create and deploy bot to Railway
+- `GET /api/bots/me` - Get user's bot info
+- `GET /api/bots/status` - Check bot deployment status
 - `PUT /api/bots/update` - Update bot config
-- `DELETE /api/bots/delete` - Delete bot
+- `POST /api/bots/regenerate-token` - Get new token
+- `DELETE /api/bots/delete` - Delete bot and Railway service
 
 ## Database Schema
-- **users**: id, email, created_at
-- **bots**: id, user_id, bot_name, system_prompt, model, railway_service_id, status, endpoint, config
-- **bot_tokens**: id, bot_id, token, created_at, expires_at
+- **users**: id, email, auth_token, created_at
+- **bots**: id, user_id, bot_name, railway_service_id, endpoint, setup_password, token_hash, model, system_prompt, status
+- **bot_tokens**: id, bot_id, token, created_at, expires_at, is_active
 
 ## Environment Variables
-Required secrets:
-- `RAILWAY_API_TOKEN` - Railway API token for deployments
+Required:
+- `RAILWAY_API_TOKEN` - Railway API token
 - `RAILWAY_PROJECT_ID` - Railway project ID
 - `RAILWAY_ENVIRONMENT_ID` - Railway environment ID
+- `OPENROUTER_API_KEY` - OpenRouter API key for AI models
 
 Optional:
 - `VITE_PRIVY_APP_ID` - Privy App ID for X/Twitter login
-- `OPENROUTER_API_KEY` - OpenRouter API key for AI responses
-- `RAILWAY_OPENCLAW_TEMPLATE_ID` - OpenClaw template ID on Railway
 
-## Bot Modes
-- **demo_mode**: Bot created but not deployed to Railway (no Railway credentials)
-- **creating**: Bot being deployed to Railway
-- **running**: Bot successfully deployed and running
+## Railway Deployment Flow
+When a bot is created:
+1. Create Railway service with OpenClaw Docker image
+2. Set environment variables (PORT, SETUP_PASSWORD, OpenRouter config)
+3. Create volume at /data for persistent storage
+4. Create public domain
+5. Trigger deployment
+6. Wait for deployment to be ready
+
+## Bot Status Values
+- **demo_mode**: Railway credentials not configured
+- **creating**: Deployment in progress
+- **running**: Successfully deployed
 - **error**: Deployment failed
 
+## OpenClaw URLs
+After deployment, users get:
+- `/setup` - Configuration wizard (password protected)
+- `/openclaw` - Control panel for managing integrations (Telegram, Discord, etc.)
+
 ## Recent Changes
+- 2026-01-31: Railway OpenClaw deployment
+  - Deploy OpenClaw instances to Railway via GraphQL API
+  - Volume at /data for persistent storage
+  - Setup password and control panel access
+- 2026-01-31: Token system
+  - One-time token display on creation
+  - Secure token generation and hashing
 - 2026-01-31: Simplified authentication
-  - Replaced Privy with simple username login
-  - Can add Privy later with VITE_PRIVY_APP_ID
-- 2026-01-31: Added bot management
-  - Bot creation form with name, system prompt, model selection
-  - Bot status display with demo mode notice
-  - Railway integration for production deployment
+  - Username-based login (Privy optional)
 - 2026-01-31: Initial setup
-  - PostgreSQL database with users, bots, bot_tokens tables
-  - Backend API with bot CRUD operations
-  - Frontend bot dashboard
+  - PostgreSQL database
+  - Backend API with bot CRUD
+  - Frontend dashboard
