@@ -41,7 +41,11 @@ MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, c
    - OpenClaw control panel URL
 
 ## Authentication
-Simple username-based login (stored in localStorage). Privy with X/Twitter login can be added later by providing VITE_PRIVY_APP_ID.
+Dual-mode authentication system:
+- **Privy mode** (active when `VITE_PRIVY_APP_ID` is set): Email, Twitter, and Google login via Privy SDK
+- **Fallback mode**: Simple username-based login (stored in localStorage)
+
+Backend verifies Privy JWT tokens using `@privy-io/node` SDK when `PRIVY_APP_SECRET` is configured.
 
 ## Key Endpoints
 - `POST /api/bots/create` - Create and deploy bot agent
