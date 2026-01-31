@@ -93,6 +93,13 @@ export const flyService = {
     return true;
   },
 
+  updateMachine: async (appName, machineId, config) => {
+    console.log(`Updating machine ${machineId}...`);
+    const result = await flyRequest('POST', `/v1/apps/${appName}/machines/${machineId}`, config);
+    console.log(`Machine updated: ${result.id}`);
+    return result;
+  },
+
   waitForMachine: async (appName, machineId, targetState = 'started', maxAttempts = 30) => {
     console.log(`Waiting for machine ${machineId} to reach state: ${targetState}...`);
     for (let i = 0; i < maxAttempts; i++) {
@@ -136,7 +143,7 @@ export const flyService = {
         env: {
           NODE_ENV: 'production',
           OPENCLAW_STATE_DIR: '/data',
-          OPENCLAW_GATEWAY_TOKEN: gatewayToken,
+          OPENCLAW_TOKEN: gatewayToken,
           NODE_OPTIONS: '--max-old-space-size=1536',
           OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
           OPENAI_API_KEY: openrouterApiKey || process.env.OPENROUTER_API_KEY,
