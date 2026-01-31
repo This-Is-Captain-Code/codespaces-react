@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import '../App.css';
 import { BotDashboard } from './BotDashboard';
@@ -6,6 +6,7 @@ import { setAuthToken } from '../api/client';
 
 function PrivyApp() {
   const { ready, authenticated, user, login, logout, getAccessToken } = usePrivy();
+  const [tokenReady, setTokenReady] = useState(false);
 
   useEffect(() => {
     const setToken = async () => {
@@ -17,6 +18,9 @@ function PrivyApp() {
           console.error('Failed to get access token:', err);
           setAuthToken(user.id);
         }
+        setTokenReady(true);
+      } else {
+        setTokenReady(false);
       }
     };
     setToken();
@@ -25,6 +29,7 @@ function PrivyApp() {
   const handleLogout = async () => {
     await logout();
     setAuthToken('');
+    setTokenReady(false);
   };
 
   const getUserDisplay = () => {
@@ -59,6 +64,17 @@ function PrivyApp() {
               Sign In
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tokenReady) {
+    return (
+      <div className="App loading-screen">
+        <div className="loading-content">
+          <h1>MoltRack v0</h1>
+          <p>Authenticating...</p>
         </div>
       </div>
     );
