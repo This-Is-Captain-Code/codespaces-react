@@ -321,55 +321,32 @@ EOF
     const machine = machines[0];
     const openrouterApiKey = process.env.OPENROUTER_API_KEY;
     
-    const startupCmd = `
-cat > /data/openclaw.json << 'EOF'
-{
-  "env": {
-    "OPENROUTER_API_KEY": "${openrouterApiKey}"
-  },
-  "gateway": {
-    "auth": {
-      "mode": "token",
-      "token": "${gatewayToken}"
-    },
-    "http": {
-      "endpoints": {
-        "chatCompletions": { "enabled": true }
-      }
-    }
-  },
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "openrouter/openai/gpt-4o"
-      }
-    }
-  }
-}
-EOF
-node dist/index.js gateway --port 3000 --bind lan
-`;
-    
+    // Use environment variables for config - OpenClaw reads these
     const updatedConfig = {
       config: {
         ...machine.config,
         env: {
-          ...machine.config.env,
-          OPENAI_API_KEY: openrouterApiKey,
-          OPENCLAW_TOKEN: gatewayToken,
+          NODE_ENV: 'production',
+          OPENCLAW_STATE_DIR: '/data',
+          OPENCLAW_GATEWAY_TOKEN: gatewayToken,
+          OPENROUTER_API_KEY: openrouterApiKey,
+          NODE_OPTIONS: '--max-old-space-size=1536',
         },
         init: {
-          cmd: ['sh', '-c', startupCmd]
+          cmd: ['node', 'dist/index.js', 'gateway', '--allow-unconfigured', '--port', '3000', '--bind', 'lan']
         }
       },
     };
     
     console.log(`Updating gateway ${gatewayId} machine config...`);
     await flyService.stopMachine(appName, machine.id);
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
     const result = await flyService.updateMachine(appName, machine.id, updatedConfig);
-    await flyService.startMachine(appName, machine.id);
-    await flyService.waitForMachine(appName, machine.id, 'started');
+    
+    // Wait for auto-restart after update
+    console.log('Waiting for gateway to restart...');
+    await new Promise(resolve => setTimeout(resolve, 10000));
+    await flyService.waitForMachine(appName, machine.id, 'started', 60);
     console.log(`Gateway ${gatewayId} updated successfully`);
     
     return result;
