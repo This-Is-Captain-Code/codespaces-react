@@ -117,9 +117,11 @@ export const botService = {
       : null;
 
     return {
+      id: bot.id,
       botId: bot.id,
       endpoint: bot.endpoint || bot.gateway_endpoint,
       gatewayToken: bot.gateway_token,
+      gatewayId: bot.gateway_id,
       controlUrl,
       model: bot.model,
       systemPrompt: bot.system_prompt,
