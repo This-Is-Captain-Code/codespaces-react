@@ -3,7 +3,9 @@ import './App.css';
 import { BotDashboard } from './components/BotDashboard';
 import { setAuthToken } from './api/client';
 
-function App() {
+const PRIVY_ENABLED = !!import.meta.env.VITE_PRIVY_APP_ID;
+
+function FallbackAuthApp() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState('');
@@ -13,7 +15,7 @@ function App() {
     if (savedUser) {
       const parsed = JSON.parse(savedUser);
       setUser(parsed);
-      setAuthToken(`did:privy:${parsed.id}`);
+      setAuthToken(`user:${parsed.id}`);
     }
     setLoading(false);
   }, []);
@@ -22,13 +24,17 @@ function App() {
     e.preventDefault();
     if (!username.trim()) return;
     
-    const userId = username.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const crypto = window.crypto || window.msCrypto;
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    const uniqueId = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+    
     const newUser = {
-      id: userId,
+      id: uniqueId,
       username: username.trim(),
     };
     localStorage.setItem('moltrack_user', JSON.stringify(newUser));
-    setAuthToken(`did:privy:${userId}`);
+    setAuthToken(`user:${uniqueId}`);
     setUser(newUser);
   };
 
@@ -57,8 +63,7 @@ function App() {
             <h1>MoltRack v0</h1>
             <p className="tagline">Persistent OpenClaw Agent Runtime</p>
             <p className="description">
-              Create your own AI bot that persists over time.
-              Enter a username to get started.
+              Create your own AI bot that persists over time. Enter a username to get started.
             </p>
             <form onSubmit={handleLogin} className="login-form">
               <input
@@ -101,6 +106,25 @@ function App() {
       </footer>
     </div>
   );
+}
+
+function App() {
+  if (PRIVY_ENABLED) {
+    const PrivyApp = React.lazy(() => import('./components/PrivyApp'));
+    return (
+      <React.Suspense fallback={
+        <div className="App loading-screen">
+          <div className="loading-content">
+            <h1>MoltRack v0</h1>
+            <p>Loading...</p>
+          </div>
+        </div>
+      }>
+        <PrivyApp />
+      </React.Suspense>
+    );
+  }
+  return <FallbackAuthApp />;
 }
 
 export default App;

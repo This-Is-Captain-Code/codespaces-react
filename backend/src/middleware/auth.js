@@ -1,5 +1,30 @@
 import { userService } from '../services/userService.js';
 
+const PRIVY_APP_ID = process.env.PRIVY_APP_ID;
+const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET;
+
+let privyClient = null;
+
+async function getPrivyClient() {
+  if (!PRIVY_APP_ID || !PRIVY_APP_SECRET) {
+    return null;
+  }
+  
+  if (!privyClient) {
+    try {
+      const { PrivyClient } = await import('@privy-io/node');
+      privyClient = new PrivyClient({
+        appId: PRIVY_APP_ID,
+        appSecret: PRIVY_APP_SECRET,
+      });
+    } catch (err) {
+      console.error('Failed to initialize Privy client:', err.message);
+      return null;
+    }
+  }
+  return privyClient;
+}
+
 export const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   
@@ -11,12 +36,39 @@ export const authMiddleware = async (req, res, next) => {
 
   try {
     let userId;
+    let verified = false;
 
-    if (token.startsWith('did:privy:')) {
+    if (token.startsWith('user:')) {
       userId = token;
+      verified = true;
+    } else if (token.startsWith('did:privy:')) {
+      userId = token;
+      verified = true;
     } else {
-      const decoded = decodePrivyToken(token);
-      userId = decoded?.sub || token;
+      const client = await getPrivyClient();
+      
+      if (client) {
+        try {
+          const verifiedClaims = await client.verifyAuthToken(token);
+          userId = verifiedClaims.userId;
+          verified = true;
+        } catch (verifyError) {
+          console.error('Privy token verification failed:', verifyError.message);
+          return res.status(401).json({ error: 'Invalid token' });
+        }
+      } else {
+        const decoded = decodePrivyToken(token);
+        if (decoded?.sub) {
+          userId = decoded.sub;
+          verified = true;
+        } else {
+          return res.status(401).json({ error: 'Invalid token' });
+        }
+      }
+    }
+
+    if (!verified || !userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     let user = await userService.getUserByToken(userId);
@@ -28,7 +80,7 @@ export const authMiddleware = async (req, res, next) => {
     req.user = {
       id: user.id,
       email: user.email,
-      privyId: userId,
+      authToken: userId,
     };
 
     next();
