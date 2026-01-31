@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { botAPI } from '../api/client';
 import './BotDashboard.css';
 
+function buildChatUrl(controlUrl) {
+  try {
+    const url = new URL(controlUrl);
+    url.pathname = '/chat';
+    url.searchParams.set('session', 'main');
+    return url.toString();
+  } catch {
+    return controlUrl;
+  }
+}
+
 export function BotDashboard({ userId }) {
   const [bot, setBot] = useState(null);
   const [token, setToken] = useState(null);
@@ -144,12 +155,26 @@ export function BotDashboard({ userId }) {
           )}
 
           {bot.controlUrl && (
-            <div className="detail-row">
-              <span className="label">Control Panel:</span>
-              <a href={bot.controlUrl} target="_blank" rel="noopener noreferrer" className="link-button">
-                Open OpenClaw Control
-              </a>
-            </div>
+            <>
+              <div className="detail-row">
+                <span className="label">Control Panel:</span>
+                <div className="value-with-copy">
+                  <a href={bot.controlUrl} target="_blank" rel="noopener noreferrer" className="link-button">
+                    Open OpenClaw Control
+                  </a>
+                  <button onClick={() => copyToClipboard(bot.controlUrl)} className="copy-btn">Copy URL</button>
+                </div>
+              </div>
+              <div className="detail-row">
+                <span className="label">Chat Panel:</span>
+                <div className="value-with-copy">
+                  <a href={buildChatUrl(bot.controlUrl)} target="_blank" rel="noopener noreferrer" className="link-button">
+                    Open Chat
+                  </a>
+                  <button onClick={() => copyToClipboard(buildChatUrl(bot.controlUrl))} className="copy-btn">Copy URL</button>
+                </div>
+              </div>
+            </>
           )}
 
           {(gatewayToken || bot.gatewayToken) && (
