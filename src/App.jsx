@@ -1,90 +1,71 @@
 import React, { useState, useEffect } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
 import './App.css';
-import { AgentForm } from './components/AgentForm';
-import { AgentList } from './components/AgentList';
-import { ChatInterface } from './components/ChatInterface';
-import { BillingCard } from './components/BillingCard';
-import { agentAPI } from './api/client';
+import { BotDashboard } from './components/BotDashboard';
 
 function App() {
-  const [agents, setAgents] = useState([]);
-  const [selectedAgent, setSelectedAgent] = useState(null);
+  const { login, logout, authenticated, ready, user } = usePrivy();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAgents();
-  }, []);
-
-  const loadAgents = async () => {
-    try {
-      const response = await agentAPI.getAll();
-      setAgents(response.data);
-    } catch (error) {
-      console.error('Failed to load agents:', error);
-    } finally {
+    if (ready) {
       setLoading(false);
     }
-  };
+  }, [ready]);
 
-  const handleAgentCreated = (newAgent) => {
-    setAgents((prev) => [...prev, newAgent]);
-  };
+  if (loading || !ready) {
+    return (
+      <div className="App loading-screen">
+        <div className="loading-content">
+          <h1>MoltRack v0</h1>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleAgentUpdated = (updatedAgent) => {
-    if (updatedAgent === null) {
-      // Agent was deleted
-      loadAgents();
-    } else {
-      // Agent was updated
-      setAgents((prev) =>
-        prev.map((a) => (a.id === updatedAgent.id ? updatedAgent : a))
-      );
-      if (selectedAgent?.id === updatedAgent.id) {
-        setSelectedAgent(updatedAgent);
-      }
-    }
-  };
+  if (!authenticated) {
+    return (
+      <div className="App">
+        <div className="auth-landing">
+          <div className="auth-card">
+            <h1>MoltRack v0</h1>
+            <p className="tagline">Persistent OpenClaw Agent Runtime</p>
+            <p className="description">
+              Create your own AI bot that persists over time. 
+              Sign in with X to get started.
+            </p>
+            <button onClick={login} className="login-button">
+              Sign in with X
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="App">
       <header className="app-header">
         <div className="header-content">
-          <h1>🚀 MoltRack v0</h1>
-          <p>Persistent OpenClaw Agent Runtime</p>
+          <h1>MoltRack v0</h1>
+          <div className="user-info">
+            {user?.twitter && (
+              <span className="username">@{user.twitter.username}</span>
+            )}
+            <button onClick={logout} className="logout-button">
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="app-main">
-        <div className="sidebar">
-          <BillingCard />
-          <AgentForm onAgentCreated={handleAgentCreated} />
-          {loading ? (
-            <div className="loading">Loading agents...</div>
-          ) : (
-            <AgentList
-              agents={agents}
-              onAgentUpdated={handleAgentUpdated}
-            />
-          )}
-        </div>
-
-        <div className="chat-panel">
-          {selectedAgent ? (
-            <ChatInterface agentId={selectedAgent.id} agent={selectedAgent} />
-          ) : agents.length > 0 ? (
-            <div className="chat-placeholder">
-              <p>Select an agent from the list to start chatting</p>
-            </div>
-          ) : (
-            <div className="chat-placeholder">
-              <p>Create an agent to get started</p>
-            </div>
-          )}
-        </div>
+        <BotDashboard userId={user?.id} />
       </main>
 
       <footer className="app-footer">
-        <p>MoltRack v0 • Powered by OpenClaw & OpenRouter</p>
+        <p>MoltRack v0 - Powered by OpenClaw & OpenRouter</p>
       </footer>
     </div>
   );

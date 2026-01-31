@@ -2,42 +2,21 @@ import axios from 'axios';
 
 const API_BASE = '/api';
 
-const getAuthToken = () => {
-  return localStorage.getItem('authToken') || '';
-};
+let authToken = '';
 
 const apiClient = axios.create({
   baseURL: API_BASE,
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = getAuthToken();
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
+  if (authToken) {
+    config.headers['Authorization'] = `Bearer ${authToken}`;
   }
   return config;
 });
 
 export const setAuthToken = (token) => {
-  localStorage.setItem('authToken', token);
-};
-
-export const clearAuthToken = () => {
-  localStorage.removeItem('authToken');
-};
-
-export const isAuthenticated = () => {
-  return !!getAuthToken();
-};
-
-export const authAPI = {
-  signup: (email, password) =>
-    apiClient.post('/auth/signup', { email, password }),
-
-  login: (email, password) =>
-    apiClient.post('/auth/login', { email, password }),
-
-  me: () => apiClient.get('/auth/me'),
+  authToken = token;
 };
 
 export const botAPI = {
