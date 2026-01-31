@@ -69,13 +69,22 @@ export const railwayService = {
       await railwayService.createVolume(serviceId, projectId, environmentId, '/data');
 
       const domain = await railwayService.createServiceDomain(serviceId, environmentId);
-
-      await railwayService.deployService(serviceId, environmentId);
-
-      await railwayService.waitForDeployment(serviceId, environmentId);
-
       const endpoint = `https://${domain}`;
-      console.log(`Service deployed at ${endpoint}`);
+
+      let status = 'creating';
+      try {
+        await railwayService.deployService(serviceId, environmentId);
+        await railwayService.waitForDeployment(serviceId, environmentId);
+        status = 'running';
+        console.log(`Service deployed at ${endpoint}`);
+      } catch (deployError) {
+        if (deployError.message.includes('rate limit')) {
+          console.warn(`Deployment rate limited - service created but pending. URL: ${endpoint}`);
+          status = 'pending';
+        } else {
+          throw deployError;
+        }
+      }
 
       return {
         railwayServiceId: serviceId,
@@ -86,7 +95,7 @@ export const railwayService = {
         setupUrl: `${endpoint}/setup`,
         controlUrl: `${endpoint}/openclaw`,
         createdAt: new Date().toISOString(),
-        status: 'running',
+        status,
       };
     } catch (error) {
       console.error(`Failed to create Railway service: ${error.message}`);
