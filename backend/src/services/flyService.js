@@ -200,7 +200,7 @@ export const flyService = {
           max_retries: 10,
         },
         init: {
-          cmd: ['sh', '-c', 'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && exec node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan']
+          cmd: ['sh', '-c', 'mkdir -p /home/node/.openclaw && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && node dist/index.js config set gateway.trustedProxies \'["0.0.0.0/0"]\' && exec node dist/index.js gateway --port 3000 --bind lan']
         }
       },
       region,
@@ -348,7 +348,7 @@ export const flyService = {
           OPENCLAW_CONFIG_B64: configBase64,
         },
         init: {
-          cmd: ['sh', '-c', 'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && exec node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan']
+          cmd: ['sh', '-c', 'mkdir -p /home/node/.openclaw && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && node dist/index.js config set gateway.trustedProxies \'["0.0.0.0/0"]\' && exec node dist/index.js gateway --port 3000 --bind lan']
         }
       },
     };

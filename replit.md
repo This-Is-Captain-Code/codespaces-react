@@ -82,10 +82,19 @@ Shared OpenClaw gateways are deployed on Fly.io via the Machines API:
 ### Config Injection Approach
 OpenClaw requires config before process start. The solution:
 1. Base64-encode the config JSON and pass via `OPENCLAW_CONFIG_B64` env var
-2. Set `OPENCLAW_CONFIG_PATH=/data/config.json` env var
-3. Use init command: `echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && exec node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan`
+2. Write config to `~/.openclaw/openclaw.json` at startup
+3. **CRITICAL**: Use CLI to set trustedProxies at runtime before starting gateway (config file approach is flaky behind Fly.io/Railway proxies)
+4. Start gateway with `node dist/index.js gateway --port 3000 --bind lan`
 
-This ensures config exists before PID 1 starts OpenClaw, avoiding race conditions.
+Init command:
+```bash
+mkdir -p /home/node/.openclaw && \
+echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && \
+node dist/index.js config set gateway.trustedProxies '["0.0.0.0/0"]' && \
+exec node dist/index.js gateway --port 3000 --bind lan
+```
+
+The CLI-based `config set` for trustedProxies is required because the config file-based approach doesn't work reliably behind reverse proxies.
 
 ## Gateway Status Values
 - **creating**: Gateway deployment in progress
