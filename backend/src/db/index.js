@@ -36,6 +36,7 @@ export async function initializeDatabase() {
       railway_service_id VARCHAR(255),
       endpoint VARCHAR(500),
       token_hash VARCHAR(255),
+      setup_password VARCHAR(255),
       model VARCHAR(100) DEFAULT 'gpt-3.5-turbo',
       system_prompt TEXT DEFAULT 'You are a helpful assistant.',
       openrouter_api_key_encrypted TEXT,
@@ -45,6 +46,10 @@ export async function initializeDatabase() {
       UNIQUE(user_id)
     )
   `);
+
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS setup_password VARCHAR(255)
+  `).catch(() => {});
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS bot_tokens (

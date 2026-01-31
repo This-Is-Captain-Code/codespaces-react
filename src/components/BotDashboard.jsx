@@ -4,13 +4,14 @@ import './BotDashboard.css';
 
 export function BotDashboard({ userId }) {
   const [bot, setBot] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     botName: '',
     systemPrompt: 'You are a helpful AI assistant.',
-    model: 'gpt-3.5-turbo',
+    model: 'openai/gpt-3.5-turbo',
   });
 
   useEffect(() => {
@@ -38,11 +39,18 @@ export function BotDashboard({ userId }) {
     try {
       const response = await botAPI.create(formData);
       setBot(response.data.bot);
+      if (response.data.bot.token) {
+        setToken(response.data.bot.token);
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create bot');
     } finally {
       setCreating(false);
     }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
   };
 
   if (loading) {
@@ -54,7 +62,7 @@ export function BotDashboard({ userId }) {
       <div className="bot-dashboard">
         <div className="create-bot-card">
           <h2>Create Your Bot</h2>
-          <p>Set up your persistent AI bot that runs on OpenClaw.</p>
+          <p>Set up your persistent AI bot powered by OpenClaw.</p>
 
           <form onSubmit={handleCreateBot} className="bot-form">
             <div className="form-group">
@@ -84,17 +92,17 @@ export function BotDashboard({ userId }) {
                 value={formData.model}
                 onChange={(e) => setFormData({ ...formData, model: e.target.value })}
               >
-                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                <option value="gpt-4-turbo-preview">GPT-4 Turbo</option>
-                <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-                <option value="claude-3-opus">Claude 3 Opus</option>
+                <option value="openai/gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                <option value="openai/gpt-4-turbo">GPT-4 Turbo</option>
+                <option value="anthropic/claude-3-sonnet">Claude 3 Sonnet</option>
+                <option value="anthropic/claude-3-opus">Claude 3 Opus</option>
               </select>
             </div>
 
             {error && <div className="error-message">{error}</div>}
 
             <button type="submit" disabled={creating} className="create-button">
-              {creating ? 'Creating Bot...' : 'Create Bot'}
+              {creating ? 'Deploying to Railway...' : 'Create Bot'}
             </button>
           </form>
         </div>
@@ -107,7 +115,7 @@ export function BotDashboard({ userId }) {
       <div className="bot-info-card">
         <div className="bot-header">
           <h2>{bot.botName}</h2>
-          <span className={`status-badge ${bot.status}`}>{bot.status}</span>
+          <span className={`status-badge ${bot.status}`}>{bot.status.replace('_', ' ')}</span>
         </div>
 
         <div className="bot-details">
@@ -115,16 +123,54 @@ export function BotDashboard({ userId }) {
             <span className="label">Model:</span>
             <span className="value">{bot.model}</span>
           </div>
+          
           <div className="detail-row">
             <span className="label">System Prompt:</span>
             <span className="value prompt">{bot.systemPrompt}</span>
           </div>
+
           {bot.endpoint && (
             <div className="detail-row">
               <span className="label">Endpoint:</span>
-              <span className="value endpoint">{bot.endpoint}</span>
+              <div className="value-with-copy">
+                <span className="value endpoint">{bot.endpoint}</span>
+                <button onClick={() => copyToClipboard(bot.endpoint)} className="copy-btn">Copy</button>
+              </div>
             </div>
           )}
+
+          {bot.controlUrl && (
+            <div className="detail-row">
+              <span className="label">Control Panel:</span>
+              <a href={bot.controlUrl} target="_blank" rel="noopener noreferrer" className="link-button">
+                Open OpenClaw Control
+              </a>
+            </div>
+          )}
+
+          {bot.setupUrl && bot.setupPassword && (
+            <div className="detail-row">
+              <span className="label">Setup URL:</span>
+              <div className="value-with-copy">
+                <a href={bot.setupUrl} target="_blank" rel="noopener noreferrer" className="value endpoint">
+                  {bot.setupUrl}
+                </a>
+                <button onClick={() => copyToClipboard(bot.setupPassword)} className="copy-btn">Copy Password</button>
+              </div>
+            </div>
+          )}
+
+          {token && (
+            <div className="detail-row token-section">
+              <span className="label">Your Bot Token (save this!):</span>
+              <div className="value-with-copy">
+                <code className="token-value">{token}</code>
+                <button onClick={() => copyToClipboard(token)} className="copy-btn">Copy</button>
+              </div>
+              <p className="token-warning">This token is shown only once. Save it securely!</p>
+            </div>
+          )}
+
           <div className="detail-row">
             <span className="label">Created:</span>
             <span className="value">{new Date(bot.createdAt).toLocaleDateString()}</span>
@@ -133,7 +179,19 @@ export function BotDashboard({ userId }) {
 
         {bot.status === 'demo_mode' && (
           <div className="demo-notice">
-            Your bot is running in demo mode. Configure Railway credentials to deploy a live instance.
+            Your bot is in demo mode. Railway credentials are required to deploy a live OpenClaw instance.
+          </div>
+        )}
+
+        {bot.status === 'error' && (
+          <div className="error-notice">
+            Deployment failed. Please check Railway credentials and try again.
+          </div>
+        )}
+
+        {bot.status === 'running' && (
+          <div className="success-notice">
+            Your bot is live! Access the OpenClaw control panel to configure integrations like Telegram or Discord.
           </div>
         )}
       </div>

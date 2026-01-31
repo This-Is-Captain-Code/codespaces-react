@@ -35,7 +35,9 @@ export const botService = {
       let railwayInfo = null;
       let endpoint = null;
 
-      if (process.env.RAILWAY_API_TOKEN) {
+      let setupPassword = null;
+
+      if (process.env.RAILWAY_API_TOKEN && process.env.RAILWAY_PROJECT_ID && process.env.RAILWAY_ENVIRONMENT_ID) {
         try {
           railwayInfo = await railwayService.createBotService(
             userId,
@@ -44,15 +46,16 @@ export const botService = {
             config
           );
           endpoint = railwayInfo.endpoint;
+          setupPassword = railwayInfo.setupPassword;
 
           await db.query(
-            `UPDATE bots SET railway_service_id = $1, endpoint = $2, status = 'running' WHERE id = $3`,
-            [railwayInfo.railwayServiceId, endpoint, botId]
+            `UPDATE bots SET railway_service_id = $1, endpoint = $2, setup_password = $3, status = 'running' WHERE id = $4`,
+            [railwayInfo.railwayServiceId, endpoint, setupPassword, botId]
           );
         } catch (railwayError) {
           console.warn(`Railway deployment failed: ${railwayError.message}`);
           await db.query(
-            `UPDATE bots SET status = 'demo_mode' WHERE id = $1`,
+            `UPDATE bots SET status = 'error' WHERE id = $1`,
             [botId]
           );
         }
@@ -83,10 +86,13 @@ export const botService = {
         botId,
         token,
         endpoint,
+        setupPassword,
+        setupUrl: endpoint ? `${endpoint}/setup` : null,
+        controlUrl: endpoint ? `${endpoint}/openclaw` : null,
         model: bot.model,
         systemPrompt: bot.system_prompt,
         botName: bot.bot_name,
-        status: endpoint ? 'running' : 'demo_mode',
+        status: endpoint ? 'running' : (railwayInfo ? 'error' : 'demo_mode'),
       };
     } catch (error) {
       console.error(`Failed to create bot: ${error.message}`);
@@ -96,7 +102,7 @@ export const botService = {
 
   getBot: async (userId) => {
     const result = await db.query(
-      `SELECT id, bot_name, railway_service_id, endpoint, model, system_prompt, status, created_at
+      `SELECT id, bot_name, railway_service_id, endpoint, setup_password, model, system_prompt, status, created_at
        FROM bots WHERE user_id = $1`,
       [userId]
     );
@@ -109,6 +115,9 @@ export const botService = {
     return {
       botId: bot.id,
       endpoint: bot.endpoint,
+      setupPassword: bot.setup_password,
+      setupUrl: bot.endpoint ? `${bot.endpoint}/setup` : null,
+      controlUrl: bot.endpoint ? `${bot.endpoint}/openclaw` : null,
       model: bot.model,
       systemPrompt: bot.system_prompt,
       botName: bot.bot_name,

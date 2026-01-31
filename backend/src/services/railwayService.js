@@ -1,12 +1,8 @@
 import axios from 'axios';
+import crypto from 'crypto';
 
-const RAILWAY_API_URL = 'https://backend.railway.app/graphql';
+const RAILWAY_API_URL = 'https://backboard.railway.com/graphql/v2';
 const RAILWAY_API_TOKEN = process.env.RAILWAY_API_TOKEN;
-
-/**
- * Railway Service Integration
- * Manages bot services on Railway platform
- */
 
 const railwayClient = axios.create({
   baseURL: RAILWAY_API_URL,
@@ -16,396 +12,270 @@ const railwayClient = axios.create({
   },
 });
 
+async function graphqlRequest(query, variables = {}) {
+  const response = await railwayClient.post('', { query, variables });
+  if (response.data.errors) {
+    const errorMsg = response.data.errors.map(e => e.message).join(', ');
+    throw new Error(`Railway API: ${errorMsg}`);
+  }
+  return response.data.data;
+}
+
 export const railwayService = {
-  /**
-   * Create a new Railway service for a bot
-   * @param {string} userId - User ID
-   * @param {string} botId - Bot ID
-   * @param {string} openrouterApiKey - OpenRouter API key
-   * @param {Object} config - Bot configuration
-   * @returns {Promise<Object>} Service info with endpoint URL
-   */
   createBotService: async (userId, botId, openrouterApiKey, config = {}) => {
     try {
-      console.log(`🚀 Creating Railway service for bot ${botId}...`);
+      console.log(`Creating Railway service for bot ${botId}...`);
 
-      // Query to create a new service
-      const query = `
-        mutation CreateService($input: ServiceCreateInput!) {
+      const serviceName = `openclaw-${botId.substring(0, 8)}`;
+      const setupPassword = crypto.randomBytes(16).toString('hex');
+      const gatewayToken = crypto.randomBytes(32).toString('hex');
+      const projectId = process.env.RAILWAY_PROJECT_ID;
+      const environmentId = process.env.RAILWAY_ENVIRONMENT_ID;
+
+      const createResult = await graphqlRequest(`
+        mutation ServiceCreate($input: ServiceCreateInput!) {
           serviceCreate(input: $input) {
-            service {
-              id
-              name
-              createdAt
-            }
+            id
+            name
           }
         }
-      `;
-
-      const variables = {
+      `, {
         input: {
-          name: `bot-${botId.substring(0, 8)}`,
-          templateId: process.env.RAILWAY_OPENCLAW_TEMPLATE_ID,
-          environmentId: process.env.RAILWAY_ENVIRONMENT_ID,
-          projectId: process.env.RAILWAY_PROJECT_ID,
-        },
-      };
-
-      const response = await railwayClient.post('', {
-        query,
-        variables,
+          projectId,
+          name: serviceName,
+          source: {
+            image: 'ghcr.io/clawdhub/openclaw-gateway:latest'
+          }
+        }
       });
 
-      if (response.data.errors) {
-        throw new Error(`Railway API error: ${response.data.errors[0].message}`);
-      }
+      const service = createResult.serviceCreate;
+      const serviceId = service.id;
+      console.log(`Service created: ${serviceId} (${service.name})`);
 
-      const service = response.data.data.serviceCreate.service;
-      console.log(`✅ Service created: ${service.id}`);
+      await railwayService.upsertVariables(serviceId, projectId, environmentId, {
+        PORT: '8080',
+        SETUP_PASSWORD: setupPassword,
+        OPENCLAW_STATE_DIR: '/data/.openclaw',
+        OPENCLAW_WORKSPACE_DIR: '/data/workspace',
+        OPENCLAW_GATEWAY_TOKEN: gatewayToken,
+        OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
+        OPENAI_API_KEY: openrouterApiKey,
+        OPENAI_MODEL: config.model || 'openai/gpt-3.5-turbo',
+        SYSTEM_PROMPT: config.systemPrompt || 'You are a helpful assistant.',
+        BOT_NAME: config.botName || `Bot ${botId.substring(0, 8)}`,
+      });
 
-      // Set environment variables for the service
-      await railwayService.setServiceEnvironmentVariables(
-        service.id,
-        userId,
-        botId,
-        openrouterApiKey,
-        config
-      );
+      await railwayService.createVolume(serviceId, projectId, environmentId, '/data');
 
-      // Deploy the service
-      await railwayService.deployService(service.id);
+      const domain = await railwayService.createServiceDomain(serviceId, environmentId);
 
-      // Wait for service to be healthy
-      const endpoint = await railwayService.waitForServiceHealth(service.id);
+      await railwayService.deployService(serviceId, environmentId);
+
+      await railwayService.waitForDeployment(serviceId, environmentId);
+
+      const endpoint = `https://${domain}`;
+      console.log(`Service deployed at ${endpoint}`);
 
       return {
-        railwayServiceId: service.id,
+        railwayServiceId: serviceId,
         botId,
         userId,
         endpoint,
+        setupPassword,
+        setupUrl: `${endpoint}/setup`,
+        controlUrl: `${endpoint}/openclaw`,
         createdAt: new Date().toISOString(),
         status: 'running',
       };
     } catch (error) {
-      console.error(`❌ Failed to create Railway service: ${error.message}`);
+      console.error(`Failed to create Railway service: ${error.message}`);
       throw error;
     }
   },
 
-  /**
-   * Set environment variables for a Railway service
-   */
-  setServiceEnvironmentVariables: async (
-    railwayServiceId,
-    userId,
-    botId,
-    openrouterApiKey,
-    config
-  ) => {
-    try {
-      console.log(`⚙️  Setting environment variables...`);
+  upsertVariables: async (serviceId, projectId, environmentId, variables) => {
+    console.log(`Setting ${Object.keys(variables).length} environment variables...`);
+    await graphqlRequest(`
+      mutation VariableCollectionUpsert($input: VariableCollectionUpsertInput!) {
+        variableCollectionUpsert(input: $input)
+      }
+    `, {
+      input: {
+        projectId,
+        environmentId,
+        serviceId,
+        variables,
+      }
+    });
+    console.log(`Variables set`);
+  },
 
-      const mutation = `
-        mutation UpsertVariables($input: VariableCollectionUpsertInput!) {
-          variableCollectionUpsert(input: $input) {
-            variableCollection {
-              id
-            }
+  createVolume: async (serviceId, projectId, environmentId, mountPath) => {
+    console.log(`Creating volume at ${mountPath}...`);
+    try {
+      const result = await graphqlRequest(`
+        mutation VolumeCreate($input: VolumeCreateInput!) {
+          volumeCreate(input: $input) {
+            id
           }
         }
-      `;
-
-      const variables = {
+      `, {
         input: {
-          serviceId: railwayServiceId,
-          environmentId: process.env.RAILWAY_ENVIRONMENT_ID,
-          variables: {
-            OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
-            OPENAI_API_KEY: openrouterApiKey,
-            BOT_ID: botId,
-            USER_ID: userId,
-            BOT_NAME: config.botName || `Bot ${botId.substring(0, 8)}`,
-            BOT_MODEL: config.model || 'gpt-3.5-turbo',
-            SYSTEM_PROMPT: config.systemPrompt || 'You are a helpful assistant.',
-          },
-        },
-      };
-
-      const response = await railwayClient.post('', {
-        query: mutation,
-        variables,
-      });
-
-      if (response.data.errors) {
-        throw new Error(`Failed to set env vars: ${response.data.errors[0].message}`);
-      }
-
-      console.log(`✅ Environment variables set`);
-      return response.data.data.variableCollectionUpsert.variableCollection;
-    } catch (error) {
-      console.error(`❌ Failed to set environment variables: ${error.message}`);
-      throw error;
-    }
-  },
-
-  /**
-   * Deploy a Railway service
-   */
-  deployService: async (railwayServiceId) => {
-    try {
-      console.log(`📤 Deploying service...`);
-
-      const mutation = `
-        mutation Deploy($input: DeployInput!) {
-          deploy(input: $input) {
-            deployment {
-              id
-              status
-            }
-          }
+          projectId,
+          environmentId,
+          serviceId,
+          mountPath,
         }
-      `;
-
-      const variables = {
-        input: {
-          serviceId: railwayServiceId,
-          environmentId: process.env.RAILWAY_ENVIRONMENT_ID,
-        },
-      };
-
-      const response = await railwayClient.post('', {
-        query: mutation,
-        variables,
       });
-
-      if (response.data.errors) {
-        throw new Error(`Deploy failed: ${response.data.errors[0].message}`);
-      }
-
-      console.log(`✅ Deployment started`);
-      return response.data.data.deploy.deployment;
+      console.log(`Volume created: ${result.volumeCreate?.id}`);
+      return result.volumeCreate;
     } catch (error) {
-      console.error(`❌ Deployment error: ${error.message}`);
-      throw error;
+      console.warn(`Volume creation warning: ${error.message}`);
     }
   },
 
-  /**
-   * Wait for service to be healthy and get endpoint
-   */
-  waitForServiceHealth: async (railwayServiceId, maxAttempts = 30) => {
-    console.log(`🏥 Waiting for service to be healthy...`);
+  createServiceDomain: async (serviceId, environmentId) => {
+    console.log(`Creating service domain...`);
+    const result = await graphqlRequest(`
+      mutation ServiceDomainCreate($input: ServiceDomainCreateInput!) {
+        serviceDomainCreate(input: $input) {
+          id
+          domain
+        }
+      }
+    `, {
+      input: {
+        serviceId,
+        environmentId,
+      }
+    });
+
+    const domain = result.serviceDomainCreate.domain;
+    console.log(`Domain created: ${domain}`);
+    return domain;
+  },
+
+  deployService: async (serviceId, environmentId) => {
+    console.log(`Triggering deployment...`);
+    await graphqlRequest(`
+      mutation ServiceInstanceDeployV2($serviceId: String!, $environmentId: String!) {
+        serviceInstanceDeployV2(serviceId: $serviceId, environmentId: $environmentId)
+      }
+    `, { serviceId, environmentId });
+    console.log(`Deployment triggered`);
+  },
+
+  waitForDeployment: async (serviceId, environmentId, maxAttempts = 60) => {
+    console.log(`Waiting for deployment to be ready...`);
 
     for (let i = 0; i < maxAttempts; i++) {
       try {
-        const query = `
-          query GetService($id: String!) {
-            service(id: $id) {
-              id
-              status
-              deployments(first: 1) {
-                edges {
-                  node {
-                    status
-                    url
-                  }
-                }
+        const result = await graphqlRequest(`
+          query ServiceInstance($serviceId: String!, $environmentId: String!) {
+            serviceInstance(serviceId: $serviceId, environmentId: $environmentId) {
+              latestDeployment {
+                id
+                status
               }
             }
           }
-        `;
+        `, { serviceId, environmentId });
 
-        const response = await railwayClient.post('', {
-          query,
-          variables: { id: railwayServiceId },
-        });
+        const deployment = result.serviceInstance?.latestDeployment;
+        const status = deployment?.status;
 
-        if (response.data.errors) {
-          console.log(`  Attempt ${i + 1}/${maxAttempts}: Waiting...`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          continue;
+        if (status === 'SUCCESS') {
+          console.log(`Deployment ready!`);
+          return true;
         }
 
-        const service = response.data.data.service;
-        const deployment = service.deployments?.edges?.[0]?.node;
-
-        if (deployment?.status === 'SUCCESS' && deployment?.url) {
-          console.log(`✅ Service healthy at ${deployment.url}`);
-          return deployment.url;
+        if (status === 'FAILED' || status === 'CRASHED') {
+          throw new Error(`Deployment ${status}`);
         }
 
-        console.log(`  Attempt ${i + 1}/${maxAttempts}: Status ${deployment?.status || 'unknown'}...`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      } catch (error) {
+        console.log(`  Attempt ${i + 1}/${maxAttempts}: Status = ${status || 'pending'}...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      } catch (queryError) {
+        if (queryError.message.includes('Deployment')) throw queryError;
         console.log(`  Attempt ${i + 1}/${maxAttempts}: Waiting...`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
     }
 
-    throw new Error('Service failed to become healthy in time');
+    console.warn(`Deployment still in progress after ${maxAttempts} attempts`);
+    return false;
   },
 
-  /**
-   * Get service status and endpoint
-   */
   getServiceStatus: async (railwayServiceId) => {
+    const environmentId = process.env.RAILWAY_ENVIRONMENT_ID;
     try {
-      const query = `
-        query GetService($id: String!) {
-          service(id: $id) {
-            id
-            status
-            deployments(first: 1) {
+      const result = await graphqlRequest(`
+        query ServiceInstance($serviceId: String!, $environmentId: String!) {
+          serviceInstance(serviceId: $serviceId, environmentId: $environmentId) {
+            serviceName
+            latestDeployment {
+              id
+              status
+            }
+          }
+          service(id: $serviceId) {
+            serviceDomains {
               edges {
                 node {
-                  status
-                  url
+                  domain
                 }
               }
             }
           }
         }
-      `;
+      `, { serviceId: railwayServiceId, environmentId });
 
-      const response = await railwayClient.post('', {
-        query,
-        variables: { id: railwayServiceId },
-      });
-
-      if (response.data.errors) {
-        throw new Error(`Failed to get service: ${response.data.errors[0].message}`);
-      }
-
-      const service = response.data.data.service;
-      const deployment = service.deployments?.edges?.[0]?.node;
+      const deployment = result.serviceInstance?.latestDeployment;
+      const domain = result.service?.serviceDomains?.edges?.[0]?.node?.domain;
 
       return {
-        railwayServiceId: service.id,
+        railwayServiceId,
         status: deployment?.status || 'unknown',
-        endpoint: deployment?.url || null,
+        endpoint: domain ? `https://${domain}` : null,
       };
     } catch (error) {
-      console.error(`❌ Failed to get service status: ${error.message}`);
+      console.error(`Failed to get service status: ${error.message}`);
       throw error;
     }
   },
 
-  /**
-   * Stop a Railway service
-   */
-  stopService: async (railwayServiceId) => {
-    try {
-      console.log(`⏹  Stopping service...`);
-
-      const mutation = `
-        mutation StopService($input: ServiceStopInput!) {
-          serviceStop(input: $input) {
-            service {
-              id
-              status
-            }
-          }
-        }
-      `;
-
-      const variables = {
-        input: {
-          serviceId: railwayServiceId,
-          environmentId: process.env.RAILWAY_ENVIRONMENT_ID,
-        },
-      };
-
-      const response = await railwayClient.post('', {
-        query: mutation,
-        variables,
-      });
-
-      if (response.data.errors) {
-        throw new Error(`Stop failed: ${response.data.errors[0].message}`);
-      }
-
-      console.log(`✅ Service stopped`);
-      return response.data.data.serviceStop.service;
-    } catch (error) {
-      console.error(`❌ Failed to stop service: ${error.message}`);
-      throw error;
-    }
-  },
-
-  /**
-   * Delete a Railway service
-   */
   deleteService: async (railwayServiceId) => {
     try {
-      console.log(`🗑  Deleting service...`);
-
-      const mutation = `
-        mutation DeleteService($id: String!) {
+      console.log(`Deleting service ${railwayServiceId}...`);
+      await graphqlRequest(`
+        mutation ServiceDelete($id: String!) {
           serviceDelete(id: $id)
         }
-      `;
-
-      const response = await railwayClient.post('', {
-        query: mutation,
-        variables: { id: railwayServiceId },
-      });
-
-      if (response.data.errors) {
-        throw new Error(`Delete failed: ${response.data.errors[0].message}`);
-      }
-
-      console.log(`✅ Service deleted`);
+      `, { id: railwayServiceId });
+      console.log(`Service deleted`);
       return true;
     } catch (error) {
-      console.error(`❌ Failed to delete service: ${error.message}`);
+      console.error(`Failed to delete service: ${error.message}`);
       throw error;
     }
   },
 
-  /**
-   * Update service environment variables
-   */
   updateServiceConfig: async (railwayServiceId, config) => {
-    try {
-      console.log(`📝 Updating service configuration...`);
+    const projectId = process.env.RAILWAY_PROJECT_ID;
+    const environmentId = process.env.RAILWAY_ENVIRONMENT_ID;
+    
+    const updates = {};
+    if (config.systemPrompt) updates.SYSTEM_PROMPT = config.systemPrompt;
+    if (config.model) updates.OPENAI_MODEL = config.model;
+    if (config.botName) updates.BOT_NAME = config.botName;
 
-      const updates = {};
-      if (config.systemPrompt) updates.SYSTEM_PROMPT = config.systemPrompt;
-      if (config.model) updates.BOT_MODEL = config.model;
-      if (config.botName) updates.BOT_NAME = config.botName;
-
-      const mutation = `
-        mutation UpsertVariables($input: VariableCollectionUpsertInput!) {
-          variableCollectionUpsert(input: $input) {
-            variableCollection {
-              id
-            }
-          }
-        }
-      `;
-
-      const variables = {
-        input: {
-          serviceId: railwayServiceId,
-          environmentId: process.env.RAILWAY_ENVIRONMENT_ID,
-          variables: updates,
-        },
-      };
-
-      const response = await railwayClient.post('', {
-        query: mutation,
-        variables,
-      });
-
-      if (response.data.errors) {
-        throw new Error(`Update failed: ${response.data.errors[0].message}`);
-      }
-
-      console.log(`✅ Configuration updated`);
-      return true;
-    } catch (error) {
-      console.error(`❌ Failed to update config: ${error.message}`);
-      throw error;
+    if (Object.keys(updates).length > 0) {
+      await railwayService.upsertVariables(railwayServiceId, projectId, environmentId, updates);
+      await railwayService.deployService(railwayServiceId, environmentId);
+      console.log(`Configuration updated`);
     }
+
+    return true;
   },
 };

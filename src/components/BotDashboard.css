@@ -177,11 +177,85 @@
   word-break: break-all;
 }
 
+.value-with-copy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.copy-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.copy-btn:hover {
+  background: #5a6fd6;
+}
+
+.link-button {
+  color: #667eea;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.token-section {
+  background: #f0fdf4;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.token-value {
+  font-family: monospace;
+  background: #e0e7ff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  word-break: break-all;
+  flex: 1;
+}
+
+.token-warning {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
 .demo-notice {
   margin-top: 24px;
   padding: 16px;
   background: #fef3c7;
   border-radius: 8px;
   color: #92400e;
+  font-size: 14px;
+}
+
+.error-notice {
+  margin-top: 24px;
+  padding: 16px;
+  background: #fee2e2;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.success-notice {
+  margin-top: 24px;
+  padding: 16px;
+  background: #dcfce7;
+  border-radius: 8px;
+  color: #16a34a;
   font-size: 14px;
 }
