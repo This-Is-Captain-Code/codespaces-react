@@ -162,4 +162,25 @@ router.get('/admin/list', async (req, res, next) => {
   }
 });
 
+/**
+ * Delete all Railway services and clear bots (admin only)
+ */
+router.post('/admin/cleanup', async (req, res, next) => {
+  try {
+    const { railwayService } = await import('../services/railwayService.js');
+    
+    const railwayResults = await railwayService.deleteAllOpenclawServices();
+    
+    await botService.deleteAllBots();
+    
+    res.json({
+      success: true,
+      message: 'Cleanup complete',
+      railwayServicesDeleted: railwayResults,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

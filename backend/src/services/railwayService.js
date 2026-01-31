@@ -288,6 +288,54 @@ export const railwayService = {
     }
   },
 
+  listAllServices: async () => {
+    const projectId = process.env.RAILWAY_PROJECT_ID;
+    try {
+      const result = await graphqlRequest(`
+        query Project($id: String!) {
+          project(id: $id) {
+            services {
+              edges {
+                node {
+                  id
+                  name
+                  createdAt
+                }
+              }
+            }
+          }
+        }
+      `, { id: projectId });
+
+      const services = result.project?.services?.edges?.map(e => e.node) || [];
+      return services;
+    } catch (error) {
+      console.error(`Failed to list services: ${error.message}`);
+      throw error;
+    }
+  },
+
+  deleteAllOpenclawServices: async () => {
+    console.log('Listing all services in Railway project...');
+    const services = await railwayService.listAllServices();
+    const openclawServices = services.filter(s => s.name.startsWith('openclaw-'));
+    
+    console.log(`Found ${openclawServices.length} OpenClaw services to delete`);
+    
+    const results = [];
+    for (const service of openclawServices) {
+      try {
+        await railwayService.deleteService(service.id);
+        results.push({ id: service.id, name: service.name, deleted: true });
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        results.push({ id: service.id, name: service.name, deleted: false, error: error.message });
+      }
+    }
+    
+    return results;
+  },
+
   updateServiceConfig: async (railwayServiceId, config) => {
     const projectId = process.env.RAILWAY_PROJECT_ID;
     const environmentId = process.env.RAILWAY_ENVIRONMENT_ID;

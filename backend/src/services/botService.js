@@ -335,4 +335,11 @@ export const botService = {
       createdAt: row.created_at,
     }));
   },
+
+  deleteAllBots: async () => {
+    await db.query(`DELETE FROM bot_tokens`);
+    const result = await db.query(`DELETE FROM bots RETURNING id`);
+    console.log(`Deleted ${result.rowCount} bots from database`);
+    return result.rowCount;
+  },
 };
