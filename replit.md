@@ -1,9 +1,11 @@
 # MoltRack v0
 
 ## Overview
-MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, create AI bots that deploy to Railway as OpenClaw instances, and receive tokens to interact with their bots.
+MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, create AI bots that are deployed as agents on shared OpenClaw gateway instances running on Fly.io.
 
 **Model**: 1 user → 1 bot → 1 token
+
+**Architecture**: Shared gateway model - multiple user agents run on shared OpenClaw gateway instances for cost efficiency (~$0.50/user vs $62/user for per-user containers).
 
 ## Project Structure
 - `/` - Frontend (React + Vite)
@@ -13,7 +15,7 @@ MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, c
 - `/src/api` - API client for backend communication
 - `/backend/src` - Backend source files
 - `/backend/src/routes` - API route handlers
-- `/backend/src/services` - Business logic (botService, railwayService, userService)
+- `/backend/src/services` - Business logic (botService, flyService, gatewayService, userService)
 - `/backend/src/db` - Database connection and schema
 - `/backend/src/middleware` - Auth middleware
 
@@ -21,7 +23,7 @@ MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, c
 - **Frontend**: React 18, Vite, Axios
 - **Backend**: Express.js, Node.js, PostgreSQL
 - **Database**: PostgreSQL (Replit built-in)
-- **Deployment**: Railway API for OpenClaw deployment
+- **Deployment**: Fly.io Machines API for OpenClaw gateway deployment
 - **AI**: OpenRouter API for model access
 
 ## Running the Application
@@ -32,69 +34,81 @@ MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, c
 ## User Flow
 1. User enters username → logs in
 2. User fills bot creation form (name, system prompt, model)
-3. Bot is deployed to Railway as OpenClaw instance
+3. Agent is created on shared OpenClaw gateway
 4. User receives:
    - Bot endpoint URL
-   - Setup URL with password
+   - Gateway token for authentication
    - OpenClaw control panel URL
-   - One-time access token
 
 ## Authentication
 Simple username-based login (stored in localStorage). Privy with X/Twitter login can be added later by providing VITE_PRIVY_APP_ID.
 
 ## Key Endpoints
-- `POST /api/bots/create` - Create and deploy bot to Railway
+- `POST /api/bots/create` - Create and deploy bot agent
 - `GET /api/bots/me` - Get user's bot info
 - `GET /api/bots/status` - Check bot deployment status
 - `PUT /api/bots/update` - Update bot config
 - `POST /api/bots/regenerate-token` - Get new token
-- `DELETE /api/bots/delete` - Delete bot and Railway service
+- `DELETE /api/bots/delete` - Delete bot agent
 
 ## Database Schema
 - **users**: id, email, auth_token, created_at
-- **bots**: id, user_id, bot_name, railway_service_id, endpoint, setup_password, token_hash, model, system_prompt, status
-- **bot_tokens**: id, bot_id, token, created_at, expires_at, is_active
+- **gateways**: id, fly_app_name, fly_machine_id, fly_volume_id, endpoint, gateway_token, region, memory_mb, max_agents, current_agents, status
+- **bots**: id, user_id, bot_name, gateway_id, agent_id, endpoint, token_hash, model, system_prompt, status
 
 ## Environment Variables
 Required:
-- `RAILWAY_API_TOKEN` - Railway API token
-- `RAILWAY_PROJECT_ID` - Railway project ID
-- `RAILWAY_ENVIRONMENT_ID` - Railway environment ID
+- `FLY_API_TOKEN` - Fly.io API token for gateway management
 - `OPENROUTER_API_KEY` - OpenRouter API key for AI models
 
 Optional:
 - `VITE_PRIVY_APP_ID` - Privy App ID for X/Twitter login
 
-## Railway Deployment Flow
-When a bot is created:
-1. Create Railway service with OpenClaw Docker image
-2. Set environment variables (PORT, SETUP_PASSWORD, OpenRouter config)
-3. Create volume at /data for persistent storage
-4. Create public domain
-5. Trigger deployment
-6. Wait for deployment to be ready
+## Fly.io Gateway Deployment
+Shared OpenClaw gateways are deployed on Fly.io:
+- Image: `ghcr.io/openclaw/openclaw:latest`
+- Command: `node dist/index.js gateway --allow-unconfigured --port 3000 --bind lan`
+- Port: 3000 (internal), exposed via HTTPS on fly.dev domain
+- Volume: 1GB at /data for persistent state
+- Memory: 2GB RAM, 2 shared CPUs
+- Each gateway can host ~200 agents
 
-## Bot Status Values
-- **demo_mode**: Railway credentials not configured
-- **creating**: Deployment in progress
-- **running**: Successfully deployed
+## Gateway Status Values
+- **creating**: Gateway deployment in progress
+- **running**: Gateway successfully deployed
 - **error**: Deployment failed
 
-## OpenClaw URLs
-After deployment, users get:
-- `/setup` - Configuration wizard (password protected)
-- `/openclaw` - Control panel for managing integrations (Telegram, Discord, etc.)
+## Bot Status Values
+- **demo_mode**: Gateway not configured
+- **creating**: Agent creation in progress
+- **running**: Agent successfully created
+- **error**: Agent creation failed
+
+## Current Gateway
+- **Main Gateway**: https://openclaw-gw-main.fly.dev
+- **Region**: iad (Virginia)
+- **Machine ID**: 48e254dc265428
+- **Capacity**: 200 agents
+
+## OpenClaw Access
+After agent creation, users access:
+- Control UI at gateway endpoint with token: `https://gateway.fly.dev/?token=TOKEN`
 
 ## Recent Changes
-- 2026-01-31: Railway OpenClaw deployment
-  - Deploy OpenClaw instances to Railway via GraphQL API
+- 2026-01-31: Fly.io OpenClaw deployment (following official docs)
+  - Deploy OpenClaw gateways to Fly.io via Machines API
+  - Use `--allow-unconfigured --port 3000 --bind lan` for headless startup
+  - Allocate IPv4/IPv6 addresses for public access
   - Volume at /data for persistent storage
-  - Setup password and control panel access
+- 2026-01-31: Shared gateway architecture
+  - Single gateway hosts multiple user agents for cost efficiency
+  - Gateway service tracks agent capacity
+- 2026-01-31: Pivot from Railway to Fly.io
+  - Railway designed for managed apps, not programmatic infrastructure
+  - Fly.io Machines API enables direct machine management
 - 2026-01-31: Token system
-  - One-time token display on creation
-  - Secure token generation and hashing
-- 2026-01-31: Simplified authentication
-  - Username-based login (Privy optional)
+  - Gateway token for authentication
+  - Secure token generation
 - 2026-01-31: Initial setup
   - PostgreSQL database
   - Backend API with bot CRUD

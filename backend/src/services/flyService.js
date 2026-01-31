@@ -117,26 +117,27 @@ export const flyService = {
   createOpenClawGateway: async (gatewayId, options = {}) => {
     const appName = `openclaw-gw-${gatewayId}`;
     const {
-      setupPassword,
       gatewayToken,
       openrouterApiKey,
       region = 'iad',
-      memoryMb = 4096,
+      memoryMb = 2048,
       cpus = 2,
     } = options;
 
     await flyService.createApp(appName);
+
+    // Allocate public IPs for the app
+    await flyService.allocateIps(appName);
 
     const machineConfig = {
       name: 'gateway',
       config: {
         image: 'ghcr.io/openclaw/openclaw:latest',
         env: {
-          PORT: '8080',
-          SETUP_PASSWORD: setupPassword,
-          OPENCLAW_STATE_DIR: '/data/.openclaw',
-          OPENCLAW_WORKSPACE_DIR: '/data/workspace',
+          NODE_ENV: 'production',
+          OPENCLAW_STATE_DIR: '/data',
           OPENCLAW_GATEWAY_TOKEN: gatewayToken,
+          NODE_OPTIONS: '--max-old-space-size=1536',
           OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
           OPENAI_API_KEY: openrouterApiKey || process.env.OPENROUTER_API_KEY,
         },
@@ -152,7 +153,7 @@ export const flyService = {
               { port: 80, handlers: ['http'] },
             ],
             protocol: 'tcp',
-            internal_port: 8080,
+            internal_port: 3000,
           },
         ],
         mounts: [
@@ -161,6 +162,13 @@ export const flyService = {
             path: '/data',
           },
         ],
+        restart: {
+          policy: 'on-failure',
+          max_retries: 5,
+        },
+        init: {
+          cmd: ['node', 'dist/index.js', 'gateway', '--allow-unconfigured', '--port', '3000', '--bind', 'lan']
+        }
       },
       region,
     };
@@ -168,7 +176,7 @@ export const flyService = {
     const volume = await flyService.createVolume(appName, {
       name: `vol_${gatewayId}`,
       region,
-      sizeGb: 10,
+      sizeGb: 1,
     });
 
     machineConfig.config.mounts[0].volume = volume.id;
@@ -182,9 +190,44 @@ export const flyService = {
       machineId: machine.id,
       volumeId: volume.id,
       endpoint: `https://${appName}.fly.dev`,
-      setupUrl: `https://${appName}.fly.dev/setup`,
-      controlUrl: `https://${appName}.fly.dev/openclaw`,
+      controlUrl: `https://${appName}.fly.dev`,
       region,
+    };
+  },
+
+  allocateIps: async (appName) => {
+    console.log(`Allocating IPs for ${appName}...`);
+    const graphqlEndpoint = 'https://api.fly.io/graphql';
+    const token = process.env.FLY_API_TOKEN;
+    
+    const allocateIp = async (type) => {
+      const response = await fetch(graphqlEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `mutation($appId: ID!, $type: IPAddressType!) { 
+            allocateIpAddress(input: { appId: $appId, type: $type }) { 
+              ipAddress { id address type } 
+            } 
+          }`,
+          variables: { appId: appName, type },
+        }),
+      });
+      return response.json();
+    };
+
+    const [v4Result, v6Result] = await Promise.all([
+      allocateIp('v4'),
+      allocateIp('v6'),
+    ]);
+
+    console.log(`IPs allocated for ${appName}`);
+    return {
+      v4: v4Result.data?.allocateIpAddress?.ipAddress?.address,
+      v6: v6Result.data?.allocateIpAddress?.ipAddress?.address,
     };
   },
 
