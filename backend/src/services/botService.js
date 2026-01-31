@@ -1,257 +1,329 @@
-import { v4 as uuidv4 } from 'uuid';
+import { db } from '../db/index.js';
 import { railwayService } from './railwayService.js';
 import crypto from 'crypto';
 
-/**
- * Bot Service
- * Each user has exactly ONE bot
- * The bot is a long-lived Railway service running OpenClaw
- */
-
-// In-memory storage (replace with database)
-const userBots = new Map(); // userId → bot
-const botTokens = new Map(); // botId → token
-
 export const botService = {
-  /**
-   * Create a bot for a user (called on first onboarding)
-   * @param {string} userId - User ID
-   * @param {string} openrouterApiKey - OpenRouter API key
-   * @param {Object} config - Bot configuration
-   * @returns {Promise<Object>} Bot with token
-   */
   createBot: async (userId, openrouterApiKey, config = {}) => {
-    // Check if user already has a bot
-    if (userBots.has(userId)) {
+    const existingBot = await db.query(
+      `SELECT id FROM bots WHERE user_id = $1`,
+      [userId]
+    );
+    
+    if (existingBot.rows.length > 0) {
       throw new Error('User already has a bot. Use updateBot() to modify.');
     }
 
     try {
-      const botId = uuidv4();
-      console.log(`🤖 Creating bot ${botId} for user ${userId}...`);
+      console.log(`Creating bot for user ${userId}...`);
 
-      // Create Railway service
-      const railwayInfo = await railwayService.createBotService(
-        userId,
-        botId,
-        openrouterApiKey,
-        config
+      const botResult = await db.query(
+        `INSERT INTO bots (user_id, bot_name, model, system_prompt, openrouter_api_key_encrypted, status)
+         VALUES ($1, $2, $3, $4, $5, 'creating')
+         RETURNING id, bot_name, model, system_prompt, status, created_at`,
+        [
+          userId,
+          config.botName || `Bot for ${userId.substring(0, 8)}`,
+          config.model || 'gpt-3.5-turbo',
+          config.systemPrompt || 'You are a helpful assistant.',
+          openrouterApiKey,
+        ]
       );
+      
+      const bot = botResult.rows[0];
+      const botId = bot.id;
 
-      // Generate token (represents the bot identity)
+      let railwayInfo = null;
+      let endpoint = null;
+
+      if (process.env.RAILWAY_API_TOKEN) {
+        try {
+          railwayInfo = await railwayService.createBotService(
+            userId,
+            botId,
+            openrouterApiKey,
+            config
+          );
+          endpoint = railwayInfo.endpoint;
+
+          await db.query(
+            `UPDATE bots SET railway_service_id = $1, endpoint = $2, status = 'running' WHERE id = $3`,
+            [railwayInfo.railwayServiceId, endpoint, botId]
+          );
+        } catch (railwayError) {
+          console.warn(`Railway deployment failed: ${railwayError.message}`);
+          await db.query(
+            `UPDATE bots SET status = 'demo_mode' WHERE id = $1`,
+            [botId]
+          );
+        }
+      } else {
+        console.log('Railway not configured, running in demo mode');
+        await db.query(
+          `UPDATE bots SET status = 'demo_mode' WHERE id = $1`,
+          [botId]
+        );
+      }
+
       const token = `${botId}:${crypto.randomBytes(16).toString('hex')}`;
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-      // Store bot
-      const bot = {
-        botId,
-        userId,
-        railwayServiceId: railwayInfo.railwayServiceId,
-        endpoint: railwayInfo.endpoint,
-        tokenHash,
-        model: config.model || 'gpt-3.5-turbo',
-        systemPrompt: config.systemPrompt || 'You are a helpful assistant.',
-        botName: config.botName || `Bot for ${userId.substring(0, 8)}`,
-        status: 'running',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        openrouterApiKey, // Store for later reference (should be encrypted in production)
-      };
+      await db.query(
+        `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
+        [botId, tokenHash]
+      );
 
-      userBots.set(userId, bot);
-      botTokens.set(botId, token);
+      await db.query(
+        `UPDATE bots SET token_hash = $1 WHERE id = $2`,
+        [tokenHash, botId]
+      );
 
-      console.log(`✅ Bot created with endpoint: ${railwayInfo.endpoint}`);
+      console.log(`Bot created: ${botId}`);
 
       return {
         botId,
-        token, // Return token to user (they can use this for authentication)
-        endpoint: railwayInfo.endpoint,
+        token,
+        endpoint,
         model: bot.model,
-        systemPrompt: bot.systemPrompt,
-        botName: bot.botName,
+        systemPrompt: bot.system_prompt,
+        botName: bot.bot_name,
+        status: endpoint ? 'running' : 'demo_mode',
       };
     } catch (error) {
-      console.error(`❌ Failed to create bot: ${error.message}`);
+      console.error(`Failed to create bot: ${error.message}`);
       throw error;
     }
   },
 
-  /**
-   * Get user's bot
-   */
   getBot: async (userId) => {
-    const bot = userBots.get(userId);
-    if (!bot) {
-      return null; // User hasn't created bot yet
+    const result = await db.query(
+      `SELECT id, bot_name, railway_service_id, endpoint, model, system_prompt, status, created_at
+       FROM bots WHERE user_id = $1`,
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return null;
     }
-
+    
+    const bot = result.rows[0];
     return {
-      botId: bot.botId,
+      botId: bot.id,
       endpoint: bot.endpoint,
       model: bot.model,
-      systemPrompt: bot.systemPrompt,
-      botName: bot.botName,
+      systemPrompt: bot.system_prompt,
+      botName: bot.bot_name,
       status: bot.status,
-      createdAt: bot.createdAt,
+      createdAt: bot.created_at,
     };
   },
 
-  /**
-   * Update bot configuration (system prompt, model, etc)
-   */
   updateBot: async (userId, config) => {
-    const bot = userBots.get(userId);
-    if (!bot) {
+    const botResult = await db.query(
+      `SELECT id, railway_service_id FROM bots WHERE user_id = $1`,
+      [userId]
+    );
+    
+    if (botResult.rows.length === 0) {
       throw new Error('Bot not found for user');
     }
-
-    try {
-      // Update Railway service environment variables
-      await railwayService.updateServiceConfig(bot.railwayServiceId, config);
-
-      // Update local storage
-      if (config.systemPrompt) bot.systemPrompt = config.systemPrompt;
-      if (config.model) bot.model = config.model;
-      if (config.botName) bot.botName = config.botName;
-      
-      bot.updatedAt = new Date().toISOString();
-      userBots.set(userId, bot);
-
-      console.log(`✅ Bot ${bot.botId} updated`);
-
-      return {
-        botId: bot.botId,
-        endpoint: bot.endpoint,
-        model: bot.model,
-        systemPrompt: bot.systemPrompt,
-        botName: bot.botName,
-        updatedAt: bot.updatedAt,
-      };
-    } catch (error) {
-      console.error(`❌ Failed to update bot: ${error.message}`);
-      throw error;
-    }
-  },
-
-  /**
-   * Delete bot (and Railway service)
-   */
-  deleteBot: async (userId) => {
-    const bot = userBots.get(userId);
-    if (!bot) {
-      throw new Error('Bot not found');
-    }
-
-    try {
-      // Delete Railway service
-      await railwayService.deleteService(bot.railwayServiceId);
-
-      // Clean up storage
-      userBots.delete(userId);
-      botTokens.delete(bot.botId);
-
-      console.log(`✅ Bot deleted for user ${userId}`);
-      return { success: true };
-    } catch (error) {
-      console.error(`❌ Failed to delete bot: ${error.message}`);
-      throw error;
-    }
-  },
-
-  /**
-   * Get bot by token (for API access)
-   */
-  getBotByToken: (token) => {
-    // Parse token: format is "botId:randomPart"
-    const [botId] = token.split(':');
     
-    for (const [userId, bot] of userBots) {
-      if (bot.botId === botId) {
-        return { userId, bot };
+    const bot = botResult.rows[0];
+
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (config.systemPrompt !== undefined) {
+      updates.push(`system_prompt = $${paramIndex++}`);
+      values.push(config.systemPrompt);
+    }
+    if (config.model !== undefined) {
+      updates.push(`model = $${paramIndex++}`);
+      values.push(config.model);
+    }
+    if (config.botName !== undefined) {
+      updates.push(`bot_name = $${paramIndex++}`);
+      values.push(config.botName);
+    }
+    
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(bot.id);
+
+    await db.query(
+      `UPDATE bots SET ${updates.join(', ')} WHERE id = $${paramIndex}`,
+      values
+    );
+
+    if (bot.railway_service_id && process.env.RAILWAY_API_TOKEN) {
+      try {
+        await railwayService.updateServiceConfig(bot.railway_service_id, config);
+      } catch (error) {
+        console.warn(`Failed to update Railway config: ${error.message}`);
       }
     }
-    return null;
+
+    return botService.getBot(userId);
   },
 
-  /**
-   * Regenerate bot token
-   */
-  regenerateToken: (userId) => {
-    const bot = userBots.get(userId);
-    if (!bot) {
+  deleteBot: async (userId) => {
+    const botResult = await db.query(
+      `SELECT id, railway_service_id FROM bots WHERE user_id = $1`,
+      [userId]
+    );
+    
+    if (botResult.rows.length === 0) {
       throw new Error('Bot not found');
     }
+    
+    const bot = botResult.rows[0];
 
-    const token = `${bot.botId}:${crypto.randomBytes(16).toString('hex')}`;
+    if (bot.railway_service_id && process.env.RAILWAY_API_TOKEN) {
+      try {
+        await railwayService.deleteService(bot.railway_service_id);
+      } catch (error) {
+        console.warn(`Failed to delete Railway service: ${error.message}`);
+      }
+    }
+
+    await db.query(`DELETE FROM bots WHERE id = $1`, [bot.id]);
+
+    console.log(`Bot deleted for user ${userId}`);
+    return { success: true };
+  },
+
+  getBotByToken: async (token) => {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    
+    const result = await db.query(
+      `SELECT b.*, u.id as user_id 
+       FROM bots b 
+       JOIN users u ON b.user_id = u.id 
+       WHERE b.token_hash = $1`,
+      [tokenHash]
+    );
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    const row = result.rows[0];
+    return {
+      userId: row.user_id,
+      bot: {
+        botId: row.id,
+        botName: row.bot_name,
+        endpoint: row.endpoint,
+        model: row.model,
+        systemPrompt: row.system_prompt,
+        status: row.status,
+      },
+    };
+  },
+
+  regenerateToken: async (userId) => {
+    const botResult = await db.query(
+      `SELECT id FROM bots WHERE user_id = $1`,
+      [userId]
+    );
+    
+    if (botResult.rows.length === 0) {
+      throw new Error('Bot not found');
+    }
+    
+    const botId = botResult.rows[0].id;
+    const token = `${botId}:${crypto.randomBytes(16).toString('hex')}`;
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    bot.tokenHash = tokenHash;
-    userBots.set(userId, bot);
-    botTokens.set(bot.botId, token);
+    await db.query(
+      `UPDATE bot_tokens SET is_active = false WHERE bot_id = $1`,
+      [botId]
+    );
 
-    console.log(`✅ Token regenerated for bot ${bot.botId}`);
+    await db.query(
+      `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
+      [botId, tokenHash]
+    );
+
+    await db.query(
+      `UPDATE bots SET token_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+      [tokenHash, botId]
+    );
+
+    console.log(`Token regenerated for bot ${botId}`);
     return token;
   },
 
-  /**
-   * Get bot endpoint (for routing messages)
-   */
-  getBotEndpoint: (userId) => {
-    const bot = userBots.get(userId);
+  getBotEndpoint: async (userId) => {
+    const bot = await botService.getBot(userId);
     if (!bot) {
       throw new Error('Bot not found');
     }
     return bot.endpoint;
   },
 
-  /**
-   * Check bot status with Railway
-   */
   checkBotStatus: async (userId) => {
-    const bot = userBots.get(userId);
-    if (!bot) {
+    const botResult = await db.query(
+      `SELECT id, railway_service_id, endpoint, status FROM bots WHERE user_id = $1`,
+      [userId]
+    );
+    
+    if (botResult.rows.length === 0) {
       throw new Error('Bot not found');
     }
+    
+    const bot = botResult.rows[0];
 
-    try {
-      const status = await railwayService.getServiceStatus(bot.railwayServiceId);
-      bot.status = status.status === 'SUCCESS' ? 'running' : status.status;
-      bot.endpoint = status.endpoint || bot.endpoint;
-      userBots.set(userId, bot);
-
+    if (!bot.railway_service_id || !process.env.RAILWAY_API_TOKEN) {
       return {
-        botId: bot.botId,
+        botId: bot.id,
         status: bot.status,
         endpoint: bot.endpoint,
       };
-    } catch (error) {
-      console.error(`⚠️  Failed to check status: ${error.message}`);
-      bot.status = 'error';
-      userBots.set(userId, bot);
+    }
+
+    try {
+      const status = await railwayService.getServiceStatus(bot.railway_service_id);
+      const newStatus = status.status === 'SUCCESS' ? 'running' : status.status;
+      
+      await db.query(
+        `UPDATE bots SET status = $1, endpoint = COALESCE($2, endpoint), updated_at = CURRENT_TIMESTAMP WHERE id = $3`,
+        [newStatus, status.endpoint, bot.id]
+      );
+
       return {
-        botId: bot.botId,
+        botId: bot.id,
+        status: newStatus,
+        endpoint: status.endpoint || bot.endpoint,
+      };
+    } catch (error) {
+      console.error(`Failed to check status: ${error.message}`);
+      await db.query(
+        `UPDATE bots SET status = 'error', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+        [bot.id]
+      );
+      return {
+        botId: bot.id,
         status: 'error',
         error: error.message,
       };
     }
   },
 
-  /**
-   * List all bots (admin only)
-   */
-  getAllBots: () => {
-    const bots = [];
-    for (const [userId, bot] of userBots) {
-      bots.push({
-        botId: bot.botId,
-        userId,
-        status: bot.status,
-        endpoint: bot.endpoint,
-        model: bot.model,
-        createdAt: bot.createdAt,
-      });
-    }
-    return bots;
+  getAllBots: async () => {
+    const result = await db.query(
+      `SELECT b.id, b.user_id, b.bot_name, b.status, b.endpoint, b.model, b.created_at
+       FROM bots b
+       ORDER BY b.created_at DESC`
+    );
+    
+    return result.rows.map(row => ({
+      botId: row.id,
+      userId: row.user_id,
+      botName: row.bot_name,
+      status: row.status,
+      endpoint: row.endpoint,
+      model: row.model,
+      createdAt: row.created_at,
+    }));
   },
 };
