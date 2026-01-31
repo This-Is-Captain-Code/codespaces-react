@@ -11,7 +11,7 @@ router.use(authMiddleware);
 /**
  * Send message to user's bot via OpenRouter
  * Uses the bot's configured model and system prompt
- * OpenClaw gateway provides the persistent agent infrastructure
+ * OpenClaw gateway on Fly.io provides persistent agent infrastructure
  */
 router.post('/message', async (req, res, next) => {
   try {

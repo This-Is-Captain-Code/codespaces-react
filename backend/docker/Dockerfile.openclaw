@@ -1,0 +1,15 @@
+FROM ghcr.io/openclaw/openclaw:latest
+
+WORKDIR /app
+
+COPY openclaw-config.json /app/config/openclaw.json
+COPY entrypoint.sh /app/entrypoint.sh
+
+RUN chmod +x /app/entrypoint.sh
+
+ENV OPENCLAW_CONFIG_PATH=/app/config/openclaw.json
+ENV OPENCLAW_STATE_DIR=/data
+
+EXPOSE 3000
+
+ENTRYPOINT ["/app/entrypoint.sh"]
