@@ -107,7 +107,19 @@ The chat system uses a hybrid approach:
 
 This architecture gives users a one-click bot creation experience while keeping costs low ($0.50/user vs $62/user for full per-user containers).
 
+## Custom OpenClaw Docker Image (for future use)
+Located in `backend/docker/`:
+- `Dockerfile.openclaw` - Custom image with pre-enabled chat API
+- `openclaw-config.json` - Config enabling chatCompletions and toolsInvoke endpoints
+- `entrypoint.sh` - Startup script with config injection
+
+To enable pure OpenClaw chat, build this image and deploy to a container registry, then update `flyService.js` to use the custom image URL.
+
 ## Recent Changes
+- 2026-01-31: Custom OpenClaw Docker setup
+  - Created Dockerfile and config for pre-enabled chat completions API
+  - OpenClaw's HTTP API disabled by default, requires config file
+  - Docker files ready for building custom image
 - 2026-01-31: Chat via OpenRouter
   - Chat messages go through OpenRouter using bot's model (e.g., openai/gpt-4o)
   - Bot's system prompt is applied to each conversation
