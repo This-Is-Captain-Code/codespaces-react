@@ -80,6 +80,26 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.username-input {
+  padding: 14px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.username-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
 .app-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;

@@ -1,19 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
 import './App.css';
 import { BotDashboard } from './components/BotDashboard';
+import { setAuthToken } from './api/client';
 
 function App() {
-  const { login, logout, authenticated, ready, user } = usePrivy();
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState('');
 
   useEffect(() => {
-    if (ready) {
-      setLoading(false);
+    const savedUser = localStorage.getItem('moltrack_user');
+    if (savedUser) {
+      const parsed = JSON.parse(savedUser);
+      setUser(parsed);
+      setAuthToken(`did:privy:${parsed.id}`);
     }
-  }, [ready]);
+    setLoading(false);
+  }, []);
 
-  if (loading || !ready) {
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!username.trim()) return;
+    
+    const userId = username.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const newUser = {
+      id: userId,
+      username: username.trim(),
+    };
+    localStorage.setItem('moltrack_user', JSON.stringify(newUser));
+    setAuthToken(`did:privy:${userId}`);
+    setUser(newUser);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('moltrack_user');
+    setAuthToken('');
+    setUser(null);
+  };
+
+  if (loading) {
     return (
       <div className="App loading-screen">
         <div className="loading-content">
@@ -24,7 +49,7 @@ function App() {
     );
   }
 
-  if (!authenticated) {
+  if (!user) {
     return (
       <div className="App">
         <div className="auth-landing">
@@ -32,12 +57,21 @@ function App() {
             <h1>MoltRack v0</h1>
             <p className="tagline">Persistent OpenClaw Agent Runtime</p>
             <p className="description">
-              Create your own AI bot that persists over time. 
-              Sign in with X to get started.
+              Create your own AI bot that persists over time.
+              Enter a username to get started.
             </p>
-            <button onClick={login} className="login-button">
-              Sign in with X
-            </button>
+            <form onSubmit={handleLogin} className="login-form">
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username"
+                className="username-input"
+              />
+              <button type="submit" className="login-button">
+                Get Started
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -50,10 +84,8 @@ function App() {
         <div className="header-content">
           <h1>MoltRack v0</h1>
           <div className="user-info">
-            {user?.twitter && (
-              <span className="username">@{user.twitter.username}</span>
-            )}
-            <button onClick={logout} className="logout-button">
+            <span className="username">@{user.username}</span>
+            <button onClick={handleLogout} className="logout-button">
               Logout
             </button>
           </div>
@@ -61,7 +93,7 @@ function App() {
       </header>
 
       <main className="app-main">
-        <BotDashboard userId={user?.id} />
+        <BotDashboard userId={user.id} />
       </main>
 
       <footer className="app-footer">

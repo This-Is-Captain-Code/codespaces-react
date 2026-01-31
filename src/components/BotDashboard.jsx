@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
-import { botAPI, setAuthToken } from '../api/client';
+import { botAPI } from '../api/client';
 import './BotDashboard.css';
 
 export function BotDashboard({ userId }) {
-  const { getAccessToken } = usePrivy();
   const [bot, setBot] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -21,11 +19,6 @@ export function BotDashboard({ userId }) {
 
   const loadBot = async () => {
     try {
-      const token = await getAccessToken();
-      if (token) {
-        setAuthToken(token);
-      }
-      
       const response = await botAPI.get();
       setBot(response.data);
     } catch (err) {
@@ -43,11 +36,6 @@ export function BotDashboard({ userId }) {
     setError('');
 
     try {
-      const token = await getAccessToken();
-      if (token) {
-        setAuthToken(token);
-      }
-
       const response = await botAPI.create(formData);
       setBot(response.data.bot);
     } catch (err) {
