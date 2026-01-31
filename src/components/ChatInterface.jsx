@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { chatAPI, openrouterService } from '../api/client';
+import { chatAPI } from '../api/client';
 import './ChatInterface.css';
 
 export function ChatInterface({ agentId, agent }) {

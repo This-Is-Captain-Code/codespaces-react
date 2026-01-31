@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = '/api';
 
-// Get auth token (in production, this comes from Privy)
 const getAuthToken = () => {
   return localStorage.getItem('authToken') || 'dev-user-123';
 };
@@ -14,13 +13,11 @@ const apiClient = axios.create({
   },
 });
 
-// Update token when it changes
 export const setAuthToken = (token) => {
   localStorage.setItem('authToken', token);
   apiClient.defaults.headers['Authorization'] = `Bearer ${token}`;
 };
 
-// Agent management
 export const agentAPI = {
   create: (name, systemPrompt) => 
     apiClient.post('/agents', { name, systemPrompt }),
@@ -39,7 +36,6 @@ export const agentAPI = {
   delete: (agentId) => apiClient.delete(`/agents/${agentId}`),
 };
 
-// Chat
 export const chatAPI = {
   sendMessage: (agentId, message, model, conversationHistory) =>
     apiClient.post(`/chat/${agentId}/message`, {
@@ -49,7 +45,6 @@ export const chatAPI = {
     }),
 };
 
-// Billing
 export const billingAPI = {
   getBalance: () => apiClient.get('/billing/balance'),
   
