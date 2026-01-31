@@ -13,10 +13,9 @@ router.use(authMiddleware);
 router.post('/create', async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { systemPrompt = '', model = 'gpt-3.5-turbo', botName = '', apiKey = '' } = req.body;
-    const openrouterApiKey = apiKey || process.env.OPENROUTER_API_KEY || '';
+    const { systemPrompt = '', model = 'openai/gpt-4o', botName = '' } = req.body;
 
-    const bot = await botService.createBot(userId, openrouterApiKey, {
+    const bot = await botService.createBot(userId, {
       systemPrompt,
       model,
       botName,
@@ -31,6 +30,9 @@ router.post('/create', async (req, res, next) => {
     console.error(`Error creating bot: ${error.message}`);
     if (error.message.includes('already has a bot')) {
       return res.status(400).json({ error: 'User already has a bot' });
+    }
+    if (error.message.includes('No available gateway')) {
+      return res.status(503).json({ error: 'No available gateway. Please try again later.' });
     }
     next(error);
   }
@@ -163,20 +165,16 @@ router.get('/admin/list', async (req, res, next) => {
 });
 
 /**
- * Delete all Railway services and clear bots (admin only)
+ * Cleanup all bots (admin only)
  */
 router.post('/admin/cleanup', async (req, res, next) => {
   try {
-    const { railwayService } = await import('../services/railwayService.js');
-    
-    const railwayResults = await railwayService.deleteAllOpenclawServices();
-    
-    await botService.deleteAllBots();
+    const deletedCount = await botService.deleteAllBots();
     
     res.json({
       success: true,
       message: 'Cleanup complete',
-      railwayServicesDeleted: railwayResults,
+      botsDeleted: deletedCount,
     });
   } catch (error) {
     next(error);

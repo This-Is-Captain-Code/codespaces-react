@@ -9,7 +9,7 @@ router.use(authMiddleware);
 
 /**
  * Send message to user's bot
- * Routes to the Railway service endpoint
+ * Routes to the gateway endpoint
  */
 router.post('/message', async (req, res, next) => {
   try {
@@ -26,8 +26,8 @@ router.post('/message', async (req, res, next) => {
       return res.status(404).json({ error: 'Bot not found. Create one with POST /api/bots/create' });
     }
 
-    // Route to Railway service endpoint
-    console.log(`💬 Routing message to bot endpoint: ${bot.endpoint}`);
+    // Route to gateway endpoint
+    console.log(`Routing message to bot endpoint: ${bot.endpoint}`);
     
     const response = await axios.post(`${bot.endpoint}/api/message`, {
       message: message.trim(),
@@ -65,7 +65,7 @@ router.post('/message', async (req, res, next) => {
 
 /**
  * Get message history
- * Stored in the Railway service
+ * Stored on the gateway
  */
 router.get('/history', async (req, res, next) => {
   try {
@@ -77,7 +77,7 @@ router.get('/history', async (req, res, next) => {
       return res.status(404).json({ error: 'Bot not found' });
     }
 
-    // Request history from Railway service
+    // Request history from gateway
     const response = await axios.get(`${bot.endpoint}/api/history`, {
       params: { limit },
       timeout: 10000,

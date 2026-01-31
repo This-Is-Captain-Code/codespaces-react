@@ -5,13 +5,14 @@ import './BotDashboard.css';
 export function BotDashboard({ userId }) {
   const [bot, setBot] = useState(null);
   const [token, setToken] = useState(null);
+  const [gatewayToken, setGatewayToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     botName: '',
     systemPrompt: 'You are a helpful AI assistant.',
-    model: 'openai/gpt-3.5-turbo',
+    model: 'openai/gpt-4o',
   });
 
   useEffect(() => {
@@ -42,6 +43,9 @@ export function BotDashboard({ userId }) {
       if (response.data.bot.token) {
         setToken(response.data.bot.token);
       }
+      if (response.data.bot.gatewayToken) {
+        setGatewayToken(response.data.bot.gatewayToken);
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create bot');
     } finally {
@@ -62,7 +66,7 @@ export function BotDashboard({ userId }) {
       <div className="bot-dashboard">
         <div className="create-bot-card">
           <h2>Create Your Bot</h2>
-          <p>Set up your persistent AI bot powered by OpenClaw.</p>
+          <p>Set up your persistent AI bot powered by OpenClaw on Fly.io.</p>
 
           <form onSubmit={handleCreateBot} className="bot-form">
             <div className="form-group">
@@ -92,17 +96,17 @@ export function BotDashboard({ userId }) {
                 value={formData.model}
                 onChange={(e) => setFormData({ ...formData, model: e.target.value })}
               >
-                <option value="openai/gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                <option value="openai/gpt-4-turbo">GPT-4 Turbo</option>
-                <option value="anthropic/claude-3-sonnet">Claude 3 Sonnet</option>
-                <option value="anthropic/claude-3-opus">Claude 3 Opus</option>
+                <option value="openai/gpt-4o">GPT-4o</option>
+                <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+                <option value="anthropic/claude-sonnet-4-20250514">Claude Sonnet 4</option>
+                <option value="anthropic/claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
               </select>
             </div>
 
             {error && <div className="error-message">{error}</div>}
 
             <button type="submit" disabled={creating} className="create-button">
-              {creating ? 'Deploying to Railway...' : 'Create Bot'}
+              {creating ? 'Creating Agent...' : 'Create Bot'}
             </button>
           </form>
         </div>
@@ -131,7 +135,7 @@ export function BotDashboard({ userId }) {
 
           {bot.endpoint && (
             <div className="detail-row">
-              <span className="label">Endpoint:</span>
+              <span className="label">Gateway:</span>
               <div className="value-with-copy">
                 <span className="value endpoint">{bot.endpoint}</span>
                 <button onClick={() => copyToClipboard(bot.endpoint)} className="copy-btn">Copy</button>
@@ -148,14 +152,12 @@ export function BotDashboard({ userId }) {
             </div>
           )}
 
-          {bot.setupUrl && bot.setupPassword && (
-            <div className="detail-row">
-              <span className="label">Setup URL:</span>
+          {(gatewayToken || bot.gatewayToken) && (
+            <div className="detail-row token-section">
+              <span className="label">Gateway Token (for API access):</span>
               <div className="value-with-copy">
-                <a href={bot.setupUrl} target="_blank" rel="noopener noreferrer" className="value endpoint">
-                  {bot.setupUrl}
-                </a>
-                <button onClick={() => copyToClipboard(bot.setupPassword)} className="copy-btn">Copy Password</button>
+                <code className="token-value">{gatewayToken || bot.gatewayToken}</code>
+                <button onClick={() => copyToClipboard(gatewayToken || bot.gatewayToken)} className="copy-btn">Copy</button>
               </div>
             </div>
           )}
@@ -179,13 +181,13 @@ export function BotDashboard({ userId }) {
 
         {bot.status === 'demo_mode' && (
           <div className="demo-notice">
-            Your bot is in demo mode. Railway credentials are required to deploy a live OpenClaw instance.
+            Your bot is in demo mode. A gateway needs to be configured to deploy a live agent.
           </div>
         )}
 
         {bot.status === 'error' && (
           <div className="error-notice">
-            Deployment failed. Please check Railway credentials and try again.
+            Agent creation failed. Please try again or contact support.
           </div>
         )}
 

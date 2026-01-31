@@ -1,9 +1,10 @@
 import { db } from '../db/index.js';
-import { railwayService } from './railwayService.js';
+import { gatewayService } from './gatewayService.js';
+import { openclawService } from './openclawService.js';
 import crypto from 'crypto';
 
 export const botService = {
-  createBot: async (userId, openrouterApiKey, config = {}) => {
+  createBot: async (userId, config = {}) => {
     const existingBot = await db.query(
       `SELECT id FROM bots WHERE user_id = $1`,
       [userId]
@@ -16,84 +17,80 @@ export const botService = {
     try {
       console.log(`Creating bot for user ${userId}...`);
 
+      const gateway = await gatewayService.getAvailableGateway();
+      if (!gateway) {
+        throw new Error('No available gateway. Please try again later.');
+      }
+
+      const agentId = `agent-${userId.substring(0, 8)}-${Date.now()}`;
+
       const botResult = await db.query(
-        `INSERT INTO bots (user_id, bot_name, model, system_prompt, openrouter_api_key_encrypted, status)
-         VALUES ($1, $2, $3, $4, $5, 'creating')
+        `INSERT INTO bots (user_id, bot_name, gateway_id, agent_id, model, system_prompt, status)
+         VALUES ($1, $2, $3, $4, $5, $6, 'creating')
          RETURNING id, bot_name, model, system_prompt, status, created_at`,
         [
           userId,
           config.botName || `Bot for ${userId.substring(0, 8)}`,
-          config.model || 'gpt-3.5-turbo',
+          gateway.id,
+          agentId,
+          config.model || 'openai/gpt-4o',
           config.systemPrompt || 'You are a helpful assistant.',
-          openrouterApiKey,
         ]
       );
       
       const bot = botResult.rows[0];
       const botId = bot.id;
 
-      let railwayInfo = null;
-      let endpoint = null;
+      try {
+        const agentResult = await openclawService.createAgent(gateway.id, {
+          agentId,
+          model: config.model || 'openai/gpt-4o',
+          systemPrompt: config.systemPrompt,
+          botName: config.botName,
+        });
 
-      let setupPassword = null;
+        const endpoint = agentResult.endpoint;
+        const controlUrl = agentResult.controlUrl;
 
-      if (process.env.RAILWAY_API_TOKEN && process.env.RAILWAY_PROJECT_ID && process.env.RAILWAY_ENVIRONMENT_ID) {
-        try {
-          railwayInfo = await railwayService.createBotService(
-            userId,
-            botId,
-            openrouterApiKey,
-            config
-          );
-          endpoint = railwayInfo.endpoint;
-          setupPassword = railwayInfo.setupPassword;
-
-          await db.query(
-            `UPDATE bots SET railway_service_id = $1, endpoint = $2, setup_password = $3, status = 'running' WHERE id = $4`,
-            [railwayInfo.railwayServiceId, endpoint, setupPassword, botId]
-          );
-        } catch (railwayError) {
-          console.warn(`Railway deployment failed: ${railwayError.message}`);
-          await db.query(
-            `UPDATE bots SET status = 'error' WHERE id = $1`,
-            [botId]
-          );
-        }
-      } else {
-        console.log('Railway not configured, running in demo mode');
         await db.query(
-          `UPDATE bots SET status = 'demo_mode' WHERE id = $1`,
+          `UPDATE bots SET endpoint = $1, status = 'running' WHERE id = $2`,
+          [endpoint, botId]
+        );
+
+        const token = crypto.randomBytes(32).toString('hex');
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+        await db.query(
+          `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
+          [botId, tokenHash]
+        );
+
+        await db.query(
+          `UPDATE bots SET token_hash = $1 WHERE id = $2`,
+          [tokenHash, botId]
+        );
+
+        console.log(`Bot created: ${botId}`);
+
+        return {
+          botId,
+          token,
+          endpoint,
+          gatewayToken: agentResult.gatewayToken,
+          controlUrl,
+          model: bot.model,
+          systemPrompt: bot.system_prompt,
+          botName: bot.bot_name,
+          status: 'running',
+        };
+      } catch (agentError) {
+        console.error(`Agent creation failed: ${agentError.message}`);
+        await db.query(
+          `UPDATE bots SET status = 'error' WHERE id = $1`,
           [botId]
         );
+        throw agentError;
       }
-
-      const token = `${botId}:${crypto.randomBytes(16).toString('hex')}`;
-      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-
-      await db.query(
-        `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
-        [botId, tokenHash]
-      );
-
-      await db.query(
-        `UPDATE bots SET token_hash = $1 WHERE id = $2`,
-        [tokenHash, botId]
-      );
-
-      console.log(`Bot created: ${botId}`);
-
-      return {
-        botId,
-        token,
-        endpoint,
-        setupPassword,
-        setupUrl: endpoint ? `${endpoint}/setup` : null,
-        controlUrl: endpoint ? `${endpoint}/openclaw` : null,
-        model: bot.model,
-        systemPrompt: bot.system_prompt,
-        botName: bot.bot_name,
-        status: endpoint ? 'running' : (railwayInfo ? 'error' : 'demo_mode'),
-      };
     } catch (error) {
       console.error(`Failed to create bot: ${error.message}`);
       throw error;
@@ -102,8 +99,11 @@ export const botService = {
 
   getBot: async (userId) => {
     const result = await db.query(
-      `SELECT id, bot_name, railway_service_id, endpoint, setup_password, model, system_prompt, status, created_at
-       FROM bots WHERE user_id = $1`,
+      `SELECT b.id, b.bot_name, b.gateway_id, b.agent_id, b.endpoint, b.model, b.system_prompt, b.status, b.created_at,
+              g.gateway_token, g.endpoint as gateway_endpoint
+       FROM bots b
+       LEFT JOIN gateways g ON b.gateway_id = g.id
+       WHERE b.user_id = $1`,
       [userId]
     );
     
@@ -112,23 +112,27 @@ export const botService = {
     }
     
     const bot = result.rows[0];
+    const controlUrl = bot.gateway_endpoint && bot.gateway_token 
+      ? `${bot.gateway_endpoint}/?token=${bot.gateway_token}`
+      : null;
+
     return {
       botId: bot.id,
-      endpoint: bot.endpoint,
-      setupPassword: bot.setup_password,
-      setupUrl: bot.endpoint ? `${bot.endpoint}/setup` : null,
-      controlUrl: bot.endpoint ? `${bot.endpoint}/openclaw` : null,
+      endpoint: bot.endpoint || bot.gateway_endpoint,
+      gatewayToken: bot.gateway_token,
+      controlUrl,
       model: bot.model,
       systemPrompt: bot.system_prompt,
       botName: bot.bot_name,
       status: bot.status,
       createdAt: bot.created_at,
+      agentId: bot.agent_id,
     };
   },
 
   updateBot: async (userId, config) => {
     const botResult = await db.query(
-      `SELECT id, railway_service_id FROM bots WHERE user_id = $1`,
+      `SELECT id, gateway_id, agent_id FROM bots WHERE user_id = $1`,
       [userId]
     );
     
@@ -155,20 +159,14 @@ export const botService = {
       values.push(config.botName);
     }
     
-    updates.push(`updated_at = CURRENT_TIMESTAMP`);
-    values.push(bot.id);
+    if (updates.length > 0) {
+      updates.push(`updated_at = CURRENT_TIMESTAMP`);
+      values.push(bot.id);
 
-    await db.query(
-      `UPDATE bots SET ${updates.join(', ')} WHERE id = $${paramIndex}`,
-      values
-    );
-
-    if (bot.railway_service_id && process.env.RAILWAY_API_TOKEN) {
-      try {
-        await railwayService.updateServiceConfig(bot.railway_service_id, config);
-      } catch (error) {
-        console.warn(`Failed to update Railway config: ${error.message}`);
-      }
+      await db.query(
+        `UPDATE bots SET ${updates.join(', ')} WHERE id = $${paramIndex}`,
+        values
+      );
     }
 
     return botService.getBot(userId);
@@ -176,7 +174,7 @@ export const botService = {
 
   deleteBot: async (userId) => {
     const botResult = await db.query(
-      `SELECT id, railway_service_id FROM bots WHERE user_id = $1`,
+      `SELECT id, gateway_id, agent_id FROM bots WHERE user_id = $1`,
       [userId]
     );
     
@@ -186,14 +184,15 @@ export const botService = {
     
     const bot = botResult.rows[0];
 
-    if (bot.railway_service_id && process.env.RAILWAY_API_TOKEN) {
+    if (bot.gateway_id && bot.agent_id) {
       try {
-        await railwayService.deleteService(bot.railway_service_id);
+        await openclawService.deleteAgent(bot.gateway_id, bot.agent_id);
       } catch (error) {
-        console.warn(`Failed to delete Railway service: ${error.message}`);
+        console.warn(`Failed to delete agent from gateway: ${error.message}`);
       }
     }
 
+    await db.query(`DELETE FROM bot_tokens WHERE bot_id = $1`, [bot.id]);
     await db.query(`DELETE FROM bots WHERE id = $1`, [bot.id]);
 
     console.log(`Bot deleted for user ${userId}`);
@@ -204,9 +203,10 @@ export const botService = {
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     
     const result = await db.query(
-      `SELECT b.*, u.id as user_id 
+      `SELECT b.*, u.id as user_id, g.gateway_token, g.endpoint as gateway_endpoint
        FROM bots b 
        JOIN users u ON b.user_id = u.id 
+       LEFT JOIN gateways g ON b.gateway_id = g.id
        WHERE b.token_hash = $1`,
       [tokenHash]
     );
@@ -221,7 +221,8 @@ export const botService = {
       bot: {
         botId: row.id,
         botName: row.bot_name,
-        endpoint: row.endpoint,
+        endpoint: row.endpoint || row.gateway_endpoint,
+        gatewayToken: row.gateway_token,
         model: row.model,
         systemPrompt: row.system_prompt,
         status: row.status,
@@ -240,7 +241,7 @@ export const botService = {
     }
     
     const botId = botResult.rows[0].id;
-    const token = `${botId}:${crypto.randomBytes(16).toString('hex')}`;
+    const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     await db.query(
@@ -272,7 +273,11 @@ export const botService = {
 
   checkBotStatus: async (userId) => {
     const botResult = await db.query(
-      `SELECT id, railway_service_id, endpoint, status FROM bots WHERE user_id = $1`,
+      `SELECT b.id, b.gateway_id, b.agent_id, b.endpoint, b.status,
+              g.gateway_token, g.endpoint as gateway_endpoint, g.status as gateway_status
+       FROM bots b
+       LEFT JOIN gateways g ON b.gateway_id = g.id
+       WHERE b.user_id = $1`,
       [userId]
     );
     
@@ -282,7 +287,7 @@ export const botService = {
     
     const bot = botResult.rows[0];
 
-    if (!bot.railway_service_id || !process.env.RAILWAY_API_TOKEN) {
+    if (!bot.gateway_id) {
       return {
         botId: bot.id,
         status: bot.status,
@@ -290,37 +295,26 @@ export const botService = {
       };
     }
 
-    try {
-      const status = await railwayService.getServiceStatus(bot.railway_service_id);
-      const newStatus = status.status === 'SUCCESS' ? 'running' : status.status;
-      
-      await db.query(
-        `UPDATE bots SET status = $1, endpoint = COALESCE($2, endpoint), updated_at = CURRENT_TIMESTAMP WHERE id = $3`,
-        [newStatus, status.endpoint, bot.id]
-      );
+    const healthCheck = await openclawService.healthCheck(bot.gateway_id);
 
-      return {
-        botId: bot.id,
-        status: newStatus,
-        endpoint: status.endpoint || bot.endpoint,
-      };
-    } catch (error) {
-      console.error(`Failed to check status: ${error.message}`);
+    if (healthCheck.healthy && bot.status !== 'running') {
       await db.query(
-        `UPDATE bots SET status = 'error', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+        `UPDATE bots SET status = 'running', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
         [bot.id]
       );
-      return {
-        botId: bot.id,
-        status: 'error',
-        error: error.message,
-      };
     }
+
+    return {
+      botId: bot.id,
+      status: healthCheck.healthy ? 'running' : bot.status,
+      endpoint: bot.endpoint || bot.gateway_endpoint,
+      gatewayStatus: bot.gateway_status,
+    };
   },
 
   getAllBots: async () => {
     const result = await db.query(
-      `SELECT b.id, b.user_id, b.bot_name, b.status, b.endpoint, b.model, b.created_at
+      `SELECT b.id, b.user_id, b.bot_name, b.status, b.endpoint, b.model, b.created_at, b.gateway_id
        FROM bots b
        ORDER BY b.created_at DESC`
     );
@@ -333,12 +327,20 @@ export const botService = {
       endpoint: row.endpoint,
       model: row.model,
       createdAt: row.created_at,
+      gatewayId: row.gateway_id,
     }));
   },
 
   deleteAllBots: async () => {
     await db.query(`DELETE FROM bot_tokens`);
-    const result = await db.query(`DELETE FROM bots RETURNING id`);
+    const result = await db.query(`DELETE FROM bots RETURNING id, gateway_id`);
+    
+    for (const row of result.rows) {
+      if (row.gateway_id) {
+        await gatewayService.decrementAgentCount(row.gateway_id);
+      }
+    }
+    
     console.log(`Deleted ${result.rowCount} bots from database`);
     return result.rowCount;
   },
