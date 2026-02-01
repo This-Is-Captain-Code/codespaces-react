@@ -1,0 +1,56 @@
+$ fly logs -a oc-user-af463381c1cb-ml3ubwl0 
+Waiting for logs...
+14:33:10
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+14:33:10
+Container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 already prepared
+14:33:10
+Setting up volume 'user_data'
+14:33:10
+Uninitialized volume 'user_data', initializing...
+14:33:10
+Encrypting volume
+14:33:11
+Opening encrypted volume
+14:33:12
+Formatting volume
+14:33:12
+Configuring firecracker
+14:33:13
+2026-02-01T14:33:13.236284523 [01KGCSYDNY6RQ22CDSMAJSGM4E:main] Running Firecracker v1.12.1
+14:33:13
+2026-02-01T14:33:13.236485457 [01KGCSYDNY6RQ22CDSMAJSGM4E:main] Listening on API socket ("/fc.sock").
+14:33:14
+ INFO Starting init (commit: 6f59af0a)...
+14:33:14
+ INFO Checking filesystem on /data
+14:33:14
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+14:33:14
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+14:33:14
+ INFO Resized /data to 1056964608 bytes
+14:33:14
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo '{"gateway":{"mode":"local","trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"6b099db9d42e62ad84b7f5b4a53e10d3bc02035e7d92d723fc92bdddecbe5fcb"},"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/anthropic/claude-opus-4-5"}}}}' > /home/node/.openclaw/openclaw.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENROUTER_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan` as node
+14:33:14
+ INFO [fly api proxy] listening at /.fly/api
+14:33:14
+=== OPENCLAW CONFIG ===
+14:33:14
+{"gateway":{"mode":"local","trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"6b099db9d42e62ad84b7f5b4a53e10d3bc02035e7d92d723fc92bdddecbe5fcb"},"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/anthropic/claude-opus-4-5"}}}}
+14:33:14
+=== STARTING GATEWAY ===
+14:33:14
+Machine created and started in 3.826s
+14:33:14
+2026/02/01 14:33:14 INFO SSH listening listen_address=[fdaa:44:9071:a7b:303:275b:228c:2]:22
+14:33:53
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+14:34:04
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+14:34:20
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+14:34:34
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+14:34:34
+[PR04] could not find a good candidate within 40 attempts at load balancing
