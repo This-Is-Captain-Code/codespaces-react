@@ -500,16 +500,25 @@ export const flyService = {
     };
     const configJson = JSON.stringify(openclawConfig);
     
-    // Init command: write config, use --allow-unconfigured + --token for auth
-    // Print config for debugging, then start gateway
+    // Init command: 
+    // 1. Write base config with gateway settings
+    // 2. Configure OpenRouter API key via onboard
+    // 3. Set the model
+    // 4. Print config for debugging
+    // 5. Start gateway with token auth
+    const modelString = `openrouter/${model}`;
     const initCmd = [
       'mkdir -p /home/node/.openclaw',
       `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
-      'echo "=== OPENCLAW CONFIG ==="',
+      'echo "=== CONFIGURING OPENROUTER ==="',
+      'node dist/index.js onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_API_KEY"',
+      `echo "=== SETTING MODEL: ${modelString} ==="`,
+      `node dist/index.js config set agents.defaults.model.primary "${modelString}"`,
+      'echo "=== FINAL CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
       'echo ""',
       'echo "=== STARTING GATEWAY ==="',
-      'exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
+      'exec node dist/index.js gateway --bind lan --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
 
     const machineConfig = {
