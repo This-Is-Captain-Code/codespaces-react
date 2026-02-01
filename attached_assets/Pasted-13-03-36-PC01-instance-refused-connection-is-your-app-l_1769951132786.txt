@@ -1,0 +1,46 @@
+13:03:36
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:03:50
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:04:01
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:04:07
+[   68.153519] Out of memory: Killed process 651 (openclaw-gatewa) total-vm:12396512kB, anon-rss:836348kB, file-rss:204kB, shmem-rss:0kB, UID:1000 pgtables:24252kB oom_score_adj:0
+13:04:09
+ INFO Main child exited with signal (with signal 'SIGKILL', core dumped? false)
+13:04:09
+ INFO Process appears to have been OOM killed!
+13:04:09
+ INFO Starting clean up.
+13:04:09
+ INFO Umounting /dev/vdc from /data
+13:04:09
+[   70.626880] reboot: Restarting system
+13:04:09
+Out of memory: Killed process
+13:04:10
+2026-02-01T13:04:10.682652615 [01KGCMS6R65E14V7CDQ1WGHNWS:main] Running Firecracker v1.12.1
+13:04:10
+2026-02-01T13:04:10.682828108 [01KGCMS6R65E14V7CDQ1WGHNWS:main] Listening on API socket ("/fc.sock").
+13:04:10
+Starting machine
+13:04:10
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PM01] machines API returned an error: "machine still attempting to start"
+13:04:12
+Starting machine
+13:04:12
+[PM01] machines API returned an error: "machine still attempting to start"
+13:04:12
+ INFO Starting init (commit: 6f59af0a)...
+13:04:13
+ INFO Checking filesystem on /data
+13:04:13
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+13:04:13
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:04:13
+ INFO Resized /data to 1056964608 bytes
+13:04:13
+ INFO Preparing to run: `docker-entrypoint.sh sh -c exec node dist/index.js gateway --bind lan --allow-unconfigured` as node
+13:04:13
+ INFO [fly api proxy] listening at /.fly/api

@@ -458,7 +458,7 @@ export const flyService = {
       systemPrompt = 'You are a helpful assistant.',
       botName = 'Assistant',
       region = 'iad',
-      memoryMb = 1024,
+      memoryMb = 2048,  // OpenClaw needs 2GB RAM minimum
       cpus = 1,
     } = options;
 
