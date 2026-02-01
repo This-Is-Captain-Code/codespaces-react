@@ -420,4 +420,31 @@ export const flyService = {
     
     return flyService.execCommand(appName, machine.id, command, timeout);
   },
+
+  restartGateway: async (gatewayId) => {
+    const appName = `openclaw-gw-${gatewayId}`;
+    console.log(`Restarting gateway ${gatewayId}...`);
+    
+    const machines = await flyService.listMachines(appName);
+    if (machines.length === 0) {
+      throw new Error(`No machines found for gateway ${gatewayId}`);
+    }
+    
+    const machine = machines[0];
+    
+    // Stop and start the machine to reload config
+    await flyService.stopMachine(appName, machine.id);
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    await flyService.startMachine(appName, machine.id);
+    
+    // Wait for gateway to be ready (takes ~45-90 seconds)
+    console.log(`Waiting for gateway to start...`);
+    await flyService.waitForMachine(appName, machine.id, 'started', 60);
+    
+    // Give extra time for the gateway process to initialize
+    await new Promise(resolve => setTimeout(resolve, 30000));
+    
+    console.log(`Gateway ${gatewayId} restarted successfully`);
+    return true;
+  },
 };

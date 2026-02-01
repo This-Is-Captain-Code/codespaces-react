@@ -37,6 +37,11 @@ export const openclawService = {
     try {
       const result = await flyService.execOnGateway(gatewayId, fullCommand, 60000);
       console.log(`Agent ${agentId} registered successfully:`, result);
+      
+      // Restart gateway to reload config with new agent
+      console.log(`Restarting gateway to load new agent configuration...`);
+      await flyService.restartGateway(gatewayId);
+      console.log(`Gateway restarted, agent ${agentId} is now active`);
     } catch (error) {
       console.error(`Failed to register agent ${agentId}:`, error.message);
       throw new Error(`Failed to register agent on gateway: ${error.message}`);
