@@ -82,19 +82,42 @@ Shared OpenClaw gateways are deployed on Fly.io via the Machines API:
 ### Config Injection Approach
 OpenClaw requires config before process start. The solution:
 1. Base64-encode the config JSON and pass via `OPENCLAW_CONFIG_B64` env var
-2. Write config to `~/.openclaw/openclaw.json` at startup
-3. **CRITICAL**: Use CLI to set trustedProxies at runtime before starting gateway (config file approach is flaky behind Fly.io/Railway proxies)
-4. Start gateway with `node dist/index.js gateway --port 3000 --bind lan`
+2. Write config to both `~/.openclaw/openclaw.json` AND `/data/openclaw.json` at startup
+3. Include `trustedProxies: ["0.0.0.0/0"]` directly in the config JSON
+4. Write `auth-profiles.json` to `/data/agents/main/agent/auth-profiles.json` for OpenRouter API key
+5. Start gateway with `node dist/index.js gateway --port 3000 --bind lan`
 
-Init command:
+**OpenRouter Auth-Profiles Format** (required at `/data/agents/main/agent/auth-profiles.json`):
+```json
+{"openrouter":{"mode":"apiKey","apiKey":"sk-or-v1-..."}}
+```
+
+**Config JSON Structure** (with trustedProxies embedded):
+```json
+{
+  "env": {"OPENROUTER_API_KEY": "..."},
+  "gateway": {
+    "mode": "local",
+    "trustedProxies": ["0.0.0.0/0"],
+    "auth": {"mode": "token", "token": "..."},
+    "controlUi": {"enabled": true, "allowInsecureAuth": true},
+    "http": {"endpoints": {"chatCompletions": {"enabled": true}}}
+  },
+  "agents": {"defaults": {"model": {"primary": "openrouter/openai/gpt-4o"}}}
+}
+```
+
+**Init command:**
 ```bash
-mkdir -p /home/node/.openclaw && \
+mkdir -p /home/node/.openclaw /data/agents/main/agent && \
 echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && \
-node dist/index.js config set gateway.trustedProxies '["0.0.0.0/0"]' && \
+echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json && \
+echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENROUTER_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && \
 exec node dist/index.js gateway --port 3000 --bind lan
 ```
 
-The CLI-based `config set` for trustedProxies is required because the config file-based approach doesn't work reliably behind reverse proxies.
+**OpenAI-Compatible API Endpoint:**
+- `POST /v1/chat/completions` - Works with gateway token in Authorization header
 
 ## Gateway Status Values
 - **creating**: Gateway deployment in progress
@@ -133,6 +156,13 @@ Located in `backend/docker/`:
 To enable pure OpenClaw chat, build this image and deploy to a container registry, then update `flyService.js` to use the custom image URL.
 
 ## Recent Changes
+- 2026-02-01: OpenClaw Gateway Fully Working
+  - OpenRouter API key authentication solved via auth-profiles.json
+  - auth-profiles.json must be at `/data/agents/main/agent/auth-profiles.json`
+  - Format: `{"openrouter":{"mode":"apiKey","apiKey":"sk-or-v1-..."}}`
+  - OpenAI-compatible endpoint `/v1/chat/completions` tested and working
+  - Gateway token used for Authorization header
+  - trustedProxies warning is non-blocking (just affects local client detection)
 - 2026-01-31: Fixed OpenClaw Fly.io config injection
   - Root cause: OpenClaw loads config before process start, causing race conditions
   - Solution: Base64-encode config, decode before exec, use `--allow-unconfigured` flag
