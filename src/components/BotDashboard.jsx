@@ -25,7 +25,7 @@ export function BotDashboard({ userId }) {
   const [formData, setFormData] = useState({
     botName: '',
     systemPrompt: 'You are a helpful AI assistant.',
-    model: 'anthropic/claude-opus-4-5',
+    model: 'openrouter/anthropic/claude-opus-4-5',
   });
 
   useEffect(() => {
@@ -109,10 +109,10 @@ export function BotDashboard({ userId }) {
                 value={formData.model}
                 onChange={(e) => setFormData({ ...formData, model: e.target.value })}
               >
-                <option value="anthropic/claude-opus-4-5">Claude Opus 4.5</option>
-                <option value="anthropic/claude-sonnet-4-20250514">Claude Sonnet 4</option>
-                <option value="openai/gpt-4o">GPT-4o</option>
-                <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+                <option value="openrouter/anthropic/claude-opus-4-5">Claude Opus 4.5 (OpenRouter)</option>
+                <option value="openrouter/anthropic/claude-sonnet-4-20250514">Claude Sonnet 4 (OpenRouter)</option>
+                <option value="openrouter/openai/gpt-4o">GPT-4o (OpenRouter)</option>
+                <option value="openrouter/openai/gpt-4o-mini">GPT-4o Mini (OpenRouter)</option>
               </select>
             </div>
 

@@ -1,0 +1,104 @@
+$ fly logs -a oc-user-db7b3a3545a6-ml3uhslt 
+Waiting for logs...
+14:37:44
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+14:37:44
+Container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 already prepared
+14:37:44
+Setting up volume 'user_data'
+14:37:44
+Uninitialized volume 'user_data', initializing...
+14:37:44
+Encrypting volume
+14:37:45
+Opening encrypted volume
+14:37:45
+Formatting volume
+14:37:46
+Configuring firecracker
+14:37:46
+2026-02-01T14:37:46.960068710 [01KGCT6S4HT1G4SHD7D54CPR6J:main] Running Firecracker v1.12.1
+14:37:46
+2026-02-01T14:37:46.960319313 [01KGCT6S4HT1G4SHD7D54CPR6J:main] Listening on API socket ("/fc.sock").
+14:37:47
+ INFO Starting init (commit: 6f59af0a)...
+14:37:47
+ INFO Checking filesystem on /data
+14:37:47
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+14:37:47
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+14:37:48
+ INFO Resized /data to 1056964608 bytes
+14:37:48
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}}}' > /home/node/.openclaw/openclaw.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+14:37:48
+ INFO [fly api proxy] listening at /.fly/api
+14:37:48
+=== OPENCLAW CONFIG ===
+14:37:48
+{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}}}
+14:37:48
+=== STARTING GATEWAY ===
+14:37:48
+Machine created and started in 3.468s
+14:37:48
+2026/02/01 14:37:48 INFO SSH listening listen_address=[fdaa:44:9071:a7b:143:a0d2:b19c:2]:22
+14:38:32
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+14:38:32
+2026-02-01T14:38:32.973Z [canvas] host mounted at http://0.0.0.0:18789/__openclaw__/canvas/ (root /home/node/.openclaw/canvas)
+14:38:33
+2026-02-01T14:38:33.137Z [heartbeat] started
+14:38:33
+2026-02-01T14:38:33.140Z [gateway] agent model: anthropic/claude-opus-4-5
+14:38:33
+2026-02-01T14:38:33.148Z [gateway] listening on ws://0.0.0.0:18789 (PID 650)
+14:38:33
+2026-02-01T14:38:33.152Z [gateway] log file: /tmp/openclaw/openclaw-2026-02-01.log
+14:38:33
+2026-02-01T14:38:33.159Z [browser/service] Browser control service ready (profiles=2)
+14:38:45
+2026-02-01T14:38:45.872Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+14:38:46
+2026-02-01T14:38:46.151Z [ws] webchat connected conn=d2885b53-2523-4193-97a0-192d3d2af083 remote=172.16.12.98 client=openclaw-control-ui webchat vdev
+14:38:53
+2026-02-01T14:38:53.456Z [ws] ⇄ res ✓ config.schema 83ms conn=d2885b53…f083 id=42f13a27…e0a7
+14:39:48
+2026-02-01T14:39:48.000Z [diagnostic] lane task error: lane=main durationMs=4 error="Error: No API key found for provider "anthropic". Auth store: /data/agents/main/agent/auth-profiles.json (agentDir: /data/agents/main/agent). Configure auth for this agent (openclaw agents add <id>) or copy auth-profiles.json from the main agentDir."
+14:39:48
+2026-02-01T14:39:48.000Z [diagnostic] lane task error: lane=session:agent:main:main durationMs=11 error="Error: No API key found for provider "anthropic". Auth store: /data/agents/main/agent/auth-profiles.json (agentDir: /data/agents/main/agent). Configure auth for this agent (openclaw agents add <id>) or copy auth-profiles.json from the main agentDir."
+14:39:48
+2026-02-01T14:39:48.002Z Embedded agent failed before reply: No API key found for provider "anthropic". Auth store: /data/agents/main/agent/auth-profiles.json (agentDir: /data/agents/main/agent). Configure auth for this agent (openclaw agents add <id>) or copy auth-profiles.json from the main agentDir.
+14:40:14
+2026-02-01T14:40:14.593Z [ws] webchat disconnected code=1001 reason=n/a conn=d2885b53-2523-4193-97a0-192d3d2af083
+14:40:15
+2026-02-01T14:40:15.249Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+14:40:15
+2026-02-01T14:40:15.568Z [ws] webchat connected conn=2904f341-b877-4755-ad39-3f3f337d3bbf remote=172.16.12.98 client=openclaw-control-ui webchat vdev
+14:40:40
+2026-02-01T14:40:40.366Z [ws] ⇄ res ✓ update.run 1909ms conn=2904f341…3bbf id=65889326…75e9
+14:40:42
+2026-02-01T14:40:42.369Z [gateway] signal SIGUSR1 received
+14:40:42
+2026-02-01T14:40:42.370Z [gateway] received SIGUSR1; restarting
+14:40:42
+2026-02-01T14:40:42.378Z [gmail-watcher] gmail watcher stopped
+14:40:43
+2026-02-01T14:40:43.989Z [ws] webchat disconnected code=1012 reason=service restart conn=2904f341-b877-4755-ad39-3f3f337d3bbf
+14:40:44
+2026-02-01T14:40:44.000Z [canvas] host mounted at http://0.0.0.0:18789/__openclaw__/canvas/ (root /home/node/.openclaw/canvas)
+14:40:44
+2026-02-01T14:40:44.013Z [heartbeat] started
+14:40:44
+2026-02-01T14:40:44.015Z [gateway] agent model: anthropic/claude-opus-4-5
+14:40:44
+2026-02-01T14:40:44.016Z [gateway] listening on ws://0.0.0.0:18789 (PID 650)
+14:40:44
+2026-02-01T14:40:44.017Z [gateway] log file: /tmp/openclaw/openclaw-2026-02-01.log
+14:40:44
+2026-02-01T14:40:44.020Z [browser/service] Browser control service ready (profiles=2)
+14:40:45
+2026-02-01T14:40:45.160Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+14:40:45
+2026-02-01T14:40:45.473Z [ws] webchat connected conn=43d20241-246c-4157-a75a-7be36e5edd3a remote=172.16.12.98 client=openclaw-control-ui webchat vdev
