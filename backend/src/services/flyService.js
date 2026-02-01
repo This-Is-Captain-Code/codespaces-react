@@ -483,16 +483,12 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create complete config with mode, auth, and trustedProxies
-    // allowInsecureAuth: true skips device pairing for proxied connections (Fly.io)
+    // Create config with trustedProxies and allowInsecureAuth
+    // Use --allow-unconfigured + --token for auth (most reliable)
+    // allowInsecureAuth skips device pairing for proxied connections
     const openclawConfig = {
       gateway: {
-        mode: 'local',
         trustedProxies: ['0.0.0.0/0', '::/0'],
-        auth: {
-          mode: 'token',
-          token: gatewayToken
-        },
         controlUi: {
           enabled: true,
           allowInsecureAuth: true
@@ -501,7 +497,7 @@ export const flyService = {
     };
     const configJson = JSON.stringify(openclawConfig);
     
-    // Init command: write complete config, gateway uses token from config
+    // Init command: write config, use --allow-unconfigured + --token for auth
     // Print the config for debugging, then start gateway
     const initCmd = [
       'mkdir -p /home/node/.openclaw',
@@ -510,7 +506,7 @@ export const flyService = {
       'cat /home/node/.openclaw/openclaw.json',
       'echo ""',
       'echo "=== STARTING GATEWAY ==="',
-      'exec node dist/index.js gateway --bind lan'
+      'exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
 
     const machineConfig = {
