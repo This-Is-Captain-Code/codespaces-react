@@ -1,10 +1,8 @@
 FROM ghcr.io/openclaw/openclaw:latest
 
-COPY config.yaml /etc/openclaw/config.yaml
-
-ENV OPENCLAW_CONFIG=/etc/openclaw/config.yaml
 ENV OPENCLAW_STATE_DIR=/data
+ENV OPENCLAW_CONFIG_PATH=/data/config.json
 
-EXPOSE 3000
+EXPOSE 18789
 
-ENTRYPOINT ["node", "dist/index.js", "gateway", "--port", "3000", "--bind", "lan"]
+ENTRYPOINT ["node", "dist/index.js", "gateway", "--port", "18789", "--bind", "all"]
