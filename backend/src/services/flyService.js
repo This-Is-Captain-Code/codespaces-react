@@ -483,12 +483,16 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create config with trustedProxies and allowInsecureAuth
-    // Use --allow-unconfigured + --token for auth (most reliable)
+    // Create full config with auth token embedded
     // allowInsecureAuth skips device pairing for proxied connections
     const openclawConfig = {
       gateway: {
+        mode: 'local',
         trustedProxies: ['0.0.0.0/0', '::/0'],
+        auth: {
+          mode: 'token',
+          token: gatewayToken
+        },
         controlUi: {
           enabled: true,
           allowInsecureAuth: true
@@ -498,7 +502,7 @@ export const flyService = {
     const configJson = JSON.stringify(openclawConfig);
     
     // Init command: write config + auth-profiles.json for OpenRouter
-    // Use --allow-unconfigured + --token for auth
+    // Use full config mode (no --allow-unconfigured)
     const initCmd = [
       'mkdir -p /home/node/.openclaw',
       'mkdir -p /data/agents/main/agent',
@@ -509,7 +513,7 @@ export const flyService = {
       'echo "=== AUTH PROFILES ==="',
       'cat /data/agents/main/agent/auth-profiles.json',
       'echo "=== STARTING GATEWAY ==="',
-      'exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
+      'exec node dist/index.js gateway --bind lan --port 18789'
     ].join(' && ');
 
     const machineConfig = {
