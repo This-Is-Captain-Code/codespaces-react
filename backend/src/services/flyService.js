@@ -523,7 +523,7 @@ export const flyService = {
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json',
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json',
       'echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json',
-      'exec node dist/index.js gateway --port 18789 --bind lan'
+      'exec node dist/index.js gateway --port 18789 --bind all'
     ].join(' && ');
 
     const machineConfig = {
