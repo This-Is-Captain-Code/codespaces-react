@@ -516,13 +516,14 @@ export const flyService = {
     // Write config to /data/config.json (matches OPENCLAW_CONFIG_PATH env var)
     // Always write config from env var - for per-user gateways, config is fully controlled by env
     // This ensures updates to model/systemPrompt take effect on restart
-    // Use --bind all with --token for non-loopback binding (required by OpenClaw)
+    // Use --bind lan with --token for non-loopback binding (required by OpenClaw)
+    // Valid --bind options: loopback, lan, tailnet, auto, custom
     const initCmd = [
       'mkdir -p /home/node/.openclaw /data/agents/main/agent',
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json',
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json',
       'echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json',
-      'exec node dist/index.js gateway --port 18789 --bind all --token "$OPENCLAW_GATEWAY_TOKEN"'
+      'exec node dist/index.js gateway --port 18789 --bind lan --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
 
     const machineConfig = {

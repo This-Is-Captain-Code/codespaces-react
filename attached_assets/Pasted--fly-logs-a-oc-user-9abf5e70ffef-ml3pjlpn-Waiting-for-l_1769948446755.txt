@@ -1,0 +1,200 @@
+$ fly logs -a oc-user-9abf5e70ffef-ml3pjlpn 
+Waiting for logs...
+12:19:10
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+12:19:10
+Container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 already prepared
+12:19:10
+Setting up volume 'user_data'
+12:19:10
+Uninitialized volume 'user_data', initializing...
+12:19:10
+Encrypting volume
+12:19:11
+Opening encrypted volume
+12:19:11
+Formatting volume
+12:19:12
+Configuring firecracker
+12:19:12
+2026-02-01T12:19:12.541197437 [01KGCJ91QY95VR54CBBCXKA01K:main] Running Firecracker v1.12.1
+12:19:12
+2026-02-01T12:19:12.541325729 [01KGCJ91QY95VR54CBBCXKA01K:main] Listening on API socket ("/fc.sock").
+12:19:13
+ INFO Starting init (commit: 6f59af0a)...
+12:19:13
+ INFO Checking filesystem on /data
+12:19:13
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+12:19:13
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:19:13
+ INFO Resized /data to 1056964608 bytes
+12:19:13
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind all --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:19:13
+ INFO [fly api proxy] listening at /.fly/api
+12:19:13
+Machine created and started in 3.554s
+12:19:14
+2026/02/01 12:19:13 INFO SSH listening listen_address=[fdaa:44:9071:a7b:305:8e26:56a2:2]:22
+12:19:22
+2026-02-01T12:19:22.519Z Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")
+12:19:22
+ INFO Main child exited normally with code: 1
+12:19:22
+ INFO Starting clean up.
+12:19:22
+ INFO Umounting /dev/vdc from /data
+12:19:22
+[   10.159227] reboot: Restarting system
+12:19:23
+2026-02-01T12:19:23.686419049 [01KGCJ91QY95VR54CBBCXKA01K:main] Running Firecracker v1.12.1
+12:19:23
+2026-02-01T12:19:23.686558712 [01KGCJ91QY95VR54CBBCXKA01K:main] Listening on API socket ("/fc.sock").
+12:19:24
+ INFO Starting init (commit: 6f59af0a)...
+12:19:24
+ INFO Checking filesystem on /data
+12:19:24
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:19:24
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:19:24
+ INFO Resized /data to 1056964608 bytes
+12:19:24
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind all --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:19:24
+ INFO [fly api proxy] listening at /.fly/api
+12:19:25
+Machine started in 1.54s
+12:19:25
+2026/02/01 12:19:25 INFO SSH listening listen_address=[fdaa:44:9071:a7b:305:8e26:56a2:2]:22
+12:19:33
+2026-02-01T12:19:33.629Z Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")
+12:19:33
+ INFO Main child exited normally with code: 1
+12:19:33
+ INFO Starting clean up.
+12:19:33
+ INFO Umounting /dev/vdc from /data
+12:19:33
+[   10.193708] reboot: Restarting system
+12:19:35
+2026-02-01T12:19:35.181979349 [01KGCJ91QY95VR54CBBCXKA01K:main] Running Firecracker v1.12.1
+12:19:35
+2026-02-01T12:19:35.182225313 [01KGCJ91QY95VR54CBBCXKA01K:main] Listening on API socket ("/fc.sock").
+12:19:36
+ INFO Starting init (commit: 6f59af0a)...
+12:19:36
+ INFO Checking filesystem on /data
+12:19:36
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:19:36
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:19:36
+ INFO Resized /data to 1056964608 bytes
+12:19:36
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind all --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:19:36
+ INFO [fly api proxy] listening at /.fly/api
+12:19:36
+Machine started in 1.702s
+12:19:36
+2026/02/01 12:19:36 INFO SSH listening listen_address=[fdaa:44:9071:a7b:305:8e26:56a2:2]:22
+12:19:45
+2026-02-01T12:19:45.619Z Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")
+12:19:46
+ INFO Main child exited normally with code: 1
+12:19:46
+ INFO Starting clean up.
+12:19:46
+ INFO Umounting /dev/vdc from /data
+12:19:46
+[   11.203560] reboot: Restarting system
+12:19:47
+2026-02-01T12:19:47.680913737 [01KGCJ91QY95VR54CBBCXKA01K:main] Running Firecracker v1.12.1
+12:19:47
+2026-02-01T12:19:47.681058420 [01KGCJ91QY95VR54CBBCXKA01K:main] Listening on API socket ("/fc.sock").
+12:19:48
+ INFO Starting init (commit: 6f59af0a)...
+12:19:48
+ INFO Checking filesystem on /data
+12:19:48
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:19:48
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:19:48
+ INFO Resized /data to 1056964608 bytes
+12:19:48
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind all --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:19:48
+ INFO [fly api proxy] listening at /.fly/api
+12:19:49
+Machine started in 1.467s
+12:19:49
+2026/02/01 12:19:49 INFO SSH listening listen_address=[fdaa:44:9071:a7b:305:8e26:56a2:2]:22
+12:19:58
+2026-02-01T12:19:58.148Z Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")
+12:19:58
+ INFO Main child exited normally with code: 1
+12:19:58
+ INFO Starting clean up.
+12:19:58
+ INFO Umounting /dev/vdc from /data
+12:19:58
+[   11.164777] reboot: Restarting system
+12:20:00
+2026-02-01T12:20:00.363690540 [01KGCJ91QY95VR54CBBCXKA01K:main] Running Firecracker v1.12.1
+12:20:00
+2026-02-01T12:20:00.363838863 [01KGCJ91QY95VR54CBBCXKA01K:main] Listening on API socket ("/fc.sock").
+12:20:01
+ INFO Starting init (commit: 6f59af0a)...
+12:20:01
+ INFO Checking filesystem on /data
+12:20:01
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:20:01
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:20:01
+ INFO Resized /data to 1056964608 bytes
+12:20:01
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind all --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:20:01
+ INFO [fly api proxy] listening at /.fly/api
+12:20:01
+Machine started in 1.579s
+12:20:01
+2026/02/01 12:20:01 INFO SSH listening listen_address=[fdaa:44:9071:a7b:305:8e26:56a2:2]:22
+12:20:12
+2026-02-01T12:20:12.262Z Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")
+12:20:12
+ INFO Main child exited normally with code: 1
+12:20:12
+ INFO Starting clean up.
+12:20:12
+ INFO Umounting /dev/vdc from /data
+12:20:12
+[   12.247860] reboot: Restarting system
+12:20:14
+2026-02-01T12:20:14.300682142 [01KGCJ91QY95VR54CBBCXKA01K:main] Running Firecracker v1.12.1
+12:20:14
+2026-02-01T12:20:14.300804644 [01KGCJ91QY95VR54CBBCXKA01K:main] Listening on API socket ("/fc.sock").
+12:20:15
+ INFO Starting init (commit: 6f59af0a)...
+12:20:15
+ INFO Checking filesystem on /data
+12:20:15
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:20:15
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:20:15
+ INFO Resized /data to 1056964608 bytes
+12:20:15
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind all --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:20:15
+ INFO [fly api proxy] listening at /.fly/api
+12:20:15
+Machine started in 1.692s
+12:20:15
+2026/02/01 12:20:15 INFO SSH listening listen_address=[fdaa:44:9071:a7b:305:8e26:56a2:2]:22
