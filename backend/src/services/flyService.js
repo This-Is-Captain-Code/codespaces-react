@@ -483,20 +483,25 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create minimal config for trustedProxies only (required for Fly.io proxy)
-    // Use --allow-unconfigured to skip full config validation
+    // Create config with trustedProxies and auth (required for Fly.io proxy)
+    // Use mode: local + auth to enable token authentication
     const openclawConfig = {
       gateway: {
-        trustedProxies: ['0.0.0.0/0', '::/0']
+        mode: 'local',
+        trustedProxies: ['0.0.0.0/0', '::/0'],
+        auth: {
+          mode: 'token',
+          token: gatewayToken
+        }
       }
     };
     const configJson = JSON.stringify(openclawConfig);
     
-    // Init command: write config for trustedProxies, use --allow-unconfigured
+    // Init command: write full config, gateway reads auth from config
     const initCmd = [
       'mkdir -p /home/node/.openclaw',
       `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
-      'exec node dist/index.js gateway --bind lan --allow-unconfigured'
+      'exec node dist/index.js gateway --bind lan'
     ].join(' && ');
 
     const machineConfig = {
