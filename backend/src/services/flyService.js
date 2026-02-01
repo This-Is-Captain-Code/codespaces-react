@@ -483,8 +483,8 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create config with OpenRouter provider configured
-    // This tells OpenClaw how to use OpenRouter API
+    // Create minimal gateway config
+    // Use --allow-unconfigured for reliable startup
     const modelString = `openrouter/${model.replace('openrouter/', '')}`;
     const openclawConfig = {
       gateway: {
@@ -492,16 +492,6 @@ export const flyService = {
         controlUi: {
           enabled: true,
           allowInsecureAuth: true
-        }
-      },
-      models: {
-        mode: 'merge',
-        providers: {
-          openrouter: {
-            baseUrl: 'https://openrouter.ai/api/v1',
-            apiKey: '${OPENROUTER_API_KEY}',
-            api: 'openai-completions'
-          }
         }
       },
       agents: {
@@ -512,18 +502,36 @@ export const flyService = {
         }
       }
     };
-    // Convert to JSON string but use env var placeholder for API key
-    const configJson = JSON.stringify(openclawConfig).replace('"${OPENROUTER_API_KEY}"', '"$OPENROUTER_API_KEY"');
+    const configJson = JSON.stringify(openclawConfig);
+    
+    // Auth profiles in the exact format from user's local install
+    // This tells OpenClaw to use OpenRouter provider with the API key
+    const authProfilesJson = JSON.stringify({
+      version: 1,
+      profiles: {
+        'openrouter:default': {
+          type: 'api_key',
+          provider: 'openrouter',
+          key: '$OPENROUTER_API_KEY'
+        }
+      },
+      lastGood: {
+        openrouter: 'openrouter:default'
+      }
+    }).replace('"$OPENROUTER_API_KEY"', '"\'$OPENROUTER_API_KEY\'"');
     
     // Init command: 
-    // 1. Write config with OpenRouter provider and model
-    // 2. Replace API key placeholder with actual env var value using envsubst
+    // 1. Write gateway config with model
+    // 2. Write auth-profiles.json with OpenRouter API key
     // 3. Start gateway with --allow-unconfigured and --token
     const initCmd = [
-      'mkdir -p /home/node/.openclaw',
-      `echo '${configJson}' | envsubst > /home/node/.openclaw/openclaw.json`,
+      'mkdir -p /home/node/.openclaw /data/agents/main/agent',
+      `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
+      `echo '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"'$OPENROUTER_API_KEY'"}},"lastGood":{"openrouter":"openrouter:default"}}' > /data/agents/main/agent/auth-profiles.json`,
       'echo "=== OPENCLAW CONFIG ==="',
-      'cat /home/node/.openclaw/openclaw.json | sed "s/sk-or-v1-[^\\\"]*/.../g"',
+      'cat /home/node/.openclaw/openclaw.json',
+      'echo "=== AUTH PROFILES ==="',
+      'cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\\\"]*/.../g"',
       'echo ""',
       'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
