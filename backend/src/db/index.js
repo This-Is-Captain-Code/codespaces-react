@@ -80,6 +80,17 @@ export async function initializeDatabase() {
     ALTER TABLE bots ADD COLUMN IF NOT EXISTS setup_password VARCHAR(255)
   `).catch(() => {});
 
+  // Drop foreign key constraint on gateway_id for per-user gateway model
+  // gateway_id now stores Fly app name instead of gateways table reference
+  await db.query(`
+    ALTER TABLE bots DROP CONSTRAINT IF EXISTS bots_gateway_id_fkey
+  `).catch(() => {});
+
+  // Add fly_gateway_token column for per-user gateway auth
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS fly_gateway_token VARCHAR(255)
+  `).catch(() => {});
+
   await db.query(`
     CREATE TABLE IF NOT EXISTS bot_tokens (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
