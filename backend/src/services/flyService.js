@@ -516,13 +516,13 @@ export const flyService = {
     // Write config to /data/config.json (matches OPENCLAW_CONFIG_PATH env var)
     // Always write config from env var - for per-user gateways, config is fully controlled by env
     // This ensures updates to model/systemPrompt take effect on restart
-    // Use --port 3000 --bind lan --allow-unconfigured (matches Fly.io docs)
+    // Use --bind lan --allow-unconfigured (matches working fly.toml, default port 18789)
     const initCmd = [
       'mkdir -p /home/node/.openclaw /data/agents/main/agent',
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json',
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json',
       'echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json',
-      'exec node dist/index.js gateway --port 3000 --bind lan --allow-unconfigured'
+      'exec node dist/index.js gateway --bind lan --allow-unconfigured'
     ].join(' && ');
 
     const machineConfig = {
@@ -551,7 +551,8 @@ export const flyService = {
               { port: 80, handlers: ['http'] },
             ],
             protocol: 'tcp',
-            internal_port: 3000,
+            internal_port: 18789,
+            autostart: true,
           },
         ],
         mounts: [

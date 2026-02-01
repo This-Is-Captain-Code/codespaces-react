@@ -1,0 +1,50 @@
+$ fly logs -a oc-user-7b60acf58b41-ml3qmh06 
+Waiting for logs...
+12:49:24
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+12:49:24
+Container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 already prepared
+12:49:24
+Setting up volume 'user_data'
+12:49:24
+Uninitialized volume 'user_data', initializing...
+12:49:24
+Encrypting volume
+12:49:25
+Opening encrypted volume
+12:49:25
+Formatting volume
+12:49:26
+Configuring firecracker
+12:49:26
+2026-02-01T12:49:26.939817143 [01KGCM0D07M90VFX8363SN0STS:main] Running Firecracker v1.12.1
+12:49:26
+2026-02-01T12:49:26.940052377 [01KGCM0D07M90VFX8363SN0STS:main] Listening on API socket ("/fc.sock").
+12:49:28
+ INFO Starting init (commit: 6f59af0a)...
+12:49:28
+ INFO Checking filesystem on /data
+12:49:28
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+12:49:28
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:49:28
+ INFO Resized /data to 1056964608 bytes
+12:49:28
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 3000 --bind lan --allow-unconfigured` as node
+12:49:28
+ INFO [fly api proxy] listening at /.fly/api
+12:49:28
+Machine created and started in 4.225s
+12:49:28
+2026/02/01 12:49:28 INFO SSH listening listen_address=[fdaa:44:9071:a7b:303:9624:7cb9:2]:22
+12:49:49
+[PC01] instance refused connection. is your app listening on 0.0.0.0:3000? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+12:50:05
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:3000? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+12:50:16
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:3000? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+12:50:28
+[PC01] instance refused connection. is your app listening on 0.0.0.0:3000? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+12:50:30
+[PR04] could not find a good candidate within 40 attempts at load balancing
