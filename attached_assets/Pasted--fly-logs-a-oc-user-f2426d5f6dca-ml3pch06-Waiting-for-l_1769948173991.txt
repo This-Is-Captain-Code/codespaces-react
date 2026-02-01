@@ -1,0 +1,203 @@
+
+$ fly logs -a oc-user-f2426d5f6dca-ml3pch06 
+Waiting for logs...
+12:14:48
+o  Doctor --------------------------------------------+
+12:14:48
+|                                                     |
+12:14:48
+|  Run "openclaw doctor --fix" to remove these keys.  |
+12:14:48
+|                                                     |
+12:14:48
++-----------------------------------------------------+
+12:14:48
+Config invalid
+12:14:48
+File: /data/config.json
+12:14:48
+Problem:
+12:14:48
+  - agents.defaults: Unrecognized key: "systemPrompt"
+12:14:48
+  - gateway.http.endpoints: Unrecognized key: "toolsInvoke"
+12:14:48
+Run: openclaw doctor --fix
+12:14:49
+ INFO Main child exited normally with code: 1
+12:14:49
+ INFO Starting clean up.
+12:14:49
+ INFO Umounting /dev/vdc from /data
+12:14:49
+[    8.995585] reboot: Restarting system
+12:14:51
+2026-02-01T12:14:51.376701301 [01KGCHYX33ZFSE61S698WTX3F1:main] Running Firecracker v1.12.1
+12:14:51
+2026-02-01T12:14:51.376869004 [01KGCHYX33ZFSE61S698WTX3F1:main] Listening on API socket ("/fc.sock").
+12:14:52
+ INFO Starting init (commit: 6f59af0a)...
+12:14:52
+ INFO Checking filesystem on /data
+12:14:52
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:14:52
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:14:52
+ INFO Resized /data to 1056964608 bytes
+12:14:52
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind all --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:14:52
+ INFO [fly api proxy] listening at /.fly/api
+12:14:52
+Machine started in 1.247s
+12:14:52
+2026/02/01 12:14:52 INFO SSH listening listen_address=[fdaa:44:9071:a7b:2fa:7b69:dae1:2]:22
+12:14:59
+Invalid config at /data/config.json:\n- agents.defaults: Unrecognized key: "systemPrompt"
+12:14:59
+- gateway.http.endpoints: Unrecognized key: "toolsInvoke"
+12:14:59
+|
+12:14:59
+o  Config ---------------------------------------------------+
+12:14:59
+|                                                            |
+12:14:59
+|  Config invalid; doctor will run with best-effort config.  |
+12:14:59
+|                                                            |
+12:14:59
++------------------------------------------------------------+
+12:14:59
+|
+12:14:59
+o  Unknown config keys ------------------+
+12:14:59
+|                                        |
+12:14:59
+|  - agents.defaults.systemPrompt        |
+12:14:59
+|  - gateway.http.endpoints.toolsInvoke  |
+12:14:59
+|                                        |
+12:14:59
++----------------------------------------+
+12:14:59
+|
+12:14:59
+o  Doctor --------------------------------------------+
+12:14:59
+|                                                     |
+12:14:59
+|  Run "openclaw doctor --fix" to remove these keys.  |
+12:14:59
+|                                                     |
+12:14:59
++-----------------------------------------------------+
+12:14:59
+Config invalid
+12:14:59
+File: /data/config.json
+12:14:59
+Problem:
+12:14:59
+  - agents.defaults: Unrecognized key: "systemPrompt"
+12:14:59
+  - gateway.http.endpoints: Unrecognized key: "toolsInvoke"
+12:14:59
+Run: openclaw doctor --fix
+12:15:00
+ INFO Main child exited normally with code: 1
+12:15:00
+ INFO Starting clean up.
+12:15:00
+ INFO Umounting /dev/vdc from /data
+12:15:00
+[    9.010777] reboot: Restarting system
+12:15:01
+2026-02-01T12:15:01.400518256 [01KGCHYX33ZFSE61S698WTX3F1:main] Running Firecracker v1.12.1
+12:15:01
+2026-02-01T12:15:01.400663869 [01KGCHYX33ZFSE61S698WTX3F1:main] Listening on API socket ("/fc.sock").
+12:15:02
+ INFO Starting init (commit: 6f59af0a)...
+12:15:02
+ INFO Checking filesystem on /data
+12:15:02
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:15:02
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:15:02
+ INFO Resized /data to 1056964608 bytes
+12:15:02
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind all --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:15:02
+ INFO [fly api proxy] listening at /.fly/api
+12:15:02
+Machine started in 1.645s
+12:15:03
+2026/02/01 12:15:02 INFO SSH listening listen_address=[fdaa:44:9071:a7b:2fa:7b69:dae1:2]:22
+12:15:10
+Invalid config at /data/config.json:\n- agents.defaults: Unrecognized key: "systemPrompt"
+12:15:10
+- gateway.http.endpoints: Unrecognized key: "toolsInvoke"
+12:15:10
+|
+12:15:10
+o  Config ---------------------------------------------------+
+12:15:10
+|                                                            |
+12:15:10
+|  Config invalid; doctor will run with best-effort config.  |
+12:15:10
+|                                                            |
+12:15:10
++------------------------------------------------------------+
+12:15:10
+|
+12:15:10
+o  Unknown config keys ------------------+
+12:15:10
+|                                        |
+12:15:10
+|  - agents.defaults.systemPrompt        |
+12:15:10
+|  - gateway.http.endpoints.toolsInvoke  |
+12:15:10
+|                                        |
+12:15:10
++----------------------------------------+
+12:15:10
+|
+12:15:10
+o  Doctor --------------------------------------------+
+12:15:10
+|                                                     |
+12:15:10
+|  Run "openclaw doctor --fix" to remove these keys.  |
+12:15:10
+|                                                     |
+12:15:10
++-----------------------------------------------------+
+12:15:10
+Config invalid
+12:15:10
+File: /data/config.json
+12:15:10
+Problem:
+12:15:10
+  - agents.defaults: Unrecognized key: "systemPrompt"
+12:15:10
+  - gateway.http.endpoints: Unrecognized key: "toolsInvoke"
+12:15:10
+Run: openclaw doctor --fix
+12:15:10
+ INFO Main child exited normally with code: 1
+12:15:10
+ INFO Starting clean up.
+12:15:10
+ INFO Umounting /dev/vdc from /data
+12:15:10
+[    9.295940] reboot: Restarting system
+12:15:11
+machine has reached its max restart count of 5

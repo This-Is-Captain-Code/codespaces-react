@@ -477,6 +477,7 @@ export const flyService = {
     await flyService.allocateIps(appName);
 
     // Create config for single-user gateway (no multi-agent complexity)
+    // Only use valid OpenClaw config keys - chatCompletions endpoint only
     const openclawConfig = {
       gateway: {
         mode: 'local',
@@ -491,15 +492,13 @@ export const flyService = {
         },
         http: {
           endpoints: {
-            chatCompletions: { enabled: true },
-            toolsInvoke: { enabled: true }
+            chatCompletions: { enabled: true }
           }
         }
       },
       agents: {
         defaults: {
-          model: { primary: openrouterModel },
-          systemPrompt: systemPrompt
+          model: { primary: openrouterModel }
         }
       }
     };
@@ -676,15 +675,13 @@ export const flyService = {
           },
           http: {
             endpoints: {
-              chatCompletions: { enabled: true },
-              toolsInvoke: { enabled: true }
+              chatCompletions: { enabled: true }
             }
           }
         },
         agents: {
           defaults: {
-            model: { primary: openrouterModel || 'openrouter/openai/gpt-4o' },
-            systemPrompt: systemPrompt || 'You are a helpful assistant.'
+            model: { primary: openrouterModel || 'openrouter/openai/gpt-4o' }
           }
         }
       };
