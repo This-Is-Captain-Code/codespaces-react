@@ -469,13 +469,20 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create minimal gateway config - only what's needed
+    // Create gateway config with model
     const openclawConfig = {
       gateway: {
         trustedProxies: ['0.0.0.0/0', '::/0'],
         controlUi: {
           enabled: true,
           allowInsecureAuth: true
+        }
+      },
+      agents: {
+        defaults: {
+          model: {
+            primary: openrouterModel
+          }
         }
       }
     };
@@ -650,6 +657,13 @@ export const flyService = {
           http: {
             endpoints: {
               chatCompletions: { enabled: true }
+            }
+          }
+        },
+        agents: {
+          defaults: {
+            model: {
+              primary: openrouterModel || 'openrouter/openai/gpt-4o'
             }
           }
         }
