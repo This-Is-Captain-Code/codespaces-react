@@ -512,18 +512,10 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Init command: use env vars for security, matches working gateway config
-    // Write config to /data/config.json (matches OPENCLAW_CONFIG_PATH env var)
-    // Always write config from env var - for per-user gateways, config is fully controlled by env
-    // This ensures updates to model/systemPrompt take effect on restart
-    // Use --bind lan --allow-unconfigured (matches working fly.toml, default port 18789)
-    const initCmd = [
-      'mkdir -p /home/node/.openclaw /data/agents/main/agent',
-      'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json',
-      'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json',
-      'echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json',
-      'exec node dist/index.js gateway --bind lan --allow-unconfigured'
-    ].join(' && ');
+    // Init command: simplified to match working fly.toml
+    // Use --allow-unconfigured for headless gateway startup
+    // Default port is 18789
+    const initCmd = 'exec node dist/index.js gateway --bind lan --allow-unconfigured';
 
     const machineConfig = {
       name: 'user-gateway',
@@ -532,12 +524,9 @@ export const flyService = {
         env: {
           NODE_ENV: 'production',
           OPENCLAW_STATE_DIR: '/data',
-          OPENCLAW_CONFIG_PATH: '/data/config.json',
-          NODE_OPTIONS: '--max-old-space-size=768',
-          OPENCLAW_CONFIG_B64: configBase64,
+          NODE_OPTIONS: '--max-old-space-size=1536',
           OPENCLAW_GATEWAY_TOKEN: gatewayToken,
-          OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
-          OPENAI_API_KEY: openrouterApiKey,
+          OPENROUTER_API_KEY: openrouterApiKey,
         },
         guest: {
           cpu_kind: 'shared',
