@@ -162,7 +162,7 @@ To enable pure OpenClaw chat, build this image and deploy to a container registr
     - OPENCLAW_CONFIG_PATH: '/data/config.json' for config file location
     - OPENCLAW_CONFIG_B64: Base64-encoded config for env var injection
     - OPENAI_BASE_URL/OPENAI_API_KEY: OpenRouter API access
-    - internal_port: 3000, --port 3000 in gateway command
+    - internal_port: 18789 (OpenClaw's default port), --bind lan in gateway command
   - flyService.updateUserGateway() propagates model/systemPrompt changes:
     - Rebuilds OPENCLAW_CONFIG_B64 with new settings
     - Updates machine env vars and restarts to apply
