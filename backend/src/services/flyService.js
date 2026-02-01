@@ -483,8 +483,8 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create config with trustedProxies, allowInsecureAuth, and model
-    // Use --allow-unconfigured + --token for auth (most reliable)
+    // Create config with trustedProxies and allowInsecureAuth
+    // Model will be set via openclaw config set command
     // allowInsecureAuth skips device pairing for proxied connections
     const openclawConfig = {
       gateway: {
@@ -493,9 +493,6 @@ export const flyService = {
           enabled: true,
           allowInsecureAuth: true
         }
-      },
-      agent: {
-        model: model
       }
     };
     const configJson = JSON.stringify(openclawConfig);

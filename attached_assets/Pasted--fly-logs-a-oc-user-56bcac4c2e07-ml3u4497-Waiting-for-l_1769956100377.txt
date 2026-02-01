@@ -1,0 +1,144 @@
+$ fly logs -a oc-user-56bcac4c2e07-ml3u4497 
+Waiting for logs...
+14:27:06
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+14:27:25
+Successfully prepared image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 (19.088374686s)
+14:27:25
+Setting up volume 'user_data'
+14:27:25
+Uninitialized volume 'user_data', initializing...
+14:27:25
+Encrypting volume
+14:27:25
+Opening encrypted volume
+14:27:26
+Configuring firecracker
+14:27:26
+2026-02-01T14:27:26.961595945 [01KGCSK9JNCDW13MD79MPW1JA0:main] Running Firecracker v1.12.1
+14:27:26
+2026-02-01T14:27:26.961751646 [01KGCSK9JNCDW13MD79MPW1JA0:main] Listening on API socket ("/fc.sock").
+14:27:27
+ INFO Starting init (commit: 6f59af0a)...
+14:27:27
+ INFO Checking filesystem on /data
+14:27:27
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+14:27:27
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+14:27:27
+ INFO Resized /data to 1056964608 bytes
+14:27:27
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agent":{"model":"anthropic/claude-opus-4-5"}}' > /home/node/.openclaw/openclaw.json && echo "=== CONFIGURING OPENROUTER ===" && node dist/index.js onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_API_KEY" && echo "=== SETTING MODEL: openrouter/anthropic/claude-opus-4-5 ===" && node dist/index.js config set agents.defaults.model.primary "openrouter/anthropic/claude-opus-4-5" && echo "=== FINAL CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+14:27:27
+ INFO [fly api proxy] listening at /.fly/api
+14:27:27
+=== CONFIGURING OPENROUTER ===
+14:27:27
+Machine created and started in 21.824s
+14:27:28
+2026/02/01 14:27:28 INFO SSH listening listen_address=[fdaa:44:9071:a7b:51b:18b2:7190:2]:22
+14:27:34
+Invalid config at /home/node/.openclaw/openclaw.json:\n- agent: agent.* was moved; use agents.defaults (and tools.* for tool/elevated/exec settings) instead (auto-migrated on load).
+14:27:34
+- agent.model: agent.model string was replaced by agents.defaults.model.primary/fallbacks and agents.defaults.models (auto-migrated on load).
+14:27:34
+|
+14:27:34
+o  Legacy config keys detected ------------------------------------------+
+14:27:34
+|                                                                        |
+14:27:34
+|  - agent: agent.* was moved; use agents.defaults (and tools.* for      |
+14:27:34
+|    tool/elevated/exec settings) instead (auto-migrated on load).       |
+14:27:34
+|  - agent.model: agent.model string was replaced by                     |
+14:27:34
+|    agents.defaults.model.primary/fallbacks and agents.defaults.models  |
+14:27:34
+|    (auto-migrated on load).                                            |
+14:27:34
+|                                                                        |
+14:27:34
++------------------------------------------------------------------------+
+14:27:34
+|
+14:27:34
+o  Doctor changes -------------------------------------+
+14:27:34
+|                                                      |
+14:27:34
+|  Migrated agent.model string → agent.model.primary.  |
+14:27:34
+|  Moved agent → agents.defaults.                      |
+14:27:34
+|                                                      |
+14:27:34
++------------------------------------------------------+
+14:27:34
+|
+14:27:34
+o  Doctor --------------------------------------------------+
+14:27:34
+|                                                           |
+14:27:34
+|  Run "openclaw doctor --fix" to apply legacy migrations.  |
+14:27:34
+|                                                           |
+14:27:34
++-----------------------------------------------------------+
+14:27:34
+Config invalid
+14:27:34
+File: ~/.openclaw/openclaw.json
+14:27:34
+Problem:
+14:27:34
+  - agent: agent.* was moved; use agents.defaults (and tools.* for tool/elevated/exec settings) instead (auto-migrated on load).
+14:27:34
+  - agent.model: agent.model string was replaced by agents.defaults.model.primary/fallbacks and agents.defaults.models (auto-migrated on load).
+14:27:34
+Legacy config keys detected:
+14:27:34
+  - agent: agent.* was moved; use agents.defaults (and tools.* for tool/elevated/exec settings) instead (auto-migrated on load).
+14:27:34
+  - agent.model: agent.model string was replaced by agents.defaults.model.primary/fallbacks and agents.defaults.models (auto-migrated on load).
+14:27:34
+Run: openclaw doctor --fix
+14:27:35
+ INFO Main child exited normally with code: 1
+14:27:35
+ INFO Starting clean up.
+14:27:35
+ INFO Umounting /dev/vdc from /data
+14:27:35
+[    8.858751] reboot: Restarting system
+14:27:36
+2026-02-01T14:27:36.806406789 [01KGCSK9JNCDW13MD79MPW1JA0:main] Running Firecracker v1.12.1
+14:27:36
+2026-02-01T14:27:36.806552020 [01KGCSK9JNCDW13MD79MPW1JA0:main] Listening on API socket ("/fc.sock").
+14:27:37
+ INFO Starting init (commit: 6f59af0a)...
+14:27:37
+ INFO Checking filesystem on /data
+14:27:37
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+14:27:37
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+14:27:37
+ INFO Resized /data to 1056964608 bytes
+14:27:37
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agent":{"model":"anthropic/claude-opus-4-5"}}' > /home/node/.openclaw/openclaw.json && echo "=== CONFIGURING OPENROUTER ===" && node dist/index.js onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_API_KEY" && echo "=== SETTING MODEL: openrouter/anthropic/claude-opus-4-5 ===" && node dist/index.js config set agents.defaults.model.primary "openrouter/anthropic/claude-opus-4-5" && echo "=== FINAL CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+14:27:37
+ INFO [fly api proxy] listening at /.fly/api
+14:27:37
+=== CONFIGURING OPENROUTER ===
+14:27:37
+Machine started in 1.088s
+14:27:37
+2026/02/01 14:27:37 INFO SSH listening listen_address=[fdaa:44:9071:a7b:51b:18b2:7190:2]:22
+14:27:44
+Invalid config at /home/node/.openclaw/openclaw.json:\n- agent: agent.* was moved; use agents.defaults (and tools.* for tool/elevated/exec settings) instead (auto-migrated on load).
+14:27:44
+- agent.model: agent.model string was replaced by agents.defaults.model.primary/fallbacks and agents.defaults.models (auto-migrated on load).
