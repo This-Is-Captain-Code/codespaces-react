@@ -486,6 +486,7 @@ export const flyService = {
     // Create minimal config for trustedProxies (required for Fly.io proxy)
     const openclawConfig = {
       gateway: {
+        mode: 'local',  // Required to start gateway without --allow-unconfigured
         trustedProxies: ['0.0.0.0/0', '::/0'],
         auth: {
           mode: 'token',

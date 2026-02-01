@@ -1,0 +1,252 @@
+fly logs -a oc-user-45be5842f0e5-ml3rh4qu 
+Waiting for logs...
+13:13:39
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:13:39
+ INFO Resized /data to 1056964608 bytes
+13:13:39
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"50898e5a109e3661f1c2472aae029cb891087101ea23194d9140ce6c3f6be2ce"},"controlUi":{"enabled":true,"allowInsecureAuth":true},"http":{"endpoints":{"chatCompletions":{"enabled":true}}}}}' > /home/node/.openclaw/openclaw.json && exec node dist/index.js gateway --bind lan` as node
+13:13:39
+ INFO [fly api proxy] listening at /.fly/api
+13:13:39
+Machine started in 1.266s
+13:13:39
+2026/02/01 13:13:39 INFO SSH listening listen_address=[fdaa:44:9071:a7b:592:ded3:2f9:2]:22
+13:13:46
+2026-02-01T13:13:46.603Z Gateway start blocked: set gateway.mode=local (current: unset) or pass --allow-unconfigured.
+13:13:47
+ INFO Main child exited normally with code: 1
+13:13:47
+ INFO Starting clean up.
+13:13:47
+ INFO Umounting /dev/vdc from /data
+13:13:47
+[    8.968641] reboot: Restarting system
+13:13:48
+2026-02-01T13:13:48.253355182 [01KGCNC36XA8A5E48VC59SH4XY:main] Running Firecracker v1.12.1
+13:13:48
+2026-02-01T13:13:48.253491250 [01KGCNC36XA8A5E48VC59SH4XY:main] Listening on API socket ("/fc.sock").
+13:13:49
+ INFO Starting init (commit: 6f59af0a)...
+13:13:49
+ INFO Checking filesystem on /data
+13:13:49
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+13:13:49
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:13:49
+ INFO Resized /data to 1056964608 bytes
+13:13:49
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"50898e5a109e3661f1c2472aae029cb891087101ea23194d9140ce6c3f6be2ce"},"controlUi":{"enabled":true,"allowInsecureAuth":true},"http":{"endpoints":{"chatCompletions":{"enabled":true}}}}}' > /home/node/.openclaw/openclaw.json && exec node dist/index.js gateway --bind lan` as node
+13:13:49
+ INFO [fly api proxy] listening at /.fly/api
+13:13:49
+Machine started in 1.276s
+13:13:49
+2026/02/01 13:13:49 INFO SSH listening listen_address=[fdaa:44:9071:a7b:592:ded3:2f9:2]:22
+13:13:56
+2026-02-01T13:13:56.643Z Gateway start blocked: set gateway.mode=local (current: unset) or pass --allow-unconfigured.
+13:13:57
+ INFO Main child exited normally with code: 1
+13:13:57
+ INFO Starting clean up.
+13:13:57
+ INFO Umounting /dev/vdc from /data
+13:13:57
+[    8.969903] reboot: Restarting system
+13:13:59
+2026-02-01T13:13:59.057238050 [01KGCNC36XA8A5E48VC59SH4XY:main] Running Firecracker v1.12.1
+13:13:59
+2026-02-01T13:13:59.057408378 [01KGCNC36XA8A5E48VC59SH4XY:main] Listening on API socket ("/fc.sock").
+13:13:59
+ INFO Starting init (commit: 6f59af0a)...
+13:13:59
+ INFO Checking filesystem on /data
+13:13:59
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+13:13:59
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:13:59
+ INFO Resized /data to 1056964608 bytes
+13:14:00
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"50898e5a109e3661f1c2472aae029cb891087101ea23194d9140ce6c3f6be2ce"},"controlUi":{"enabled":true,"allowInsecureAuth":true},"http":{"endpoints":{"chatCompletions":{"enabled":true}}}}}' > /home/node/.openclaw/openclaw.json && exec node dist/index.js gateway --bind lan` as node
+13:14:00
+ INFO [fly api proxy] listening at /.fly/api
+13:14:00
+Machine started in 1.242s
+13:14:00
+2026/02/01 13:14:00 INFO SSH listening listen_address=[fdaa:44:9071:a7b:592:ded3:2f9:2]:22
+13:14:06
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:14:07
+2026-02-01T13:14:07.390Z Gateway start blocked: set gateway.mode=local (current: unset) or pass --allow-unconfigured.
+13:14:08
+ INFO Main child exited normally with code: 1
+13:14:08
+ INFO Starting clean up.
+13:14:08
+ INFO Umounting /dev/vdc from /data
+13:14:08
+[    8.955556] reboot: Restarting system
+13:14:09
+2026-02-01T13:14:09.261121868 [01KGCNC36XA8A5E48VC59SH4XY:main] Running Firecracker v1.12.1
+13:14:09
+2026-02-01T13:14:09.261269106 [01KGCNC36XA8A5E48VC59SH4XY:main] Listening on API socket ("/fc.sock").
+13:14:10
+ INFO Starting init (commit: 6f59af0a)...
+13:14:10
+ INFO Checking filesystem on /data
+13:14:10
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+13:14:10
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:14:10
+ INFO Resized /data to 1056964608 bytes
+13:14:10
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"50898e5a109e3661f1c2472aae029cb891087101ea23194d9140ce6c3f6be2ce"},"controlUi":{"enabled":true,"allowInsecureAuth":true},"http":{"endpoints":{"chatCompletions":{"enabled":true}}}}}' > /home/node/.openclaw/openclaw.json && exec node dist/index.js gateway --bind lan` as node
+13:14:10
+ INFO [fly api proxy] listening at /.fly/api
+13:14:10
+Machine started in 1.31s
+13:14:10
+2026/02/01 13:14:10 INFO SSH listening listen_address=[fdaa:44:9071:a7b:592:ded3:2f9:2]:22
+13:14:17
+2026-02-01T13:14:17.623Z Gateway start blocked: set gateway.mode=local (current: unset) or pass --allow-unconfigured.
+13:14:17
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:14:18
+ INFO Main child exited normally with code: 1
+13:14:18
+ INFO Starting clean up.
+13:14:18
+ INFO Umounting /dev/vdc from /data
+13:14:18
+[    8.960449] reboot: Restarting system
+13:14:18
+machine has reached its max restart count of 5
+13:14:20
+Starting machine
+13:14:20
+2026-02-01T13:14:20.365147586 [01KGCNC36XA8A5E48VC59SH4XY:main] Running Firecracker v1.12.1
+13:14:20
+2026-02-01T13:14:20.365315214 [01KGCNC36XA8A5E48VC59SH4XY:main] Listening on API socket ("/fc.sock").
+13:14:21
+ INFO Starting init (commit: 6f59af0a)...
+13:14:21
+ INFO Checking filesystem on /data
+13:14:21
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+13:14:21
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:14:21
+ INFO Resized /data to 1056964608 bytes
+13:14:21
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"50898e5a109e3661f1c2472aae029cb891087101ea23194d9140ce6c3f6be2ce"},"controlUi":{"enabled":true,"allowInsecureAuth":true},"http":{"endpoints":{"chatCompletions":{"enabled":true}}}}}' > /home/node/.openclaw/openclaw.json && exec node dist/index.js gateway --bind lan` as node
+13:14:21
+ INFO [fly api proxy] listening at /.fly/api
+13:14:21
+Machine started in 1.244s
+13:14:21
+machine started in 1.30801291s
+13:14:21
+2026/02/01 13:14:21 INFO SSH listening listen_address=[fdaa:44:9071:a7b:592:ded3:2f9:2]:22
+13:14:26
+waiting for machine to be reachable on 0.0.0.0:18789 (waited 5.286297739s so far)
+13:14:28
+2026-02-01T13:14:28.768Z Gateway start blocked: set gateway.mode=local (current: unset) or pass --allow-unconfigured.
+13:14:29
+ INFO Main child exited normally with code: 1
+13:14:29
+ INFO Starting clean up.
+13:14:29
+ INFO Umounting /dev/vdc from /data
+13:14:29
+[    8.973263] reboot: Restarting system
+13:14:29
+machine has reached its max restart count of 5
+13:14:31
+[PM05] failed to connect to machine: gave up after 15 attempts (in 10.292195969s)
+13:14:33
+Starting machine
+13:14:33
+2026-02-01T13:14:33.236963410 [01KGCNC36XA8A5E48VC59SH4XY:main] Running Firecracker v1.12.1
+13:14:33
+2026-02-01T13:14:33.237123388 [01KGCNC36XA8A5E48VC59SH4XY:main] Listening on API socket ("/fc.sock").
+13:14:34
+ INFO Starting init (commit: 6f59af0a)...
+13:14:34
+ INFO Checking filesystem on /data
+13:14:34
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+13:14:34
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:14:34
+ INFO Resized /data to 1056964608 bytes
+13:14:34
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"50898e5a109e3661f1c2472aae029cb891087101ea23194d9140ce6c3f6be2ce"},"controlUi":{"enabled":true,"allowInsecureAuth":true},"http":{"endpoints":{"chatCompletions":{"enabled":true}}}}}' > /home/node/.openclaw/openclaw.json && exec node dist/index.js gateway --bind lan` as node
+13:14:34
+ INFO [fly api proxy] listening at /.fly/api
+13:14:34
+Machine started in 1.251s
+13:14:34
+machine started in 1.313532572s
+13:14:34
+2026/02/01 13:14:34 INFO SSH listening listen_address=[fdaa:44:9071:a7b:592:ded3:2f9:2]:22
+13:14:39
+waiting for machine to be reachable on 0.0.0.0:18789 (waited 5.486923458s so far)
+13:14:43
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PM05] failed to connect to machine: gave up after 15 attempts (in 8.656441888s)
+13:14:44
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:14:54
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:15:08
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:15:09
+[PR04] could not find a good candidate within 40 attempts at load balancing
+13:15:29
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:15:40
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:15:51
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:15:56
+2026-02-01T13:15:56.416Z Gateway start blocked: set gateway.mode=local (current: unset) or pass --allow-unconfigured.
+13:15:57
+ INFO Main child exited normally with code: 1
+13:15:57
+ INFO Starting clean up.
+13:15:57
+ INFO Umounting /dev/vdc from /data
+13:15:57
+[   84.272939] reboot: Restarting system
+13:15:57
+machine has reached its max restart count of 5
+13:15:58
+Starting machine
+13:15:58
+2026-02-01T13:15:58.768128341 [01KGCNC36XA8A5E48VC59SH4XY:main] Running Firecracker v1.12.1
+13:15:58
+2026-02-01T13:15:58.768270729 [01KGCNC36XA8A5E48VC59SH4XY:main] Listening on API socket ("/fc.sock").
+13:16:00
+ INFO Starting init (commit: 6f59af0a)...
+13:16:00
+ INFO Checking filesystem on /data
+13:16:00
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+13:16:00
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:16:00
+ INFO Resized /data to 1056964608 bytes
+13:16:00
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"50898e5a109e3661f1c2472aae029cb891087101ea23194d9140ce6c3f6be2ce"},"controlUi":{"enabled":true,"allowInsecureAuth":true},"http":{"endpoints":{"chatCompletions":{"enabled":true}}}}}' > /home/node/.openclaw/openclaw.json && exec node dist/index.js gateway --bind lan` as node
+13:16:00
+ INFO [fly api proxy] listening at /.fly/api
+13:16:00
+Machine started in 2.273s
+13:16:00
+machine started in 2.296101707s
+13:16:04
+2026/02/01 13:16:04 INFO SSH listening listen_address=[fdaa:44:9071:a7b:592:ded3:2f9:2]:22
+13:16:06
+waiting for machine to be reachable on 0.0.0.0:18789 (waited 6.018051623s so far)
