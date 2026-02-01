@@ -447,4 +447,274 @@ export const flyService = {
     console.log(`Gateway ${gatewayId} restarted successfully`);
     return true;
   },
+
+  // Per-user gateway: Each user gets their own dedicated Fly.io machine
+  createUserGateway: async (userId, options = {}) => {
+    const shortUserId = userId.replace(/[^a-z0-9]/gi, '').substring(0, 12).toLowerCase();
+    const appName = `oc-user-${shortUserId}-${Date.now().toString(36)}`;
+    
+    const {
+      model = 'openrouter/openai/gpt-4o',
+      systemPrompt = 'You are a helpful assistant.',
+      botName = 'Assistant',
+      region = 'iad',
+      memoryMb = 1024,
+      cpus = 1,
+    } = options;
+
+    console.log(`Creating per-user gateway for ${userId}: ${appName}...`);
+
+    // Generate unique token for this user's gateway
+    const crypto = await import('crypto');
+    const gatewayToken = crypto.randomBytes(32).toString('hex');
+    const openrouterApiKey = process.env.OPENROUTER_API_KEY;
+    const openrouterModel = model.startsWith('openrouter/') ? model : `openrouter/${model}`;
+
+    // Create the Fly.io app
+    await flyService.createApp(appName);
+
+    // Allocate public IPs
+    await flyService.allocateIps(appName);
+
+    // Create config for single-user gateway (no multi-agent complexity)
+    const openclawConfig = {
+      gateway: {
+        mode: 'local',
+        auth: {
+          mode: 'token',
+          token: gatewayToken
+        },
+        trustedProxies: ['0.0.0.0/0', '::/0'],
+        controlUi: {
+          enabled: true,
+          allowInsecureAuth: true
+        },
+        http: {
+          endpoints: {
+            chatCompletions: { enabled: true },
+            toolsInvoke: { enabled: true }
+          }
+        }
+      },
+      agents: {
+        defaults: {
+          model: { primary: openrouterModel },
+          systemPrompt: systemPrompt
+        }
+      }
+    };
+    
+    const configBase64 = Buffer.from(JSON.stringify(openclawConfig)).toString('base64');
+
+    // Create volume for persistent data
+    const volume = await flyService.createVolume(appName, {
+      name: 'user_data',
+      region,
+      sizeGb: 1,
+    });
+
+    // Init command: use env vars for security, matches working gateway config
+    // Write config to /data/config.json (matches OPENCLAW_CONFIG_PATH env var)
+    // Always write config from env var - for per-user gateways, config is fully controlled by env
+    // This ensures updates to model/systemPrompt take effect on restart
+    const initCmd = [
+      'mkdir -p /home/node/.openclaw /data/agents/main/agent',
+      'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json',
+      'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json',
+      'echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json',
+      'exec node dist/index.js gateway --port 3000 --bind lan'
+    ].join(' && ');
+
+    const machineConfig = {
+      name: 'user-gateway',
+      config: {
+        image: 'ghcr.io/openclaw/openclaw:latest',
+        env: {
+          NODE_ENV: 'production',
+          OPENCLAW_STATE_DIR: '/data',
+          OPENCLAW_CONFIG_PATH: '/data/config.json',
+          NODE_OPTIONS: '--max-old-space-size=768',
+          OPENCLAW_CONFIG_B64: configBase64,
+          OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
+          OPENAI_API_KEY: openrouterApiKey,
+        },
+        guest: {
+          cpu_kind: 'shared',
+          cpus,
+          memory_mb: memoryMb,
+        },
+        services: [
+          {
+            ports: [
+              { port: 443, handlers: ['tls', 'http'] },
+              { port: 80, handlers: ['http'] },
+            ],
+            protocol: 'tcp',
+            internal_port: 3000,
+          },
+        ],
+        mounts: [
+          {
+            volume: volume.id,
+            path: '/data',
+          },
+        ],
+        restart: {
+          policy: 'on-failure',
+          max_retries: 5,
+        },
+        init: {
+          cmd: ['sh', '-c', initCmd]
+        }
+      },
+      region,
+    };
+
+    const machine = await flyService.createMachine(appName, machineConfig);
+
+    // Wait for machine to start (don't wait for full gateway startup to speed up)
+    await flyService.waitForMachine(appName, machine.id, 'started', 30);
+
+    const endpoint = `https://${appName}.fly.dev`;
+
+    console.log(`Per-user gateway created: ${endpoint}`);
+
+    return {
+      appName,
+      machineId: machine.id,
+      volumeId: volume.id,
+      endpoint,
+      gatewayToken,
+      controlUrl: `${endpoint}/?token=${gatewayToken}`,
+      region,
+      model: openrouterModel,
+    };
+  },
+
+  deleteUserGateway: async (appName) => {
+    console.log(`Deleting user gateway: ${appName}...`);
+    
+    try {
+      const machines = await flyService.listMachines(appName);
+      for (const machine of machines) {
+        await flyService.deleteMachine(appName, machine.id, true);
+      }
+    } catch (error) {
+      console.warn(`Failed to delete machines: ${error.message}`);
+    }
+
+    try {
+      await flyService.deleteApp(appName);
+      console.log(`User gateway deleted: ${appName}`);
+    } catch (error) {
+      console.warn(`Failed to delete app: ${error.message}`);
+    }
+
+    return true;
+  },
+
+  getUserGatewayStatus: async (appName) => {
+    try {
+      const machines = await flyService.listMachines(appName);
+      if (machines.length === 0) {
+        return { status: 'not_found', appName };
+      }
+      
+      const machine = machines[0];
+      return {
+        status: machine.state,
+        appName,
+        machineId: machine.id,
+        endpoint: `https://${appName}.fly.dev`,
+        region: machine.region,
+      };
+    } catch (error) {
+      return { status: 'error', error: error.message };
+    }
+  },
+
+  updateUserGateway: async (appName, options = {}) => {
+    const {
+      model,
+      systemPrompt,
+      gatewayToken,
+    } = options;
+
+    if (!model && !systemPrompt) {
+      console.log('No model/systemPrompt changes, skipping gateway update');
+      return { success: true, updated: false };
+    }
+
+    console.log(`Updating user gateway ${appName} config...`);
+
+    try {
+      const machines = await flyService.listMachines(appName);
+      if (machines.length === 0) {
+        throw new Error('No machines found for gateway');
+      }
+
+      const machine = machines[0];
+      const currentConfig = machine.config;
+      const openrouterApiKey = process.env.OPENROUTER_API_KEY;
+
+      // Build new OpenClaw config with updated model/systemPrompt
+      const openrouterModel = model && (model.startsWith('openrouter/') ? model : `openrouter/${model}`);
+      
+      const openclawConfig = {
+        gateway: {
+          mode: 'local',
+          auth: {
+            mode: 'token',
+            token: gatewayToken
+          },
+          trustedProxies: ['0.0.0.0/0', '::/0'],
+          controlUi: {
+            enabled: true,
+            allowInsecureAuth: true
+          },
+          http: {
+            endpoints: {
+              chatCompletions: { enabled: true },
+              toolsInvoke: { enabled: true }
+            }
+          }
+        },
+        agents: {
+          defaults: {
+            model: { primary: openrouterModel || 'openrouter/openai/gpt-4o' },
+            systemPrompt: systemPrompt || 'You are a helpful assistant.'
+          }
+        }
+      };
+
+      const configBase64 = Buffer.from(JSON.stringify(openclawConfig)).toString('base64');
+
+      // Update machine env vars with new config
+      const updatedConfig = {
+        ...currentConfig,
+        env: {
+          ...currentConfig.env,
+          OPENCLAW_CONFIG_B64: configBase64,
+        },
+      };
+
+      await flyService.updateMachine(appName, machine.id, { config: updatedConfig });
+      
+      // Restart machine to apply changes
+      await flyService.restartMachine(appName, machine.id);
+      await flyService.waitForMachine(appName, machine.id, 'started', 30);
+
+      console.log(`User gateway ${appName} updated and restarted`);
+      return { success: true, updated: true };
+    } catch (error) {
+      console.error(`Failed to update user gateway: ${error.message}`);
+      throw error;
+    }
+  },
+
+  restartMachine: async (appName, machineId) => {
+    console.log(`Restarting machine ${machineId}...`);
+    await flyRequest('POST', `/v1/apps/${appName}/machines/${machineId}/restart`);
+    console.log(`Machine restart initiated: ${machineId}`);
+  },
 };

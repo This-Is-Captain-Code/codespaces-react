@@ -1,11 +1,11 @@
 # MoltRack v0
 
 ## Overview
-MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, create AI bots that are deployed as agents on shared OpenClaw gateway instances running on Fly.io.
+MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, create AI bots that are deployed as isolated agents on dedicated OpenClaw gateway instances running on Fly.io.
 
-**Model**: 1 user → 1 bot → 1 token
+**Model**: 1 user → 1 bot → 1 dedicated Fly.io instance
 
-**Architecture**: Shared gateway model - multiple user agents run on shared OpenClaw gateway instances for cost efficiency (~$0.50/user vs $62/user for per-user containers).
+**Architecture**: Per-user dedicated instance model - each user gets their own OpenClaw gateway on Fly.io for complete isolation. Cost: ~$5-15/user/month depending on usage.
 
 ## Project Structure
 - `/` - Frontend (React + Vite)
@@ -156,6 +156,22 @@ Located in `backend/docker/`:
 To enable pure OpenClaw chat, build this image and deploy to a container registry, then update `flyService.js` to use the custom image URL.
 
 ## Recent Changes
+- 2026-02-01: Per-User Dedicated Instances (Complete)
+  - Architecture: Each user gets their own OpenClaw machine (`oc-user-{userId}-{timestamp}`)
+  - flyService.createUserGateway() creates dedicated instances with:
+    - OPENCLAW_CONFIG_PATH: '/data/config.json' for config file location
+    - OPENCLAW_CONFIG_B64: Base64-encoded config for env var injection
+    - OPENAI_BASE_URL/OPENAI_API_KEY: OpenRouter API access
+    - internal_port: 3000, --port 3000 in gateway command
+  - flyService.updateUserGateway() propagates model/systemPrompt changes:
+    - Rebuilds OPENCLAW_CONFIG_B64 with new settings
+    - Updates machine env vars and restarts to apply
+  - flyService.deleteUserGateway() cleans up on bot deletion
+  - botService.updateBot() now calls updateUserGateway for per-user gateways
+  - chat.js routes use bot.endpoint and bot.gatewayToken directly (no shared gateway queries)
+  - fly_gateway_token column stores gateway auth token for control panel access
+  - Init command always writes config from env (no guard) so updates take effect on restart
+  - Cost: ~$5-15/user/month, but complete isolation
 - 2026-02-01: Fixed Agent Registration Persistence
   - Root cause: Init script was overwriting /data/openclaw.json on every restart, deleting registered agents
   - Solution: New init script only writes base config to /home/node/.openclaw/ (not /data/)

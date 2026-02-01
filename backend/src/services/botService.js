@@ -1,6 +1,7 @@
 import { db } from '../db/index.js';
 import { gatewayService } from './gatewayService.js';
 import { openclawService } from './openclawService.js';
+import { flyService } from './flyService.js';
 import crypto from 'crypto';
 
 export const botService = {
@@ -15,82 +16,63 @@ export const botService = {
     }
 
     try {
-      console.log(`Creating bot for user ${userId}...`);
+      console.log(`Creating bot for user ${userId} with dedicated instance...`);
 
-      const gateway = await gatewayService.getAvailableGateway();
-      if (!gateway) {
-        throw new Error('No available gateway. Please try again later.');
-      }
+      // Create dedicated Fly.io instance for this user
+      const userGateway = await flyService.createUserGateway(userId, {
+        model: config.model || 'openai/gpt-4o',
+        systemPrompt: config.systemPrompt || 'You are a helpful assistant.',
+        botName: config.botName || 'Assistant',
+      });
 
-      const agentId = `agent-${userId.substring(0, 8)}-${Date.now()}`;
-
+      // Store bot with per-user gateway info
       const botResult = await db.query(
-        `INSERT INTO bots (user_id, bot_name, gateway_id, agent_id, model, system_prompt, status)
-         VALUES ($1, $2, $3, $4, $5, $6, 'creating')
+        `INSERT INTO bots (user_id, bot_name, endpoint, model, system_prompt, status, gateway_id, agent_id, fly_gateway_token)
+         VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8)
          RETURNING id, bot_name, model, system_prompt, status, created_at`,
         [
           userId,
           config.botName || `Bot for ${userId.substring(0, 8)}`,
-          gateway.id,
-          agentId,
+          userGateway.endpoint,
           config.model || 'openai/gpt-4o',
           config.systemPrompt || 'You are a helpful assistant.',
+          userGateway.appName, // Store app name as gateway_id for cleanup
+          'main', // Single agent per gateway
+          userGateway.gatewayToken, // Store gateway token for control panel access
         ]
       );
       
       const bot = botResult.rows[0];
       const botId = bot.id;
 
-      try {
-        const agentResult = await openclawService.createAgent(gateway.id, {
-          agentId,
-          model: config.model || 'openai/gpt-4o',
-          systemPrompt: config.systemPrompt,
-          botName: config.botName,
-        });
+      // Generate bot token
+      const token = crypto.randomBytes(32).toString('hex');
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-        const endpoint = agentResult.endpoint;
-        const controlUrl = agentResult.controlUrl;
+      await db.query(
+        `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
+        [botId, tokenHash]
+      );
 
-        await db.query(
-          `UPDATE bots SET endpoint = $1, status = 'running' WHERE id = $2`,
-          [endpoint, botId]
-        );
+      await db.query(
+        `UPDATE bots SET token_hash = $1 WHERE id = $2`,
+        [tokenHash, botId]
+      );
 
-        const token = crypto.randomBytes(32).toString('hex');
-        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      console.log(`Bot created with dedicated instance: ${botId} -> ${userGateway.endpoint}`);
 
-        await db.query(
-          `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
-          [botId, tokenHash]
-        );
-
-        await db.query(
-          `UPDATE bots SET token_hash = $1 WHERE id = $2`,
-          [tokenHash, botId]
-        );
-
-        console.log(`Bot created: ${botId}`);
-
-        return {
-          botId,
-          token,
-          endpoint,
-          gatewayToken: agentResult.gatewayToken,
-          controlUrl,
-          model: bot.model,
-          systemPrompt: bot.system_prompt,
-          botName: bot.bot_name,
-          status: 'running',
-        };
-      } catch (agentError) {
-        console.error(`Agent creation failed: ${agentError.message}`);
-        await db.query(
-          `UPDATE bots SET status = 'error' WHERE id = $1`,
-          [botId]
-        );
-        throw agentError;
-      }
+      return {
+        botId,
+        token,
+        endpoint: userGateway.endpoint,
+        gatewayToken: userGateway.gatewayToken,
+        controlUrl: userGateway.controlUrl,
+        model: bot.model,
+        systemPrompt: bot.system_prompt,
+        botName: bot.bot_name,
+        status: 'running',
+        appName: userGateway.appName,
+      };
     } catch (error) {
       console.error(`Failed to create bot: ${error.message}`);
       throw error;
@@ -99,10 +81,8 @@ export const botService = {
 
   getBot: async (userId) => {
     const result = await db.query(
-      `SELECT b.id, b.bot_name, b.gateway_id, b.agent_id, b.endpoint, b.model, b.system_prompt, b.status, b.created_at,
-              g.gateway_token, g.endpoint as gateway_endpoint
+      `SELECT b.id, b.bot_name, b.gateway_id, b.agent_id, b.endpoint, b.model, b.system_prompt, b.status, b.created_at, b.token_hash, b.fly_gateway_token
        FROM bots b
-       LEFT JOIN gateways g ON b.gateway_id = g.id
        WHERE b.user_id = $1`,
       [userId]
     );
@@ -112,29 +92,33 @@ export const botService = {
     }
     
     const bot = result.rows[0];
-    const controlUrl = bot.gateway_endpoint && bot.gateway_token 
-      ? `${bot.gateway_endpoint}/?token=${bot.gateway_token}${bot.agent_id ? `&agent=${bot.agent_id}` : ''}`
-      : null;
+    
+    // For per-user gateways, gateway token is stored in fly_gateway_token column
+    const gatewayToken = bot.fly_gateway_token;
+    const controlUrl = bot.endpoint && gatewayToken
+      ? `${bot.endpoint}/?token=${gatewayToken}`
+      : (bot.endpoint ? `${bot.endpoint}/` : null);
 
     return {
       id: bot.id,
       botId: bot.id,
-      endpoint: bot.endpoint || bot.gateway_endpoint,
-      gatewayToken: bot.gateway_token,
+      endpoint: bot.endpoint,
+      gatewayToken: gatewayToken,
       gatewayId: bot.gateway_id,
-      controlUrl,
+      controlUrl: controlUrl,
       model: bot.model,
       systemPrompt: bot.system_prompt,
       botName: bot.bot_name,
       status: bot.status,
       createdAt: bot.created_at,
       agentId: bot.agent_id,
+      appName: bot.gateway_id,
     };
   },
 
   updateBot: async (userId, config) => {
     const botResult = await db.query(
-      `SELECT id, gateway_id, agent_id FROM bots WHERE user_id = $1`,
+      `SELECT id, gateway_id, agent_id, fly_gateway_token FROM bots WHERE user_id = $1`,
       [userId]
     );
     
@@ -143,6 +127,7 @@ export const botService = {
     }
     
     const bot = botResult.rows[0];
+    const isPerUserGateway = bot.gateway_id && bot.gateway_id.startsWith('oc-user-');
 
     const updates = [];
     const values = [];
@@ -171,6 +156,21 @@ export const botService = {
       );
     }
 
+    // For per-user gateways, propagate model/systemPrompt changes to Fly machine
+    if (isPerUserGateway && (config.model !== undefined || config.systemPrompt !== undefined)) {
+      try {
+        await flyService.updateUserGateway(bot.gateway_id, {
+          model: config.model,
+          systemPrompt: config.systemPrompt,
+          gatewayToken: bot.fly_gateway_token,
+        });
+        console.log(`Updated Fly machine for user gateway ${bot.gateway_id}`);
+      } catch (error) {
+        console.warn(`Failed to update Fly machine (changes saved to DB): ${error.message}`);
+        // Don't throw - DB is updated, Fly update is best-effort
+      }
+    }
+
     return botService.getBot(userId);
   },
 
@@ -186,7 +186,16 @@ export const botService = {
     
     const bot = botResult.rows[0];
 
-    if (bot.gateway_id && bot.agent_id) {
+    // For per-user gateways, gateway_id stores the Fly app name
+    if (bot.gateway_id && bot.gateway_id.startsWith('oc-user-')) {
+      try {
+        await flyService.deleteUserGateway(bot.gateway_id);
+        console.log(`Deleted Fly.io app: ${bot.gateway_id}`);
+      } catch (error) {
+        console.warn(`Failed to delete Fly.io app: ${error.message}`);
+      }
+    } else if (bot.gateway_id && bot.agent_id) {
+      // Legacy shared gateway cleanup
       try {
         await openclawService.deleteAgent(bot.gateway_id, bot.agent_id);
       } catch (error) {
@@ -205,10 +214,9 @@ export const botService = {
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     
     const result = await db.query(
-      `SELECT b.*, u.id as user_id, g.gateway_token, g.endpoint as gateway_endpoint
+      `SELECT b.*, u.id as user_id
        FROM bots b 
        JOIN users u ON b.user_id = u.id 
-       LEFT JOIN gateways g ON b.gateway_id = g.id
        WHERE b.token_hash = $1`,
       [tokenHash]
     );
@@ -223,11 +231,12 @@ export const botService = {
       bot: {
         botId: row.id,
         botName: row.bot_name,
-        endpoint: row.endpoint || row.gateway_endpoint,
-        gatewayToken: row.gateway_token,
+        endpoint: row.endpoint,
+        gatewayToken: row.fly_gateway_token,
         model: row.model,
         systemPrompt: row.system_prompt,
         status: row.status,
+        appName: row.gateway_id,
       },
     };
   },
@@ -275,10 +284,8 @@ export const botService = {
 
   checkBotStatus: async (userId) => {
     const botResult = await db.query(
-      `SELECT b.id, b.gateway_id, b.agent_id, b.endpoint, b.status,
-              g.gateway_token, g.endpoint as gateway_endpoint, g.status as gateway_status
+      `SELECT b.id, b.gateway_id, b.agent_id, b.endpoint, b.status
        FROM bots b
-       LEFT JOIN gateways g ON b.gateway_id = g.id
        WHERE b.user_id = $1`,
       [userId]
     );
@@ -289,28 +296,34 @@ export const botService = {
     
     const bot = botResult.rows[0];
 
-    if (!bot.gateway_id) {
-      return {
-        botId: bot.id,
-        status: bot.status,
-        endpoint: bot.endpoint,
-      };
-    }
+    // For per-user gateways, check Fly.io machine status
+    if (bot.gateway_id && bot.gateway_id.startsWith('oc-user-')) {
+      try {
+        const status = await flyService.getUserGatewayStatus(bot.gateway_id);
+        const isHealthy = status.status === 'started';
+        
+        if (isHealthy && bot.status !== 'running') {
+          await db.query(
+            `UPDATE bots SET status = 'running', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+            [bot.id]
+          );
+        }
 
-    const healthCheck = await openclawService.healthCheck(bot.gateway_id);
-
-    if (healthCheck.healthy && bot.status !== 'running') {
-      await db.query(
-        `UPDATE bots SET status = 'running', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
-        [bot.id]
-      );
+        return {
+          botId: bot.id,
+          status: isHealthy ? 'running' : bot.status,
+          endpoint: bot.endpoint,
+          machineStatus: status.status,
+        };
+      } catch (error) {
+        console.warn('Could not check Fly.io status:', error.message);
+      }
     }
 
     return {
       botId: bot.id,
-      status: healthCheck.healthy ? 'running' : bot.status,
-      endpoint: bot.endpoint || bot.gateway_endpoint,
-      gatewayStatus: bot.gateway_status,
+      status: bot.status,
+      endpoint: bot.endpoint,
     };
   },
 
@@ -338,8 +351,14 @@ export const botService = {
     const result = await db.query(`DELETE FROM bots RETURNING id, gateway_id`);
     
     for (const row of result.rows) {
-      if (row.gateway_id) {
-        await gatewayService.decrementAgentCount(row.gateway_id);
+      // For per-user gateways, delete the Fly.io app
+      if (row.gateway_id && row.gateway_id.startsWith('oc-user-')) {
+        try {
+          await flyService.deleteUserGateway(row.gateway_id);
+          console.log(`Deleted Fly.io app: ${row.gateway_id}`);
+        } catch (error) {
+          console.warn(`Failed to delete Fly.io app ${row.gateway_id}: ${error.message}`);
+        }
       }
     }
     

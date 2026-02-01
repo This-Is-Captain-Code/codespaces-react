@@ -1,7 +1,6 @@
 import express from 'express';
 import { botService } from '../services/botService.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { db } from '../db/index.js';
 
 const router = express.Router();
 
@@ -10,6 +9,7 @@ router.use(authMiddleware);
 /**
  * Send message to user's bot via OpenClaw gateway
  * Routes through the gateway's OpenAI-compatible endpoint
+ * Now supports per-user dedicated gateways
  */
 router.post('/message', async (req, res, next) => {
   try {
@@ -29,17 +29,12 @@ router.post('/message', async (req, res, next) => {
       return res.status(400).json({ error: 'Bot is not running yet. Please wait.' });
     }
 
-    const gatewayResult = await db.query(
-      'SELECT * FROM gateways WHERE id = $1 LIMIT 1',
-      [bot.gatewayId]
-    );
-    
-    if (!gatewayResult.rows.length) {
-      return res.status(500).json({ error: 'Gateway not found' });
+    // Per-user gateway: use bot's endpoint and gatewayToken directly
+    if (!bot.endpoint || !bot.gatewayToken) {
+      return res.status(500).json({ error: 'Bot gateway not configured properly' });
     }
 
-    const gateway = gatewayResult.rows[0];
-    console.log(`Chat with bot ${bot.botName} (agent: ${bot.agentId}) on gateway ${gateway.endpoint}`);
+    console.log(`Chat with bot ${bot.botName} on per-user gateway ${bot.endpoint}`);
 
     const messages = [
       { role: 'system', content: bot.systemPrompt || 'You are a helpful assistant.' },
@@ -52,12 +47,11 @@ router.post('/message', async (req, res, next) => {
       model = `openrouter/${model}`;
     }
 
-    const response = await fetch(`${gateway.endpoint}/v1/chat/completions`, {
+    const response = await fetch(`${bot.endpoint}/v1/chat/completions`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${gateway.gateway_token}`,
+        'Authorization': `Bearer ${bot.gatewayToken}`,
         'Content-Type': 'application/json',
-        'X-OpenClaw-Agent': bot.agentId,
       },
       body: JSON.stringify({
         model,
@@ -102,6 +96,7 @@ router.post('/message', async (req, res, next) => {
 
 /**
  * Get message history via gateway
+ * Updated for per-user dedicated gateways
  */
 router.get('/history', async (req, res, next) => {
   try {
@@ -113,33 +108,22 @@ router.get('/history', async (req, res, next) => {
       return res.status(404).json({ error: 'Bot not found' });
     }
 
-    if (bot.status !== 'running') {
+    if (bot.status !== 'running' || !bot.endpoint || !bot.gatewayToken) {
       return res.json({ messages: [] });
     }
-
-    const gatewayResult = await db.query(
-      'SELECT * FROM gateways WHERE id = $1 LIMIT 1',
-      [bot.gatewayId]
-    );
-    if (!gatewayResult.rows.length) {
-      return res.json({ messages: [] });
-    }
-
-    const gateway = gatewayResult.rows[0];
 
     try {
-      const response = await fetch(`${gateway.endpoint}/tools/invoke`, {
+      const response = await fetch(`${bot.endpoint}/tools/invoke`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${gateway.gateway_token}`,
+          'Authorization': `Bearer ${bot.gatewayToken}`,
           'Content-Type': 'application/json',
-          'X-OpenClaw-Agent': bot.agentId,
         },
         body: JSON.stringify({
           tool: 'sessions_list',
           action: 'json',
           args: {
-            sessionKey: `${bot.agentId}-${sessionId}`,
+            sessionKey: `main-${sessionId}`,
             limit: parseInt(limit),
           },
         }),
