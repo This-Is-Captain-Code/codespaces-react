@@ -484,7 +484,7 @@ export const flyService = {
     });
 
     // Create complete config with mode, auth, and trustedProxies
-    // No --allow-unconfigured so gateway uses our token from config
+    // allowInsecureAuth: true skips device pairing for proxied connections (Fly.io)
     const openclawConfig = {
       gateway: {
         mode: 'local',
@@ -494,7 +494,8 @@ export const flyService = {
           token: gatewayToken
         },
         controlUi: {
-          enabled: true
+          enabled: true,
+          allowInsecureAuth: true
         }
       }
     };

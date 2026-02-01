@@ -1,0 +1,62 @@
+$ fly logs -a oc-user-50cae8ee2532-ml3su41h 
+Waiting for logs...
+13:51:19
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+13:51:38
+Successfully prepared image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 (19.018459398s)
+13:51:38
+Setting up volume 'user_data'
+13:51:38
+Uninitialized volume 'user_data', initializing...
+13:51:38
+Encrypting volume
+13:51:39
+Opening encrypted volume
+13:51:39
+Formatting volume
+13:51:40
+Configuring firecracker
+13:51:40
+2026-02-01T13:51:40.474262842 [01KGCQHSGD1DMSAVXEV17FAV0D:main] Running Firecracker v1.12.1
+13:51:40
+2026-02-01T13:51:40.474379352 [01KGCQHSGD1DMSAVXEV17FAV0D:main] Listening on API socket ("/fc.sock").
+13:51:41
+ INFO Starting init (commit: 6f59af0a)...
+13:51:41
+ INFO Checking filesystem on /data
+13:51:41
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+13:51:41
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:51:41
+ INFO Resized /data to 1056964608 bytes
+13:51:41
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"mode":"local","trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"f7a63c18e22dcfd7b6ec54134c5a00a051c2a3899710c4c29c74796ecb7037a2"},"controlUi":{"enabled":true}}}' > /home/node/.openclaw/openclaw.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan` as node
+13:51:41
+ INFO [fly api proxy] listening at /.fly/api
+13:51:41
+=== OPENCLAW CONFIG ===
+13:51:41
+{"gateway":{"mode":"local","trustedProxies":["0.0.0.0/0","::/0"],"auth":{"mode":"token","token":"f7a63c18e22dcfd7b6ec54134c5a00a051c2a3899710c4c29c74796ecb7037a2"},"controlUi":{"enabled":true}}}
+13:51:41
+=== STARTING GATEWAY ===
+13:51:41
+Machine created and started in 21.737s
+13:51:41
+2026/02/01 13:51:41 INFO SSH listening listen_address=[fdaa:44:9071:a7b:577:9d02:55d:2]:22
+13:52:19
+2026-02-01T13:52:19.593Z [canvas] host mounted at http://0.0.0.0:18789/__openclaw__/canvas/ (root /home/node/.openclaw/canvas)
+13:52:19
+2026-02-01T13:52:19.723Z [heartbeat] started
+13:52:19
+2026-02-01T13:52:19.726Z [gateway] agent model: anthropic/claude-opus-4-5
+13:52:19
+2026-02-01T13:52:19.727Z [gateway] listening on ws://0.0.0.0:18789 (PID 651)
+13:52:19
+2026-02-01T13:52:19.728Z [gateway] log file: /tmp/openclaw/openclaw-2026-02-01.log
+13:52:19
+2026-02-01T13:52:19.734Z [browser/service] Browser control service ready (profiles=2)
+13:52:28
+2026-02-01T13:52:28.197Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+13:52:29
+2026-02-01T13:52:29.151Z [ws] closed before connect conn=947e8142-e47b-4639-90c8-4b404eaf6426 remote=172.16.0.162 fwd=122.161.78.83, 188.93.151.85 origin=https://oc-user-50cae8ee2532-ml3su41h.fly.dev host=oc-user-50cae8ee2532-ml3su41h.fly.dev ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 code=1008 reason=pairing required
