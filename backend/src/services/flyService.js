@@ -483,7 +483,7 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create config with trustedProxies and allowInsecureAuth
+    // Create config with trustedProxies, allowInsecureAuth, and model
     // Use --allow-unconfigured + --token for auth (most reliable)
     // allowInsecureAuth skips device pairing for proxied connections
     const openclawConfig = {
@@ -493,22 +493,20 @@ export const flyService = {
           enabled: true,
           allowInsecureAuth: true
         }
+      },
+      agent: {
+        model: model
       }
     };
     const configJson = JSON.stringify(openclawConfig);
     
     // Init command: write config, use --allow-unconfigured + --token for auth
-    // Print config and env vars for debugging, then start gateway
+    // Print config for debugging, then start gateway
     const initCmd = [
       'mkdir -p /home/node/.openclaw',
       `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
       'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
-      'echo ""',
-      'echo "=== ENV VARS ==="',
-      'echo "OPENCLAW_GATEWAY_TOKEN=$OPENCLAW_GATEWAY_TOKEN"',
-      'echo "OPENROUTER_API_KEY=${OPENROUTER_API_KEY:0:20}..."',
-      'echo "OPENAI_BASE_URL=$OPENAI_BASE_URL"',
       'echo ""',
       'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
