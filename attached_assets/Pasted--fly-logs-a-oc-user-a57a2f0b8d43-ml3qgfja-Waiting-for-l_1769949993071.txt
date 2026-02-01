@@ -1,0 +1,50 @@
+$ fly logs -a oc-user-a57a2f0b8d43-ml3qgfja 
+Waiting for logs...
+12:44:42
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+12:44:42
+Container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 already prepared
+12:44:42
+Setting up volume 'user_data'
+12:44:42
+Uninitialized volume 'user_data', initializing...
+12:44:42
+Encrypting volume
+12:44:43
+Opening encrypted volume
+12:44:44
+Formatting volume
+12:44:44
+Configuring firecracker
+12:44:44
+2026-02-01T12:44:44.977803200 [01KGCKQT1JTP79V2WT1XS3FHNN:main] Running Firecracker v1.12.1
+12:44:44
+2026-02-01T12:44:44.977969223 [01KGCKQT1JTP79V2WT1XS3FHNN:main] Listening on API socket ("/fc.sock").
+12:44:46
+ INFO Starting init (commit: 6f59af0a)...
+12:44:46
+ INFO Checking filesystem on /data
+12:44:46
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+12:44:46
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:44:46
+ INFO Resized /data to 1056964608 bytes
+12:44:46
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan --allow-unconfigured` as node
+12:44:46
+ INFO [fly api proxy] listening at /.fly/api
+12:44:46
+Machine created and started in 3.792s
+12:44:46
+2026/02/01 12:44:46 INFO SSH listening listen_address=[fdaa:44:9071:a7b:305:8eac:29a0:2]:22
+12:45:27
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+12:45:39
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+12:45:50
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+12:46:01
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+12:46:02
+[PR04] could not find a good candidate within 40 attempts at load balancing
