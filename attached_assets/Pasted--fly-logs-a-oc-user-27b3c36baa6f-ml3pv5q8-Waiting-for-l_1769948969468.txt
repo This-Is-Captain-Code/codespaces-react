@@ -1,0 +1,180 @@
+$ fly logs -a oc-user-27b3c36baa6f-ml3pv5q8 
+Waiting for logs...
+12:28:09
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+12:28:09
+Container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 already prepared
+12:28:09
+Setting up volume 'user_data'
+12:28:09
+Uninitialized volume 'user_data', initializing...
+12:28:09
+Encrypting volume
+12:28:10
+Opening encrypted volume
+12:28:10
+Formatting volume
+12:28:12
+Configuring firecracker
+12:28:12
+2026-02-01T12:28:12.384039671 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Running Firecracker v1.12.1
+12:28:12
+2026-02-01T12:28:12.384221013 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Listening on API socket ("/fc.sock").
+12:28:13
+ INFO Starting init (commit: 6f59af0a)...
+12:28:13
+ INFO Checking filesystem on /data
+12:28:13
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+12:28:13
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:28:13
+ INFO Resized /data to 1056964608 bytes
+12:28:13
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind custom --host 0.0.0.0 --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:28:13
+ INFO [fly api proxy] listening at /.fly/api
+12:28:13
+Machine created and started in 3.989s
+12:28:13
+2026/02/01 12:28:13 INFO SSH listening listen_address=[fdaa:44:9071:a7b:143:19ca:3b2b:2]:22
+12:28:22
+error: unknown option '--host'
+12:28:22
+(Did you mean --port?)
+12:28:22
+ INFO Main child exited normally with code: 1
+12:28:22
+ INFO Starting clean up.
+12:28:22
+ INFO Umounting /dev/vdc from /data
+12:28:22
+[   10.120237] reboot: Restarting system
+12:28:23
+2026-02-01T12:28:23.874388813 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Running Firecracker v1.12.1
+12:28:23
+2026-02-01T12:28:23.874587945 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Listening on API socket ("/fc.sock").
+12:28:24
+ INFO Starting init (commit: 6f59af0a)...
+12:28:24
+ INFO Checking filesystem on /data
+12:28:24
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:28:24
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:28:24
+ INFO Resized /data to 1056964608 bytes
+12:28:24
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind custom --host 0.0.0.0 --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:28:24
+ INFO [fly api proxy] listening at /.fly/api
+12:28:24
+Machine started in 1.313s
+12:28:25
+2026/02/01 12:28:25 INFO SSH listening listen_address=[fdaa:44:9071:a7b:143:19ca:3b2b:2]:22
+12:28:32
+error: unknown option '--host'
+12:28:32
+(Did you mean --port?)
+12:28:32
+ INFO Main child exited normally with code: 1
+12:28:32
+ INFO Starting clean up.
+12:28:32
+ INFO Umounting /dev/vdc from /data
+12:28:32
+[    9.015086] reboot: Restarting system
+12:28:34
+2026-02-01T12:28:34.295489797 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Running Firecracker v1.12.1
+12:28:34
+2026-02-01T12:28:34.295649869 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Listening on API socket ("/fc.sock").
+12:28:35
+ INFO Starting init (commit: 6f59af0a)...
+12:28:35
+ INFO Checking filesystem on /data
+12:28:35
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:28:35
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:28:35
+ INFO Resized /data to 1056964608 bytes
+12:28:35
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind custom --host 0.0.0.0 --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:28:35
+ INFO [fly api proxy] listening at /.fly/api
+12:28:35
+Machine started in 1.426s
+12:28:35
+2026/02/01 12:28:35 INFO SSH listening listen_address=[fdaa:44:9071:a7b:143:19ca:3b2b:2]:22
+12:28:43
+error: unknown option '--host'
+12:28:43
+(Did you mean --port?)
+12:28:43
+ INFO Main child exited normally with code: 1
+12:28:43
+ INFO Starting clean up.
+12:28:43
+ INFO Umounting /dev/vdc from /data
+12:28:43
+[    9.027212] reboot: Restarting system
+12:28:44
+2026-02-01T12:28:44.865628518 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Running Firecracker v1.12.1
+12:28:44
+2026-02-01T12:28:44.865787360 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Listening on API socket ("/fc.sock").
+12:28:45
+ INFO Starting init (commit: 6f59af0a)...
+12:28:45
+ INFO Checking filesystem on /data
+12:28:45
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:28:45
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:28:45
+ INFO Resized /data to 1056964608 bytes
+12:28:45
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind custom --host 0.0.0.0 --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:28:45
+ INFO [fly api proxy] listening at /.fly/api
+12:28:45
+Machine started in 1.383s
+12:28:46
+2026/02/01 12:28:46 INFO SSH listening listen_address=[fdaa:44:9071:a7b:143:19ca:3b2b:2]:22
+12:28:53
+error: unknown option '--host'
+12:28:53
+(Did you mean --port?)
+12:28:53
+ INFO Main child exited normally with code: 1
+12:28:53
+ INFO Starting clean up.
+12:28:53
+ INFO Umounting /dev/vdc from /data
+12:28:53
+[    9.016594] reboot: Restarting system
+12:28:55
+2026-02-01T12:28:55.671136554 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Running Firecracker v1.12.1
+12:28:55
+2026-02-01T12:28:55.671331727 [01KGCJSG5NSTDRZ0W6AHZBV6ZQ:main] Listening on API socket ("/fc.sock").
+12:28:56
+ INFO Starting init (commit: 6f59af0a)...
+12:28:56
+ INFO Checking filesystem on /data
+12:28:56
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:28:56
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:28:56
+ INFO Resized /data to 1056964608 bytes
+12:28:56
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --port 18789 --bind custom --host 0.0.0.0 --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+12:28:56
+ INFO [fly api proxy] listening at /.fly/api
+12:28:56
+Machine started in 1.323s
+12:28:57
+2026/02/01 12:28:57 INFO SSH listening listen_address=[fdaa:44:9071:a7b:143:19ca:3b2b:2]:22
+12:29:04
+error: unknown option '--host'
+12:29:04
+(Did you mean --port?)

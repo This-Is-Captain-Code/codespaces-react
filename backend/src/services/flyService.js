@@ -478,9 +478,13 @@ export const flyService = {
 
     // Create config for single-user gateway (no multi-agent complexity)
     // Only use valid OpenClaw config keys - chatCompletions endpoint only
+    // Set bind/host in config since CLI --host flag doesn't exist
     const openclawConfig = {
       gateway: {
         mode: 'local',
+        bind: 'custom',
+        host: '0.0.0.0',
+        port: 18789,
         auth: {
           mode: 'token',
           token: gatewayToken
@@ -516,14 +520,13 @@ export const flyService = {
     // Write config to /data/config.json (matches OPENCLAW_CONFIG_PATH env var)
     // Always write config from env var - for per-user gateways, config is fully controlled by env
     // This ensures updates to model/systemPrompt take effect on restart
-    // Use --bind custom --host 0.0.0.0 to bind to all interfaces (required for Fly.io)
-    // --token is required for non-loopback binding
+    // Binding is set in config JSON (bind: custom, host: 0.0.0.0, port: 18789)
     const initCmd = [
       'mkdir -p /home/node/.openclaw /data/agents/main/agent',
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json',
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json',
       'echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json',
-      'exec node dist/index.js gateway --port 18789 --bind custom --host 0.0.0.0 --token "$OPENCLAW_GATEWAY_TOKEN"'
+      'exec node dist/index.js gateway'
     ].join(' && ');
 
     const machineConfig = {
@@ -660,11 +663,15 @@ export const flyService = {
       const openrouterApiKey = process.env.OPENROUTER_API_KEY;
 
       // Build new OpenClaw config with updated model/systemPrompt
+      // Include bind/host/port since CLI --host doesn't exist
       const openrouterModel = model && (model.startsWith('openrouter/') ? model : `openrouter/${model}`);
       
       const openclawConfig = {
         gateway: {
           mode: 'local',
+          bind: 'custom',
+          host: '0.0.0.0',
+          port: 18789,
           auth: {
             mode: 'token',
             token: gatewayToken
