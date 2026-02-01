@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { botAPI } from '../api/client';
-import { ChatInterface } from './ChatInterface';
 import './BotDashboard.css';
-
-function buildChatUrl(controlUrl) {
-  try {
-    const url = new URL(controlUrl);
-    url.pathname = '/chat';
-    url.searchParams.set('session', 'main');
-    return url.toString();
-  } catch {
-    return controlUrl;
-  }
-}
 
 export function BotDashboard({ userId }) {
   const [bot, setBot] = useState(null);
@@ -21,7 +9,6 @@ export function BotDashboard({ userId }) {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
-  const [showChat, setShowChat] = useState(false);
   const [formData, setFormData] = useState({
     botName: '',
     systemPrompt: 'You are a helpful AI assistant.',
@@ -167,15 +154,6 @@ export function BotDashboard({ userId }) {
                   <button onClick={() => copyToClipboard(bot.controlUrl)} className="copy-btn">Copy URL</button>
                 </div>
               </div>
-              <div className="detail-row">
-                <span className="label">Chat Panel:</span>
-                <div className="value-with-copy">
-                  <a href={buildChatUrl(bot.controlUrl)} target="_blank" rel="noopener noreferrer" className="link-button">
-                    Open Chat
-                  </a>
-                  <button onClick={() => copyToClipboard(buildChatUrl(bot.controlUrl))} className="copy-btn">Copy URL</button>
-                </div>
-              </div>
             </>
           )}
 
@@ -220,25 +198,10 @@ export function BotDashboard({ userId }) {
 
         {bot.status === 'running' && (
           <div className="success-notice">
-            Your bot is live! Chat with it below or access the OpenClaw control panel for advanced integrations.
-          </div>
-        )}
-
-        {bot.status === 'running' && (
-          <div className="chat-toggle-section">
-            <button 
-              onClick={() => setShowChat(!showChat)} 
-              className={`chat-toggle-btn ${showChat ? 'active' : ''}`}
-            >
-              {showChat ? 'Hide Chat' : 'Open Chat'}
-            </button>
+            Your bot is live! Access the OpenClaw control panel for advanced integrations.
           </div>
         )}
       </div>
-
-      {showChat && bot.status === 'running' && (
-        <ChatInterface bot={bot} onClose={() => setShowChat(false)} />
-      )}
     </div>
   );
 }

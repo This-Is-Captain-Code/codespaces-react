@@ -54,8 +54,6 @@ Backend verifies Privy JWT tokens using `@privy-io/node` SDK when `PRIVY_APP_SEC
 - `PUT /api/bots/update` - Update bot config
 - `POST /api/bots/regenerate-token` - Get new token
 - `DELETE /api/bots/delete` - Delete bot agent
-- `POST /api/chat/message` - Send message to bot via gateway tools/invoke API
-- `GET /api/chat/history` - Get chat history (via gateway)
 
 ## Database Schema
 - **users**: id, email, auth_token, created_at
@@ -140,12 +138,8 @@ exec node dist/index.js gateway --port 3000 --bind lan
 After agent creation, users access:
 - Control UI at gateway endpoint with token: `https://gateway.fly.dev/?token=TOKEN`
 
-## Chat Architecture
-The chat system uses a hybrid approach:
-- **OpenRouter**: Handles AI model inference using the bot's configured model and system prompt
-- **OpenClaw Gateway**: Provides persistent agent infrastructure on Fly.io (for future tool/skill expansion)
-
-This architecture gives users a one-click bot creation experience while keeping costs low ($0.50/user vs $62/user for full per-user containers).
+## Architecture
+Users access their bots via the OpenClaw control panel hosted on their dedicated Fly.io instance. This provides a one-click bot creation experience with complete isolation per user.
 
 ## Custom OpenClaw Docker Image (for future use)
 Located in `backend/docker/`:

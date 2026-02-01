@@ -35,9 +35,6 @@ export const botAPI = {
 
   delete: (confirm) =>
     apiClient.delete('/bots/delete', { data: { confirm } }),
-
-  sendMessage: (message, sessionId = 'main') =>
-    apiClient.post('/chat/message', { message, sessionId }),
 };
 
 export const agentAPI = {
@@ -56,15 +53,6 @@ export const agentAPI = {
   stop: (agentId) => apiClient.post(`/agents/${agentId}/stop`),
 
   delete: (agentId) => apiClient.delete(`/agents/${agentId}`),
-};
-
-export const chatAPI = {
-  sendMessage: (agentId, message, model, conversationHistory) =>
-    apiClient.post(`/chat/${agentId}/message`, {
-      message,
-      model,
-      conversationHistory,
-    }),
 };
 
 export const billingAPI = {

@@ -6,7 +6,6 @@ import { dirname } from 'path';
 import path from 'path';
 import { initializeDatabase } from './db/index.js';
 import botRoutes from './routes/bots.js';
-import chatRoutes from './routes/chat.js';
 import agentRoutes from './routes/agents.js';
 import billingRoutes from './routes/billing.js';
 import authRoutes from './routes/auth.js';
@@ -32,7 +31,6 @@ if (isProduction) {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/bots', botRoutes);
-app.use('/api/chat', chatRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/billing', billingRoutes);
 
