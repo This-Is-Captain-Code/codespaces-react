@@ -1,0 +1,400 @@
+$ fly logs -a oc-user-bddfbfbe36f4-ml3q1fop 
+Waiting for logs...
+12:33:02
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+12:33:26
+Successfully prepared image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 (23.555871506s)
+12:33:26
+Setting up volume 'user_data'
+12:33:26
+Uninitialized volume 'user_data', initializing...
+12:33:26
+Encrypting volume
+12:33:26
+Opening encrypted volume
+12:33:27
+Formatting volume
+12:33:27
+Configuring firecracker
+12:33:28
+2026-02-01T12:33:28.030040183 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Running Firecracker v1.12.1
+12:33:28
+2026-02-01T12:33:28.030188871 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Listening on API socket ("/fc.sock").
+12:33:28
+ INFO Starting init (commit: 6f59af0a)...
+12:33:28
+ INFO Checking filesystem on /data
+12:33:28
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+12:33:28
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:33:28
+ INFO Resized /data to 1056964608 bytes
+12:33:28
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway` as node
+12:33:28
+ INFO [fly api proxy] listening at /.fly/api
+12:33:29
+Machine created and started in 26.625s
+12:33:29
+2026/02/01 12:33:29 INFO SSH listening listen_address=[fdaa:44:9071:a7b:433:29dd:499a:2]:22
+12:33:36
+Invalid config at /data/config.json:\n- gateway: Unrecognized key: "host"
+12:33:36
+|
+12:33:36
+o  Config ---------------------------------------------------+
+12:33:36
+|                                                            |
+12:33:36
+|  Config invalid; doctor will run with best-effort config.  |
+12:33:36
+|                                                            |
+12:33:36
++------------------------------------------------------------+
+12:33:36
+|
+12:33:36
+o  Unknown config keys -+
+12:33:36
+|                       |
+12:33:36
+|  - gateway.host       |
+12:33:36
+|                       |
+12:33:36
++-----------------------+
+12:33:36
+|
+12:33:36
+o  Doctor --------------------------------------------+
+12:33:36
+|                                                     |
+12:33:36
+|  Run "openclaw doctor --fix" to remove these keys.  |
+12:33:36
+|                                                     |
+12:33:36
++-----------------------------------------------------+
+12:33:36
+Config invalid
+12:33:36
+File: /data/config.json
+12:33:36
+Problem:
+12:33:36
+  - gateway: Unrecognized key: "host"
+12:33:36
+Run: openclaw doctor --fix
+12:33:36
+ INFO Main child exited normally with code: 1
+12:33:37
+ INFO Starting clean up.
+12:33:37
+ INFO Umounting /dev/vdc from /data
+12:33:37
+[    8.952475] reboot: Restarting system
+12:33:38
+2026-02-01T12:33:38.221698290 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Running Firecracker v1.12.1
+12:33:38
+2026-02-01T12:33:38.221819509 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Listening on API socket ("/fc.sock").
+12:33:39
+ INFO Starting init (commit: 6f59af0a)...
+12:33:39
+ INFO Checking filesystem on /data
+12:33:39
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:33:39
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:33:39
+ INFO Resized /data to 1056964608 bytes
+12:33:39
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway` as node
+12:33:39
+ INFO [fly api proxy] listening at /.fly/api
+12:33:39
+Machine started in 1.234s
+12:33:39
+2026/02/01 12:33:39 INFO SSH listening listen_address=[fdaa:44:9071:a7b:433:29dd:499a:2]:22
+12:33:46
+Invalid config at /data/config.json:\n- gateway: Unrecognized key: "host"
+12:33:46
+|
+12:33:46
+o  Config ---------------------------------------------------+
+12:33:46
+|                                                            |
+12:33:46
+|  Config invalid; doctor will run with best-effort config.  |
+12:33:46
+|                                                            |
+12:33:46
++------------------------------------------------------------+
+12:33:46
+|
+12:33:46
+o  Unknown config keys -+
+12:33:46
+|                       |
+12:33:46
+|  - gateway.host       |
+12:33:46
+|                       |
+12:33:46
++-----------------------+
+12:33:46
+|
+12:33:46
+o  Doctor --------------------------------------------+
+12:33:46
+|                                                     |
+12:33:46
+|  Run "openclaw doctor --fix" to remove these keys.  |
+12:33:46
+|                                                     |
+12:33:46
++-----------------------------------------------------+
+12:33:46
+Config invalid
+12:33:46
+File: /data/config.json
+12:33:46
+Problem:
+12:33:46
+  - gateway: Unrecognized key: "host"
+12:33:46
+Run: openclaw doctor --fix
+12:33:47
+ INFO Main child exited normally with code: 1
+12:33:47
+ INFO Starting clean up.
+12:33:47
+ INFO Umounting /dev/vdc from /data
+12:33:47
+[    8.960086] reboot: Restarting system
+12:33:48
+2026-02-01T12:33:48.592205997 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Running Firecracker v1.12.1
+12:33:48
+2026-02-01T12:33:48.592350996 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Listening on API socket ("/fc.sock").
+12:33:49
+ INFO Starting init (commit: 6f59af0a)...
+12:33:49
+ INFO Checking filesystem on /data
+12:33:49
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:33:49
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:33:49
+ INFO Resized /data to 1056964608 bytes
+12:33:49
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway` as node
+12:33:49
+ INFO [fly api proxy] listening at /.fly/api
+12:33:49
+Machine started in 1.366s
+12:33:49
+2026/02/01 12:33:49 INFO SSH listening listen_address=[fdaa:44:9071:a7b:433:29dd:499a:2]:22
+12:33:56
+Invalid config at /data/config.json:\n- gateway: Unrecognized key: "host"
+12:33:56
+|
+12:33:56
+o  Config ---------------------------------------------------+
+12:33:56
+|                                                            |
+12:33:56
+|  Config invalid; doctor will run with best-effort config.  |
+12:33:56
+|                                                            |
+12:33:56
++------------------------------------------------------------+
+12:33:56
+|
+12:33:56
+o  Unknown config keys -+
+12:33:56
+|                       |
+12:33:56
+|  - gateway.host       |
+12:33:56
+|                       |
+12:33:56
++-----------------------+
+12:33:56
+|
+12:33:56
+o  Doctor --------------------------------------------+
+12:33:56
+|                                                     |
+12:33:56
+|  Run "openclaw doctor --fix" to remove these keys.  |
+12:33:56
+|                                                     |
+12:33:56
++-----------------------------------------------------+
+12:33:56
+Config invalid
+12:33:56
+File: /data/config.json
+12:33:56
+Problem:
+12:33:56
+  - gateway: Unrecognized key: "host"
+12:33:56
+Run: openclaw doctor --fix
+12:33:57
+ INFO Main child exited normally with code: 1
+12:33:57
+ INFO Starting clean up.
+12:33:57
+ INFO Umounting /dev/vdc from /data
+12:33:57
+[    8.945228] reboot: Restarting system
+12:33:58
+2026-02-01T12:33:58.780696484 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Running Firecracker v1.12.1
+12:33:58
+2026-02-01T12:33:58.780845603 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Listening on API socket ("/fc.sock").
+12:33:59
+ INFO Starting init (commit: 6f59af0a)...
+12:33:59
+ INFO Checking filesystem on /data
+12:33:59
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:33:59
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:33:59
+ INFO Resized /data to 1056964608 bytes
+12:33:59
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway` as node
+12:33:59
+ INFO [fly api proxy] listening at /.fly/api
+12:33:59
+Machine started in 1.333s
+12:34:00
+2026/02/01 12:34:00 INFO SSH listening listen_address=[fdaa:44:9071:a7b:433:29dd:499a:2]:22
+12:34:07
+Invalid config at /data/config.json:\n- gateway: Unrecognized key: "host"
+12:34:07
+|
+12:34:07
+o  Config ---------------------------------------------------+
+12:34:07
+|                                                            |
+12:34:07
+|  Config invalid; doctor will run with best-effort config.  |
+12:34:07
+|                                                            |
+12:34:07
++------------------------------------------------------------+
+12:34:07
+|
+12:34:07
+o  Unknown config keys -+
+12:34:07
+|                       |
+12:34:07
+|  - gateway.host       |
+12:34:07
+|                       |
+12:34:07
++-----------------------+
+12:34:07
+|
+12:34:07
+o  Doctor --------------------------------------------+
+12:34:07
+|                                                     |
+12:34:07
+|  Run "openclaw doctor --fix" to remove these keys.  |
+12:34:07
+|                                                     |
+12:34:07
++-----------------------------------------------------+
+12:34:07
+Config invalid
+12:34:07
+File: /data/config.json
+12:34:07
+Problem:
+12:34:07
+  - gateway: Unrecognized key: "host"
+12:34:07
+Run: openclaw doctor --fix
+12:34:07
+ INFO Main child exited normally with code: 1
+12:34:07
+ INFO Starting clean up.
+12:34:07
+ INFO Umounting /dev/vdc from /data
+12:34:07
+[    8.951901] reboot: Restarting system
+12:34:09
+2026-02-01T12:34:09.043601993 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Running Firecracker v1.12.1
+12:34:09
+2026-02-01T12:34:09.043755501 [01KGCK2EB9AZ9SQQ7YC9KXBK02:main] Listening on API socket ("/fc.sock").
+12:34:09
+ INFO Starting init (commit: 6f59af0a)...
+12:34:10
+ INFO Checking filesystem on /data
+12:34:10
+/dev/vdc: clean, 16/64512 files, 8790/258048 blocks
+12:34:10
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+12:34:10
+ INFO Resized /data to 1056964608 bytes
+12:34:10
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json && echo "{\"openrouter\":{\"mode\":\"apiKey\",\"apiKey\":\"$OPENAI_API_KEY\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway` as node
+12:34:10
+ INFO [fly api proxy] listening at /.fly/api
+12:34:10
+Machine started in 1.394s
+12:34:10
+2026/02/01 12:34:10 INFO SSH listening listen_address=[fdaa:44:9071:a7b:433:29dd:499a:2]:22
+12:34:17
+Invalid config at /data/config.json:\n- gateway: Unrecognized key: "host"
+12:34:17
+|
+12:34:17
+o  Config ---------------------------------------------------+
+12:34:17
+|                                                            |
+12:34:17
+|  Config invalid; doctor will run with best-effort config.  |
+12:34:17
+|                                                            |
+12:34:17
++------------------------------------------------------------+
+12:34:17
+|
+12:34:17
+o  Unknown config keys -+
+12:34:17
+|                       |
+12:34:17
+|  - gateway.host       |
+12:34:17
+|                       |
+12:34:17
++-----------------------+
+12:34:17
+|
+12:34:17
+o  Doctor --------------------------------------------+
+12:34:17
+|                                                     |
+12:34:17
+|  Run "openclaw doctor --fix" to remove these keys.  |
+12:34:17
+|                                                     |
+12:34:17
++-----------------------------------------------------+
+12:34:17
+Config invalid
+12:34:17
+File: /data/config.json
+12:34:17
+Problem:
+12:34:17
+  - gateway: Unrecognized key: "host"
+12:34:17
+Run: openclaw doctor --fix

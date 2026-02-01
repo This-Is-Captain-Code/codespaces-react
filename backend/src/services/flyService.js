@@ -477,14 +477,10 @@ export const flyService = {
     await flyService.allocateIps(appName);
 
     // Create config for single-user gateway (no multi-agent complexity)
-    // Only use valid OpenClaw config keys - chatCompletions endpoint only
-    // Set bind/host in config since CLI --host flag doesn't exist
+    // Only use valid OpenClaw config keys - binding done via CLI args, not config
     const openclawConfig = {
       gateway: {
         mode: 'local',
-        bind: 'custom',
-        host: '0.0.0.0',
-        port: 18789,
         auth: {
           mode: 'token',
           token: gatewayToken
@@ -520,13 +516,13 @@ export const flyService = {
     // Write config to /data/config.json (matches OPENCLAW_CONFIG_PATH env var)
     // Always write config from env var - for per-user gateways, config is fully controlled by env
     // This ensures updates to model/systemPrompt take effect on restart
-    // Binding is set in config JSON (bind: custom, host: 0.0.0.0, port: 18789)
+    // Use --bind lan --allow-unconfigured for network binding (matches working fly.toml)
     const initCmd = [
       'mkdir -p /home/node/.openclaw /data/agents/main/agent',
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json',
       'echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/config.json',
       'echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json',
-      'exec node dist/index.js gateway'
+      'exec node dist/index.js gateway --bind lan --allow-unconfigured'
     ].join(' && ');
 
     const machineConfig = {
@@ -663,15 +659,12 @@ export const flyService = {
       const openrouterApiKey = process.env.OPENROUTER_API_KEY;
 
       // Build new OpenClaw config with updated model/systemPrompt
-      // Include bind/host/port since CLI --host doesn't exist
+      // Binding is done via CLI args, not config
       const openrouterModel = model && (model.startsWith('openrouter/') ? model : `openrouter/${model}`);
       
       const openclawConfig = {
         gateway: {
           mode: 'local',
-          bind: 'custom',
-          host: '0.0.0.0',
-          port: 18789,
           auth: {
             mode: 'token',
             token: gatewayToken
