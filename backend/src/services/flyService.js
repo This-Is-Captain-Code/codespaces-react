@@ -532,12 +532,13 @@ export const flyService = {
         services: [
           {
             ports: [
-              { port: 443, handlers: ['tls', 'http'] },
+              { port: 443, handlers: ['tls', 'http'], tls_options: { alpn: ['h2', 'http/1.1'] } },
               { port: 80, handlers: ['http'] },
             ],
             protocol: 'tcp',
             internal_port: 18789,
             autostart: true,
+            force_instance_key: null,
           },
         ],
         mounts: [
