@@ -1,0 +1,418 @@
+$ fly logs -a oc-user-c73fa078c927-ml3u7fje 
+Waiting for logs...
+14:29:41
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+14:29:41
+Container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 already prepared
+14:29:41
+Setting up volume 'user_data'
+14:29:41
+Uninitialized volume 'user_data', initializing...
+14:29:41
+Encrypting volume
+14:29:41
+Opening encrypted volume
+14:29:42
+Formatting volume
+14:29:43
+Configuring firecracker
+14:29:43
+2026-02-01T14:29:43.470000549 [01KGCSR1215PCP52W2D0TXR08F:main] Running Firecracker v1.12.1
+14:29:43
+2026-02-01T14:29:43.470247564 [01KGCSR1215PCP52W2D0TXR08F:main] Listening on API socket ("/fc.sock").
+14:29:44
+ INFO Starting init (commit: 6f59af0a)...
+14:29:44
+ INFO Checking filesystem on /data
+14:29:44
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+14:29:44
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+14:29:44
+ INFO Resized /data to 1056964608 bytes
+14:29:44
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}}}' > /home/node/.openclaw/openclaw.json && echo "=== CONFIGURING OPENROUTER ===" && node dist/index.js onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_API_KEY" && echo "=== SETTING MODEL: openrouter/anthropic/claude-opus-4-5 ===" && node dist/index.js config set agents.defaults.model.primary "openrouter/anthropic/claude-opus-4-5" && echo "=== FINAL CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+14:29:44
+ INFO [fly api proxy] listening at /.fly/api
+14:29:44
+=== CONFIGURING OPENROUTER ===
+14:29:44
+Machine created and started in 3.76s
+14:29:45
+2026/02/01 14:29:45 INFO SSH listening listen_address=[fdaa:44:9071:a7b:1c5:cc3c:a2bf:2]:22
+14:29:53
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+14:29:53
+██░▄▄▄░██░▄▄░██░▄▄▄██░▀██░██░▄▄▀██░████░▄▄▀██░███░██
+14:29:53
+██░███░██░▀▀░██░▄▄▄██░█░█░██░█████░████░▀▀░██░█░█░██
+14:29:53
+██░▀▀▀░██░█████░▀▀▀██░██▄░██░▀▀▄██░▀▀░█░██░██▄▀▄▀▄██
+14:29:53
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+14:29:53
+                  🦞 OPENCLAW 🦞
+14:29:53
+T  OpenClaw onboarding
+14:29:53
+|
+14:29:53
+o  Security -------------------------------------------------------------+
+14:29:53
+|                                                                        |
+14:29:53
+|  Security warning — please read.                                       |
+14:29:53
+|                                                                        |
+14:29:53
+|  OpenClaw is a hobby project and still in beta. Expect sharp edges.    |
+14:29:53
+|  This bot can read files and run actions if tools are enabled.         |
+14:29:53
+|  A bad prompt can trick it into doing unsafe things.                   |
+14:29:53
+|                                                                        |
+14:29:53
+|  If you’re not comfortable with basic security and access control,     |
+14:29:53
+|  don’t run OpenClaw.                                                   |
+14:29:53
+|  Ask someone experienced to help before enabling tools or exposing it  |
+14:29:53
+|  to the internet.                                                      |
+14:29:53
+|                                                                        |
+14:29:53
+|  Recommended baseline:                                                 |
+14:29:53
+|  - Pairing/allowlists + mention gating.                                |
+14:29:53
+|  - Sandbox + least-privilege tools.                                    |
+14:29:53
+|  - Keep secrets out of the agent’s reachable filesystem.               |
+14:29:53
+|  - Use the strongest available model for any bot with tools or         |
+14:29:53
+|    untrusted inboxes.                                                  |
+14:29:53
+|                                                                        |
+14:29:53
+|  Run regularly:                                                        |
+14:29:53
+|  openclaw security audit --deep                                        |
+14:29:53
+|  openclaw security audit --fix                                         |
+14:29:53
+|                                                                        |
+14:29:53
+|  Must read: https://docs.openclaw.ai/gateway/security                  |
+14:29:53
+|                                                                        |
+14:29:53
++------------------------------------------------------------------------+
+14:29:53
+|
+14:29:53
+*  I understand this is powerful and inherently risky. Continue?
+14:29:53
+|    Yes / > No
+14:29:53
+—
+14:29:53
+=== SETTING MODEL: openrouter/anthropic/claude-opus-4-5 ===
+14:29:59
+Updated agents.defaults.model.primary. Restart the gateway to apply.
+14:29:59
+=== FINAL CONFIG ===
+14:29:59
+{
+14:29:59
+  "commands": {
+14:29:59
+    "native": "auto",
+14:29:59
+    "nativeSkills": "auto"
+14:29:59
+  },
+14:29:59
+  "gateway": {
+14:29:59
+    "controlUi": {
+14:29:59
+      "enabled": true,
+14:29:59
+      "allowInsecureAuth": true
+14:29:59
+    },
+14:29:59
+    "trustedProxies": [
+14:29:59
+      "0.0.0.0/0",
+14:29:59
+      "::/0"
+14:29:59
+    ]
+14:29:59
+  },
+14:29:59
+  "agents": {
+14:29:59
+    "defaults": {
+14:29:59
+      "maxConcurrent": 4,
+14:29:59
+      "subagents": {
+14:29:59
+        "maxConcurrent": 8
+14:29:59
+      },
+14:29:59
+      "model": {
+14:29:59
+        "primary": "openrouter/anthropic/claude-opus-4-5"
+14:29:59
+      }
+14:29:59
+    }
+14:29:59
+  },
+14:29:59
+  "messages": {
+14:29:59
+    "ackReactionScope": "group-mentions"
+14:29:59
+  },
+14:29:59
+  "meta": {
+14:29:59
+    "lastTouchedVersion": "2026.1.30",
+14:29:59
+    "lastTouchedAt": "2026-02-01T14:29:59.750Z"
+14:29:59
+  }
+14:29:59
+}
+14:29:59
+=== STARTING GATEWAY ===
+14:30:07
+2026-02-01T14:30:07.345Z Gateway start blocked: set gateway.mode=local (current: unset) or pass --allow-unconfigured.
+14:30:07
+ INFO Main child exited normally with code: 1
+14:30:07
+ INFO Starting clean up.
+14:30:07
+ INFO Umounting /dev/vdc from /data
+14:30:07
+[   24.369608] reboot: Restarting system
+14:30:09
+2026-02-01T14:30:09.375538978 [01KGCSR1215PCP52W2D0TXR08F:main] Running Firecracker v1.12.1
+14:30:09
+2026-02-01T14:30:09.375708251 [01KGCSR1215PCP52W2D0TXR08F:main] Listening on API socket ("/fc.sock").
+14:30:10
+ INFO Starting init (commit: 6f59af0a)...
+14:30:10
+ INFO Checking filesystem on /data
+14:30:10
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+14:30:10
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+14:30:10
+ INFO Resized /data to 1056964608 bytes
+14:30:10
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}}}' > /home/node/.openclaw/openclaw.json && echo "=== CONFIGURING OPENROUTER ===" && node dist/index.js onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_API_KEY" && echo "=== SETTING MODEL: openrouter/anthropic/claude-opus-4-5 ===" && node dist/index.js config set agents.defaults.model.primary "openrouter/anthropic/claude-opus-4-5" && echo "=== FINAL CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+14:30:10
+ INFO [fly api proxy] listening at /.fly/api
+14:30:11
+=== CONFIGURING OPENROUTER ===
+14:30:11
+Machine started in 1.937s
+14:30:11
+2026/02/01 14:30:11 INFO SSH listening listen_address=[fdaa:44:9071:a7b:1c5:cc3c:a2bf:2]:22
+14:30:21
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+14:30:21
+██░▄▄▄░██░▄▄░██░▄▄▄██░▀██░██░▄▄▀██░████░▄▄▀██░███░██
+14:30:21
+██░███░██░▀▀░██░▄▄▄██░█░█░██░█████░████░▀▀░██░█░█░██
+14:30:21
+██░▀▀▀░██░█████░▀▀▀██░██▄░██░▀▀▄██░▀▀░█░██░██▄▀▄▀▄██
+14:30:21
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+14:30:21
+                  🦞 OPENCLAW 🦞
+14:30:21
+T  OpenClaw onboarding
+14:30:21
+|
+14:30:21
+o  Security -------------------------------------------------------------+
+14:30:21
+|                                                                        |
+14:30:21
+|  Security warning — please read.                                       |
+14:30:21
+|                                                                        |
+14:30:21
+|  OpenClaw is a hobby project and still in beta. Expect sharp edges.    |
+14:30:21
+|  This bot can read files and run actions if tools are enabled.         |
+14:30:21
+|  A bad prompt can trick it into doing unsafe things.                   |
+14:30:21
+|                                                                        |
+14:30:21
+|  If you’re not comfortable with basic security and access control,     |
+14:30:21
+|  don’t run OpenClaw.                                                   |
+14:30:21
+|  Ask someone experienced to help before enabling tools or exposing it  |
+14:30:21
+|  to the internet.                                                      |
+14:30:21
+|                                                                        |
+14:30:21
+|  Recommended baseline:                                                 |
+14:30:21
+|  - Pairing/allowlists + mention gating.                                |
+14:30:21
+|  - Sandbox + least-privilege tools.                                    |
+14:30:21
+|  - Keep secrets out of the agent’s reachable filesystem.               |
+14:30:21
+|  - Use the strongest available model for any bot with tools or         |
+14:30:21
+|    untrusted inboxes.                                                  |
+14:30:21
+|                                                                        |
+14:30:21
+|  Run regularly:                                                        |
+14:30:21
+|  openclaw security audit --deep                                        |
+14:30:21
+|  openclaw security audit --fix                                         |
+14:30:21
+|                                                                        |
+14:30:21
+|  Must read: https://docs.openclaw.ai/gateway/security                  |
+14:30:21
+|                                                                        |
+14:30:21
++------------------------------------------------------------------------+
+14:30:21
+|
+14:30:21
+*  I understand this is powerful and inherently risky. Continue?
+14:30:21
+|    Yes / > No
+14:30:21
+—
+14:30:21
+=== SETTING MODEL: openrouter/anthropic/claude-opus-4-5 ===
+14:30:27
+Updated agents.defaults.model.primary. Restart the gateway to apply.
+14:30:27
+=== FINAL CONFIG ===
+14:30:27
+{
+14:30:27
+  "commands": {
+14:30:27
+    "native": "auto",
+14:30:27
+    "nativeSkills": "auto"
+14:30:27
+  },
+14:30:27
+  "gateway": {
+14:30:27
+    "controlUi": {
+14:30:27
+      "enabled": true,
+14:30:27
+      "allowInsecureAuth": true
+14:30:27
+    },
+14:30:27
+    "trustedProxies": [
+14:30:27
+      "0.0.0.0/0",
+14:30:27
+      "::/0"
+14:30:27
+    ]
+14:30:27
+  },
+14:30:27
+  "agents": {
+14:30:27
+    "defaults": {
+14:30:27
+      "maxConcurrent": 4,
+14:30:27
+      "subagents": {
+14:30:27
+        "maxConcurrent": 8
+14:30:27
+      },
+14:30:27
+      "model": {
+14:30:27
+        "primary": "openrouter/anthropic/claude-opus-4-5"
+14:30:27
+      }
+14:30:27
+    }
+14:30:27
+  },
+14:30:27
+  "messages": {
+14:30:27
+    "ackReactionScope": "group-mentions"
+14:30:27
+  },
+14:30:27
+  "meta": {
+14:30:27
+    "lastTouchedVersion": "2026.1.30",
+14:30:27
+    "lastTouchedAt": "2026-02-01T14:30:27.362Z"
+14:30:27
+  }
+14:30:27
+}
+14:30:27
+=== STARTING GATEWAY ===
+14:30:34
+2026-02-01T14:30:34.266Z Gateway start blocked: set gateway.mode=local (current: unset) or pass --allow-unconfigured.
+14:30:35
+ INFO Main child exited normally with code: 1
+14:30:35
+ INFO Starting clean up.
+14:30:35
+ INFO Umounting /dev/vdc from /data
+14:30:35
+[   25.618113] reboot: Restarting system
+14:30:36
+2026-02-01T14:30:36.822689836 [01KGCSR1215PCP52W2D0TXR08F:main] Running Firecracker v1.12.1
+14:30:36
+2026-02-01T14:30:36.823084954 [01KGCSR1215PCP52W2D0TXR08F:main] Listening on API socket ("/fc.sock").
+14:30:38
+ INFO Starting init (commit: 6f59af0a)...
+14:30:38
+ INFO Checking filesystem on /data
+14:30:38
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+14:30:38
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+14:30:38
+ INFO Resized /data to 1056964608 bytes
+14:30:38
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}}}' > /home/node/.openclaw/openclaw.json && echo "=== CONFIGURING OPENROUTER ===" && node dist/index.js onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_API_KEY" && echo "=== SETTING MODEL: openrouter/anthropic/claude-opus-4-5 ===" && node dist/index.js config set agents.defaults.model.primary "openrouter/anthropic/claude-opus-4-5" && echo "=== FINAL CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+14:30:38
+ INFO [fly api proxy] listening at /.fly/api
+14:30:38
+=== CONFIGURING OPENROUTER ===
+14:30:38
+Machine started in 1.862s
+14:30:38
+2026/02/01 14:30:38 INFO SSH listening listen_address=[fdaa:44:9071:a7b:1c5:cc3c:a2bf:2]:22

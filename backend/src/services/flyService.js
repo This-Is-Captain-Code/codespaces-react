@@ -483,39 +483,45 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create config with trustedProxies and allowInsecureAuth
-    // Model will be set via openclaw config set command
-    // allowInsecureAuth skips device pairing for proxied connections
+    // Create complete config with all settings embedded
+    // No CLI commands needed - everything in JSON config
+    const modelString = `openrouter/${model}`;
     const openclawConfig = {
       gateway: {
+        mode: 'local',
         trustedProxies: ['0.0.0.0/0', '::/0'],
+        auth: {
+          mode: 'token',
+          token: gatewayToken
+        },
         controlUi: {
           enabled: true,
           allowInsecureAuth: true
+        }
+      },
+      agents: {
+        defaults: {
+          model: {
+            primary: modelString
+          }
         }
       }
     };
     const configJson = JSON.stringify(openclawConfig);
     
     // Init command: 
-    // 1. Write base config with gateway settings
-    // 2. Configure OpenRouter API key via onboard
-    // 3. Set the model
-    // 4. Print config for debugging
-    // 5. Start gateway with token auth
-    const modelString = `openrouter/${model}`;
+    // 1. Write complete config with all settings
+    // 2. Write auth-profiles.json for OpenRouter API key
+    // 3. Start gateway
     const initCmd = [
-      'mkdir -p /home/node/.openclaw',
+      'mkdir -p /home/node/.openclaw /data/agents/main/agent',
       `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
-      'echo "=== CONFIGURING OPENROUTER ==="',
-      'node dist/index.js onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_API_KEY"',
-      `echo "=== SETTING MODEL: ${modelString} ==="`,
-      `node dist/index.js config set agents.defaults.model.primary "${modelString}"`,
-      'echo "=== FINAL CONFIG ==="',
+      'echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENROUTER_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json',
+      'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
       'echo ""',
       'echo "=== STARTING GATEWAY ==="',
-      'exec node dist/index.js gateway --bind lan --token "$OPENCLAW_GATEWAY_TOKEN"'
+      'exec node dist/index.js gateway --bind lan'
     ].join(' && ');
 
     const machineConfig = {
