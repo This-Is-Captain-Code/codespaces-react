@@ -156,6 +156,12 @@ Located in `backend/docker/`:
 To enable pure OpenClaw chat, build this image and deploy to a container registry, then update `flyService.js` to use the custom image URL.
 
 ## Recent Changes
+- 2026-02-01: Fixed Agent Registration Persistence
+  - Root cause: Init script was overwriting /data/openclaw.json on every restart, deleting registered agents
+  - Solution: New init script only writes base config to /home/node/.openclaw/ (not /data/)
+  - Agent registrations in /data/openclaw.json are now preserved across restarts
+  - openclawService.js now includes permission fix after agent registration (SSH runs as root)
+  - Gateway startup: ~5-6 minutes initial, but agents persist without re-registration
 - 2026-02-01: OpenClaw Gateway Fully Working
   - OpenRouter API key authentication solved via auth-profiles.json
   - auth-profiles.json must be at `/data/agents/main/agent/auth-profiles.json`

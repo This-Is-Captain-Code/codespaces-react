@@ -32,7 +32,10 @@ export const openclawService = {
       `--non-interactive`,
     ].join(' ');
 
-    const fullCommand = [...setupCommands, agentsAddCmd].join(' && ');
+    // Fix permissions after agents add since SSH runs as root
+    const permissionFix = 'chown -R node:node /data/agents /data/openclaw.json && chmod 644 /data/openclaw.json';
+
+    const fullCommand = [...setupCommands, agentsAddCmd, permissionFix].join(' && ');
 
     try {
       const result = await flyService.execOnGateway(gatewayId, fullCommand, 60000);
