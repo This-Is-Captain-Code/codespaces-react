@@ -388,4 +388,36 @@ export const flyService = {
       return { status: 'error', error: error.message };
     }
   },
+
+  execCommand: async (appName, machineId, command, timeout = 30000) => {
+    console.log(`Executing command on ${appName}/${machineId}: ${command.substring(0, 100)}...`);
+    
+    const result = await flyRequest('POST', `/v1/apps/${appName}/machines/${machineId}/exec`, {
+      command: ['sh', '-c', `cd /app && ${command}`],
+      timeout: Math.floor(timeout / 1000),
+    });
+    
+    if (result.exit_code !== 0) {
+      console.error(`Command failed with exit code ${result.exit_code}: ${result.stderr}`);
+      throw new Error(`Command failed: ${result.stderr || 'Unknown error'}`);
+    }
+    
+    return result;
+  },
+
+  execOnGateway: async (gatewayId, command, timeout = 30000) => {
+    const appName = `openclaw-gw-${gatewayId}`;
+    
+    const machines = await flyService.listMachines(appName);
+    if (machines.length === 0) {
+      throw new Error(`No machines found for gateway ${gatewayId}`);
+    }
+    
+    const machine = machines[0];
+    if (machine.state !== 'started') {
+      throw new Error(`Gateway machine is not running (state: ${machine.state})`);
+    }
+    
+    return flyService.execCommand(appName, machine.id, command, timeout);
+  },
 };

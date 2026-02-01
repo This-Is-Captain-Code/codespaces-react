@@ -1,4 +1,5 @@
 import { gatewayService } from './gatewayService.js';
+import { flyService } from './flyService.js';
 
 export const openclawService = {
   createAgent: async (gatewayId, agentConfig) => {
@@ -11,9 +12,39 @@ export const openclawService = {
 
     console.log(`Registering agent ${agentId} on gateway ${gatewayId}...`);
 
+    const workspaceDir = `/data/agents/${agentId}/workspace`;
+    const agentDir = `/data/agents/${agentId}/agent`;
+    const openrouterModel = model.startsWith('openrouter/') ? model : `openrouter/${model}`;
+
+    const sessionsDir = `/data/agents/${agentId}/sessions`;
+    const setupCommands = [
+      `mkdir -p ${workspaceDir} ${agentDir} ${sessionsDir}`,
+      `chown -R node:node /data/agents/${agentId}`,
+      `chmod -R 755 /data/agents/${agentId}`,
+      `echo '{"openrouter":{"provider":"openrouter","mode":"key","apiKey":"'$OPENROUTER_API_KEY'"}}' > ${agentDir}/auth-profiles.json`,
+    ];
+
+    const agentsAddCmd = [
+      `node dist/index.js agents add ${agentId}`,
+      `--workspace ${workspaceDir}`,
+      `--agent-dir ${agentDir}`,
+      `--model ${openrouterModel}`,
+      `--non-interactive`,
+    ].join(' ');
+
+    const fullCommand = [...setupCommands, agentsAddCmd].join(' && ');
+
+    try {
+      const result = await flyService.execOnGateway(gatewayId, fullCommand, 60000);
+      console.log(`Agent ${agentId} registered successfully:`, result);
+    } catch (error) {
+      console.error(`Failed to register agent ${agentId}:`, error.message);
+      throw new Error(`Failed to register agent on gateway: ${error.message}`);
+    }
+
     await gatewayService.incrementAgentCount(gatewayId);
 
-    const accessUrl = `${gateway.endpoint}/?token=${gateway.gateway_token}`;
+    const accessUrl = `${gateway.endpoint}/?token=${gateway.gateway_token}&agent=${agentId}`;
     
     return {
       agentId,
@@ -21,7 +52,7 @@ export const openclawService = {
       endpoint: gateway.endpoint,
       gatewayToken: gateway.gateway_token,
       controlUrl: accessUrl,
-      model: model || 'openai/gpt-4o',
+      model: openrouterModel,
       botName,
     };
   },
@@ -34,13 +65,61 @@ export const openclawService = {
 
     console.log(`Removing agent ${agentId} from gateway ${gatewayId}...`);
 
+    try {
+      const removeCmd = `rm -rf /data/agents/${agentId} && node dist/index.js config unset agents.isolated.${agentId}`;
+      await flyService.execOnGateway(gatewayId, removeCmd, 30000);
+      console.log(`Agent ${agentId} removed from gateway`);
+    } catch (error) {
+      console.warn(`Failed to remove agent ${agentId} from gateway: ${error.message}`);
+    }
+
     await gatewayService.decrementAgentCount(gatewayId);
 
     return true;
   },
 
+  listAgents: async (gatewayId) => {
+    const gateway = await gatewayService.getGateway(gatewayId);
+    if (!gateway) {
+      throw new Error(`Gateway ${gatewayId} not found`);
+    }
+
+    try {
+      const result = await flyService.execOnGateway(gatewayId, 'node dist/index.js agents list --json', 30000);
+      return JSON.parse(result.stdout || '[]');
+    } catch (error) {
+      console.error(`Failed to list agents: ${error.message}`);
+      return [];
+    }
+  },
+
   getAgentAccessUrl: (gateway, agentId) => {
-    return `${gateway.endpoint}/?token=${gateway.gateway_token}`;
+    return `${gateway.endpoint}/?token=${gateway.gateway_token}&agent=${agentId}`;
+  },
+
+  sendMessage: async (gateway, agentId, message, sessionId = 'main') => {
+    const endpoint = `${gateway.endpoint}/v1/chat/completions`;
+    
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${gateway.gateway_token}`,
+        'Content-Type': 'application/json',
+        'X-OpenClaw-Agent': agentId,
+      },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: message }],
+        stream: false,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenClaw API error (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || 'No response';
   },
 
   healthCheck: async (gatewayId) => {

@@ -113,7 +113,7 @@ export const botService = {
     
     const bot = result.rows[0];
     const controlUrl = bot.gateway_endpoint && bot.gateway_token 
-      ? `${bot.gateway_endpoint}/?token=${bot.gateway_token}`
+      ? `${bot.gateway_endpoint}/?token=${bot.gateway_token}${bot.agent_id ? `&agent=${bot.agent_id}` : ''}`
       : null;
 
     return {

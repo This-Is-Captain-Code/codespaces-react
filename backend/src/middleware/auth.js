@@ -37,6 +37,9 @@ export const authMiddleware = async (req, res, next) => {
   try {
     let userId;
     let verified = false;
+    let user = null;
+
+    console.log(`Auth middleware: token starts with ${token.substring(0, 10)}...`);
 
     if (token.startsWith('user:')) {
       userId = token;
@@ -45,44 +48,61 @@ export const authMiddleware = async (req, res, next) => {
       userId = token;
       verified = true;
     } else {
-      const client = await getPrivyClient();
-      
-      if (client) {
-        try {
-          const verifiedClaims = await client.verifyAuthToken(token);
-          userId = verifiedClaims.userId;
-          verified = true;
-        } catch (verifyError) {
-          console.error('Privy token verification failed:', verifyError.message);
-          return res.status(401).json({ error: 'Invalid token' });
-        }
+      console.log('Checking token in database...');
+      user = await userService.getUserByToken(token);
+      console.log('User found:', user ? user.id : 'null');
+      if (user) {
+        verified = true;
+        userId = token;
       } else {
-        const decoded = decodePrivyToken(token);
-        if (decoded?.sub) {
-          userId = decoded.sub;
-          verified = true;
+        const client = await getPrivyClient();
+        
+        if (client) {
+          try {
+            const verifiedClaims = await client.verifyAuthToken(token);
+            userId = verifiedClaims.userId;
+            verified = true;
+          } catch (verifyError) {
+            console.error('Privy token verification failed:', verifyError.message);
+            return res.status(401).json({ error: 'Invalid token' });
+          }
         } else {
-          return res.status(401).json({ error: 'Invalid token' });
+          const decoded = decodePrivyToken(token);
+          if (decoded?.sub) {
+            userId = decoded.sub;
+            verified = true;
+          } else {
+            return res.status(401).json({ error: 'Invalid token' });
+          }
         }
       }
     }
 
+    console.log('After verification: verified =', verified, 'userId =', userId);
+    
     if (!verified || !userId) {
+      console.log('Not verified or no userId');
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    let user = await userService.getUserByToken(userId);
+    if (!user) {
+      console.log('Fetching user by token:', userId);
+      user = await userService.getUserByToken(userId);
+    }
     
     if (!user) {
+      console.log('Creating dev user:', userId);
       user = await userService.getOrCreateDevUser(userId);
     }
 
+    console.log('Setting req.user with id:', user.id);
     req.user = {
       id: user.id,
       email: user.email,
       authToken: userId,
     };
 
+    console.log('Auth successful, calling next()');
     next();
   } catch (error) {
     console.error('Auth error:', error);
