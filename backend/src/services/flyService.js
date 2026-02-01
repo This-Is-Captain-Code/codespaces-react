@@ -484,18 +484,14 @@ export const flyService = {
     // Init command: 
     // 1. Write gateway config
     // 2. Write auth-profiles.json with OpenRouter API key using printf for proper escaping
-    // 3. Set model via CLI (persists to /data/openclaw.json)
-    // 4. Start gateway with --allow-unconfigured and --token
+    // 3. Start gateway with --allow-unconfigured and --token
     const initCmd = [
       'mkdir -p /home/node/.openclaw /data/agents/main/agent',
       `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
       'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
-      `node dist/index.js config set agents.defaults.model.primary ${openrouterModel}`,
       'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
-      'echo "=== DATA CONFIG ==="',
-      'cat /data/openclaw.json 2>/dev/null || echo "No /data/openclaw.json yet"',
       'echo "=== AUTH PROFILES ==="',
       'cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\\"]*/.../g"',
       'echo ""',
