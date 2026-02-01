@@ -483,33 +483,20 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create minimal config for trustedProxies (required for Fly.io proxy)
+    // Create minimal config for trustedProxies only (required for Fly.io proxy)
+    // Use --allow-unconfigured to skip full config validation
     const openclawConfig = {
       gateway: {
-        mode: 'local',  // Required to start gateway without --allow-unconfigured
-        trustedProxies: ['0.0.0.0/0', '::/0'],
-        auth: {
-          mode: 'token',
-          token: gatewayToken
-        },
-        controlUi: {
-          enabled: true,
-          allowInsecureAuth: true
-        },
-        http: {
-          endpoints: {
-            chatCompletions: { enabled: true }
-          }
-        }
+        trustedProxies: ['0.0.0.0/0', '::/0']
       }
     };
     const configJson = JSON.stringify(openclawConfig);
     
-    // Init command: write config for trustedProxies, then start gateway
+    // Init command: write config for trustedProxies, use --allow-unconfigured
     const initCmd = [
       'mkdir -p /home/node/.openclaw',
-      `echo '${configJson.replace(/'/g, "'\\''")}' > /home/node/.openclaw/openclaw.json`,
-      'exec node dist/index.js gateway --bind lan'
+      `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
+      'exec node dist/index.js gateway --bind lan --allow-unconfigured'
     ].join(' && ');
 
     const machineConfig = {
