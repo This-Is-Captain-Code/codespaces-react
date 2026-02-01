@@ -1,0 +1,62 @@
+$ fly logs -a oc-user-67c2a11d321d-ml3vig3b 
+Waiting for logs...
+15:06:14
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+15:06:14
+Container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 already prepared
+15:06:14
+Setting up volume 'user_data'
+15:06:14
+Uninitialized volume 'user_data', initializing...
+15:06:14
+Encrypting volume
+15:06:14
+Opening encrypted volume
+15:06:15
+Formatting volume
+15:06:16
+Configuring firecracker
+15:06:16
+2026-02-01T15:06:16.753611395 [01KGCVTYR32TF0HQWNYAFBD0XV:main] Running Firecracker v1.12.1
+15:06:16
+2026-02-01T15:06:16.753833648 [01KGCVTYR32TF0HQWNYAFBD0XV:main] Listening on API socket ("/fc.sock").
+15:06:17
+ INFO Starting init (commit: 6f59af0a)...
+15:06:17
+ INFO Checking filesystem on /data
+15:06:17
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+15:06:17
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+15:06:17
+ INFO Resized /data to 1056964608 bytes
+15:06:17
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}}}' > /home/node/.openclaw/openclaw.json && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AUTH PROFILES ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+15:06:17
+ INFO [fly api proxy] listening at /.fly/api
+15:06:17
+=== OPENCLAW CONFIG ===
+15:06:17
+{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}}}
+15:06:17
+=== AUTH PROFILES ===
+15:06:17
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"..."}},"lastGood":{"openrouter":"openrouter:default"}}
+15:06:17
+=== STARTING GATEWAY ===
+15:06:17
+Machine created and started in 3.503s
+15:06:18
+2026/02/01 15:06:18 INFO SSH listening listen_address=[fdaa:44:9071:a7b:143:fecf:1760:2]:22
+15:07:03
+2026-02-01T15:07:03.495Z [canvas] host mounted at http://0.0.0.0:18789/__openclaw__/canvas/ (root /home/node/.openclaw/canvas)
+15:07:03
+2026-02-01T15:07:03.674Z [heartbeat] started
+15:07:03
+2026-02-01T15:07:03.679Z [gateway] agent model: anthropic/claude-opus-4-5
+15:07:03
+2026-02-01T15:07:03.680Z [gateway] listening on ws://0.0.0.0:18789 (PID 650)
+15:07:03
+2026-02-01T15:07:03.682Z [gateway] log file: /tmp/openclaw/openclaw-2026-02-01.log
+15:07:03
+2026-02-01T15:07:03.689Z [browser/service] Browser control service ready (profiles=2)
