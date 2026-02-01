@@ -476,16 +476,21 @@ export const flyService = {
     // Allocate public IPs
     await flyService.allocateIps(appName);
 
-    // Create config for single-user gateway (no multi-agent complexity)
-    // Only use valid OpenClaw config keys - binding done via CLI args, not config
+    // Create volume for persistent data
+    const volume = await flyService.createVolume(appName, {
+      name: 'user_data',
+      region,
+      sizeGb: 1,
+    });
+
+    // Create minimal config for trustedProxies (required for Fly.io proxy)
     const openclawConfig = {
       gateway: {
-        mode: 'local',
+        trustedProxies: ['0.0.0.0/0', '::/0'],
         auth: {
           mode: 'token',
           token: gatewayToken
         },
-        trustedProxies: ['0.0.0.0/0', '::/0'],
         controlUi: {
           enabled: true,
           allowInsecureAuth: true
@@ -495,27 +500,16 @@ export const flyService = {
             chatCompletions: { enabled: true }
           }
         }
-      },
-      agents: {
-        defaults: {
-          model: { primary: openrouterModel }
-        }
       }
     };
+    const configJson = JSON.stringify(openclawConfig);
     
-    const configBase64 = Buffer.from(JSON.stringify(openclawConfig)).toString('base64');
-
-    // Create volume for persistent data
-    const volume = await flyService.createVolume(appName, {
-      name: 'user_data',
-      region,
-      sizeGb: 1,
-    });
-
-    // Init command: simplified to match working fly.toml
-    // Use --allow-unconfigured for headless gateway startup
-    // Default port is 18789
-    const initCmd = 'exec node dist/index.js gateway --bind lan --allow-unconfigured';
+    // Init command: write config for trustedProxies, then start gateway
+    const initCmd = [
+      'mkdir -p /home/node/.openclaw',
+      `echo '${configJson.replace(/'/g, "'\\''")}' > /home/node/.openclaw/openclaw.json`,
+      'exec node dist/index.js gateway --bind lan'
+    ].join(' && ');
 
     const machineConfig = {
       name: 'user-gateway',

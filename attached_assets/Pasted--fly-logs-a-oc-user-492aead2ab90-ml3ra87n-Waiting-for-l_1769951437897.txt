@@ -1,0 +1,84 @@
+$ fly logs -a oc-user-492aead2ab90-ml3ra87n 
+Waiting for logs...
+13:07:52
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+13:08:17
+Successfully prepared image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 (25.478471042s)
+13:08:17
+Setting up volume 'user_data'
+13:08:17
+Uninitialized volume 'user_data', initializing...
+13:08:17
+Encrypting volume
+13:08:18
+Opening encrypted volume
+13:08:18
+Formatting volume
+13:08:19
+Configuring firecracker
+13:08:19
+2026-02-01T13:08:19.874074795 [01KGCN278MCAZ92ES1KP6BZJGF:main] Running Firecracker v1.12.1
+13:08:19
+2026-02-01T13:08:19.874231522 [01KGCN278MCAZ92ES1KP6BZJGF:main] Listening on API socket ("/fc.sock").
+13:08:20
+ INFO Starting init (commit: 6f59af0a)...
+13:08:20
+ INFO Checking filesystem on /data
+13:08:20
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+13:08:20
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+13:08:20
+ INFO Resized /data to 1056964608 bytes
+13:08:20
+ INFO Preparing to run: `docker-entrypoint.sh sh -c exec node dist/index.js gateway --bind lan --allow-unconfigured` as node
+13:08:20
+ INFO [fly api proxy] listening at /.fly/api
+13:08:20
+Machine created and started in 28.588s
+13:08:21
+2026/02/01 13:08:21 INFO SSH listening listen_address=[fdaa:44:9071:a7b:408:563b:e534:2]:22
+13:08:49
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:09:01
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+13:09:05
+2026-02-01T13:09:05.122Z [canvas] host mounted at http://0.0.0.0:18789/__openclaw__/canvas/ (root /home/node/.openclaw/canvas)
+13:09:05
+2026-02-01T13:09:05.293Z [heartbeat] started
+13:09:05
+2026-02-01T13:09:05.297Z [gateway] agent model: anthropic/claude-opus-4-5
+13:09:05
+2026-02-01T13:09:05.299Z [gateway] listening on ws://0.0.0.0:18789 (PID 649)
+13:09:05
+2026-02-01T13:09:05.301Z [gateway] log file: /tmp/openclaw/openclaw-2026-02-01.log
+13:09:05
+2026-02-01T13:09:05.309Z [browser/service] Browser control service ready (profiles=2)
+13:09:22
+2026-02-01T13:09:22.144Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+13:09:23
+2026-02-01T13:09:23.098Z [ws] closed before connect conn=84a02c44-dfd8-49fa-b18b-0dc4ac799726 remote=172.16.10.218 fwd=122.161.78.83, 137.66.43.148 origin=https://oc-user-492aead2ab90-ml3ra87n.fly.dev host=oc-user-492aead2ab90-ml3ra87n.fly.dev ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 code=1008 reason=pairing required
+13:09:24
+2026-02-01T13:09:24.752Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+13:09:25
+2026-02-01T13:09:25.654Z [ws] closed before connect conn=d099505a-d2c4-4569-9895-fa951d0aac6d remote=172.16.10.218 fwd=122.161.78.83, 137.66.43.148 origin=https://oc-user-492aead2ab90-ml3ra87n.fly.dev host=oc-user-492aead2ab90-ml3ra87n.fly.dev ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 code=1008 reason=pairing required
+13:09:27
+2026-02-01T13:09:27.505Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+13:09:28
+2026-02-01T13:09:28.376Z [ws] closed before connect conn=03d2f5db-1790-4b87-beda-95a340bcd0e6 remote=172.16.10.218 fwd=122.161.78.83, 137.66.43.148 origin=https://oc-user-492aead2ab90-ml3ra87n.fly.dev host=oc-user-492aead2ab90-ml3ra87n.fly.dev ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 code=1008 reason=pairing required
+13:09:38
+2026-02-01T13:09:38.800Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+13:09:39
+2026-02-01T13:09:39.745Z [ws] closed before connect conn=c564de7d-0e78-4e64-9672-49f09eea58b0 remote=172.16.10.218 fwd=122.161.78.83, 137.66.43.148 origin=https://oc-user-492aead2ab90-ml3ra87n.fly.dev host=oc-user-492aead2ab90-ml3ra87n.fly.dev ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 code=1008 reason=pairing required
+13:09:47
+2026-02-01T13:09:47.530Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+13:09:48
+2026-02-01T13:09:48.417Z [ws] closed before connect conn=2c2db6bf-34a0-4306-837d-671dace3baf6 remote=172.16.10.218 fwd=122.161.78.83, 137.66.43.148 origin=https://oc-user-492aead2ab90-ml3ra87n.fly.dev host=oc-user-492aead2ab90-ml3ra87n.fly.dev ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 code=1008 reason=pairing required
+13:10:00
+2026-02-01T13:10:00.721Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+13:10:01
+2026-02-01T13:10:01.507Z [ws] closed before connect conn=0873f910-5318-463a-9347-88b8112a9e99 remote=172.16.10.218 fwd=122.161.78.83, 137.66.43.148 origin=https://oc-user-492aead2ab90-ml3ra87n.fly.dev host=oc-user-492aead2ab90-ml3ra87n.fly.dev ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 code=1008 reason=pairing required
+13:10:17
+2026-02-01T13:10:17.816Z [ws] Proxy headers detected from untrusted address. Connection will not be treated as local. Configure gateway.trustedProxies to restore local client detection behind your proxy.
+13:10:18
+2026-02-01T13:10:18.782Z [ws] closed before connect conn=c091501e-d484-4855-a4d1-4eaccf11bf8a remote=172.16.10.218 fwd=122.161.78.83, 137.66.43.148 origin=https://oc-user-492aead2ab90-ml3ra87n.fly.dev host=oc-user-492aead2ab90-ml3ra87n.fly.dev ua=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 code=1008 reason=pairing required
