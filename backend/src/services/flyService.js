@@ -501,9 +501,14 @@ export const flyService = {
     const configJson = JSON.stringify(openclawConfig);
     
     // Init command: write complete config, gateway uses token from config
+    // Print the config for debugging, then start gateway
     const initCmd = [
       'mkdir -p /home/node/.openclaw',
       `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
+      'echo "=== OPENCLAW CONFIG ==="',
+      'cat /home/node/.openclaw/openclaw.json',
+      'echo ""',
+      'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --bind lan'
     ].join(' && ');
 
