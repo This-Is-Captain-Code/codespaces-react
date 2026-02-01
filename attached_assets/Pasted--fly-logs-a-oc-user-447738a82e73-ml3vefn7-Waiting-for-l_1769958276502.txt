@@ -1,0 +1,56 @@
+$ fly logs -a oc-user-447738a82e73-ml3vefn7 
+Waiting for logs...
+15:03:07
+Pulling container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9
+15:03:07
+Container image ghcr.io/openclaw/openclaw@sha256:6f3a5ed40f9f4f06925d54c7063536b2efc261dcf60d2dd3598d1eef2556b0e9 already prepared
+15:03:07
+Setting up volume 'user_data'
+15:03:07
+Uninitialized volume 'user_data', initializing...
+15:03:07
+Encrypting volume
+15:03:08
+Opening encrypted volume
+15:03:09
+Formatting volume
+15:03:10
+Configuring firecracker
+15:03:10
+2026-02-01T15:03:10.539023924 [01KGCVN8H0ZBG02YMB0YF27MY6:main] Running Firecracker v1.12.1
+15:03:10
+2026-02-01T15:03:10.539282069 [01KGCVN8H0ZBG02YMB0YF27MY6:main] Listening on API socket ("/fc.sock").
+15:03:11
+ INFO Starting init (commit: 6f59af0a)...
+15:03:11
+ INFO Checking filesystem on /data
+15:03:11
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+15:03:11
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+15:03:11
+ INFO Resized /data to 1056964608 bytes
+15:03:11
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && echo '{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}}}' > /home/node/.openclaw/openclaw.json && AUTH_JSON='{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"'"\"$OPENROUTER_API_KEY\""'"}},"lastGood":{"openrouter":"openrouter:default"}}' && echo $AUTH_JSON > /data/agents/main/agent/auth-profiles.json && echo $AUTH_JSON > /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AUTH PROFILES (main agent) ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+15:03:11
+ INFO [fly api proxy] listening at /.fly/api
+15:03:11
+=== OPENCLAW CONFIG ===
+15:03:11
+{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}}}
+15:03:11
+=== AUTH PROFILES (main agent) ===
+15:03:11
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":""...""}},"lastGood":{"openrouter":"openrouter:default"}}
+15:03:11
+=== STARTING GATEWAY ===
+15:03:11
+Machine created and started in 4.038s
+15:03:12
+2026/02/01 15:03:12 INFO SSH listening listen_address=[fdaa:44:9071:a7b:305:104a:2920:2]:22
+15:03:53
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+15:04:04
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+15:04:15
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)

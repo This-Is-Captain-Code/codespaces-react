@@ -497,19 +497,17 @@ export const flyService = {
     
     // Init command: 
     // 1. Write gateway config
-    // 2. Write auth-profiles.json with OpenRouter API key (exact format from user's Windows install)
-    // 3. Also write to ~/.openclaw for the main agent
-    // 4. Start gateway with --allow-unconfigured and --token
+    // 2. Write auth-profiles.json with OpenRouter API key using printf for proper escaping
+    // 3. Start gateway with --allow-unconfigured and --token
     const initCmd = [
       'mkdir -p /home/node/.openclaw /data/agents/main/agent',
       `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
-      'AUTH_JSON=\'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"\'"\\"$OPENROUTER_API_KEY\\""\'"}},"lastGood":{"openrouter":"openrouter:default"}}\'',
-      'echo $AUTH_JSON > /data/agents/main/agent/auth-profiles.json',
-      'echo $AUTH_JSON > /home/node/.openclaw/auth-profiles.json',
+      'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
+      'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
       'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
-      'echo "=== AUTH PROFILES (main agent) ==="',
-      'cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\\\"]*/.../g"',
+      'echo "=== AUTH PROFILES ==="',
+      'cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\\"]*/.../g"',
       'echo ""',
       'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
