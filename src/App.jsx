@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { BotDashboard } from './components/BotDashboard';
+import { AdminDashboard } from './components/AdminDashboard';
 import { setAuthToken } from './api/client';
 
 const PRIVY_ENABLED = !!import.meta.env.VITE_PRIVY_APP_ID;
+const isAdminRoute = window.location.pathname === '/admin';
 
 function FallbackAuthApp() {
   const [user, setUser] = useState(null);
@@ -109,6 +111,10 @@ function FallbackAuthApp() {
 }
 
 function App() {
+  if (isAdminRoute) {
+    return <AdminDashboard />;
+  }
+  
   if (PRIVY_ENABLED) {
     const PrivyApp = React.lazy(() => import('./components/PrivyApp'));
     return (

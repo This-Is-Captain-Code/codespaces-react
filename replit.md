@@ -55,6 +55,11 @@ Backend verifies Privy JWT tokens using `@privy-io/node` SDK when `PRIVY_APP_SEC
 - `POST /api/bots/regenerate-token` - Get new token
 - `DELETE /api/bots/delete` - Delete bot agent
 
+### Admin Endpoints (requires ADMIN_TOKEN)
+- `GET /api/admin/bots` - List all bots with usage info
+- `PUT /api/admin/bots/:botId/limit` - Update user's spending limit
+- `GET /api/admin/stats` - Get platform statistics
+
 ## Database Schema
 - **users**: id, email, auth_token, created_at
 - **gateways**: id, fly_app_name, fly_machine_id, fly_volume_id, endpoint, gateway_token, region, memory_mb, max_agents, current_agents, status
@@ -68,6 +73,7 @@ Required:
 Optional:
 - `OPENROUTER_PROVISIONING_KEY` - OpenRouter provisioning key for per-user API key management
 - `VITE_PRIVY_APP_ID` - Privy App ID for X/Twitter login
+- `ADMIN_TOKEN` - Token for admin dashboard access (required for /admin route)
 
 ## Fly.io Gateway Deployment
 Shared OpenClaw gateways are deployed on Fly.io via the Machines API:
@@ -151,6 +157,12 @@ Located in `backend/docker/`:
 To enable pure OpenClaw chat, build this image and deploy to a container registry, then update `flyService.js` to use the custom image URL.
 
 ## Recent Changes
+- 2026-02-02: Admin Dashboard for Spending Limit Management
+  - New frontend route: `/admin` - Admin dashboard for managing per-user limits
+  - New backend routes: `/api/admin/bots`, `/api/admin/bots/:botId/limit`, `/api/admin/stats`
+  - Token-based admin authentication via ADMIN_TOKEN environment variable
+  - Features: View all bots, see usage/limits, update spending limits in real-time
+  - Security: No default token - admin access requires ADMIN_TOKEN env var to be set
 - 2026-02-02: OpenRouter Provisioning Keys (Per-User Billing Isolation)
   - Architecture: Each user/bot gets their own OpenRouter API key with optional spending limits
   - New service: openrouterProvisioningService.js handles key lifecycle via OpenRouter Provisioning API
