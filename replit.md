@@ -58,14 +58,15 @@ Backend verifies Privy JWT tokens using `@privy-io/node` SDK when `PRIVY_APP_SEC
 ## Database Schema
 - **users**: id, email, auth_token, created_at
 - **gateways**: id, fly_app_name, fly_machine_id, fly_volume_id, endpoint, gateway_token, region, memory_mb, max_agents, current_agents, status
-- **bots**: id, user_id, bot_name, gateway_id, agent_id, endpoint, token_hash, model, system_prompt, status
+- **bots**: id, user_id, bot_name, gateway_id, agent_id, endpoint, token_hash, model, system_prompt, status, openrouter_key_hash, openrouter_limit_usd, fly_gateway_token
 
 ## Environment Variables
 Required:
 - `FLY_API_TOKEN` - Fly.io API token for gateway management
-- `OPENROUTER_API_KEY` - OpenRouter API key for AI models
+- `OPENROUTER_API_KEY` - OpenRouter API key for AI models (fallback for all users if no provisioning)
 
 Optional:
+- `OPENROUTER_PROVISIONING_KEY` - OpenRouter provisioning key for per-user API key management
 - `VITE_PRIVY_APP_ID` - Privy App ID for X/Twitter login
 
 ## Fly.io Gateway Deployment
@@ -150,6 +151,24 @@ Located in `backend/docker/`:
 To enable pure OpenClaw chat, build this image and deploy to a container registry, then update `flyService.js` to use the custom image URL.
 
 ## Recent Changes
+- 2026-02-02: OpenRouter Provisioning Keys (Per-User Billing Isolation)
+  - Architecture: Each user/bot gets their own OpenRouter API key with optional spending limits
+  - New service: openrouterProvisioningService.js handles key lifecycle via OpenRouter Provisioning API
+  - On bot creation:
+    1. If OPENROUTER_PROVISIONING_KEY is set, creates a unique API key for the user
+    2. Stores key_hash and limit_usd in bots table (actual key never stored)
+    3. Injects user's key into their Fly.io machine via OPENROUTER_API_KEY env var
+  - On bot deletion: Automatically deletes the user's provisioned OpenRouter key
+  - Database changes:
+    - Added `openrouter_key_hash` column to bots table
+    - Added `openrouter_limit_usd` column to bots table
+  - New API endpoints:
+    - `GET /api/bots/usage` - Get key usage and limit info
+    - `PUT /api/bots/limit` - Update spending limit
+  - Bot creation accepts optional `limitUsd` parameter for monthly spend cap
+  - Fallback: If no provisioning key configured, uses shared OPENROUTER_API_KEY (backward compatible)
+  - Benefits: True per-user billing, no shared key risk, clean UX, OpenRouter auto-blocks when limit hit
+  - Environment variable: `OPENROUTER_PROVISIONING_KEY=or_pk_...` (create in OpenRouter dashboard)
 - 2026-02-01: Per-User Dedicated Instances (Complete)
   - Architecture: Each user gets their own OpenClaw machine (`oc-user-{userId}-{timestamp}`)
   - flyService.createUserGateway() creates dedicated instances with:

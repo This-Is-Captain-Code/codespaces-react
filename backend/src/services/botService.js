@@ -37,32 +37,66 @@ export const botService = {
         console.log('No provisioning key configured, using shared OPENROUTER_API_KEY');
       }
 
-      // Create dedicated Fly.io instance for this user with their own key
-      const userGateway = await flyService.createUserGateway(userId, {
-        model: config.model || 'openai/gpt-4o',
-        systemPrompt: config.systemPrompt || 'You are a helpful assistant.',
-        botName: config.botName || 'Assistant',
-        openrouterApiKey: userOpenRouterKey,
-      });
+      let userGateway;
+      try {
+        // Create dedicated Fly.io instance for this user with their own key
+        userGateway = await flyService.createUserGateway(userId, {
+          model: config.model || 'openai/gpt-4o',
+          systemPrompt: config.systemPrompt || 'You are a helpful assistant.',
+          botName: config.botName || 'Assistant',
+          openrouterApiKey: userOpenRouterKey,
+        });
+      } catch (flyError) {
+        // Cleanup provisioned key if Fly.io deployment fails
+        if (openrouterKeyHash && openrouterProvisioningService.isProvisioningConfigured()) {
+          console.log('Fly.io deployment failed, cleaning up provisioned OpenRouter key...');
+          try {
+            await openrouterProvisioningService.deleteKey(openrouterKeyHash);
+            console.log(`Cleaned up OpenRouter key: ${openrouterKeyHash}`);
+          } catch (cleanupError) {
+            console.warn(`Failed to cleanup OpenRouter key: ${cleanupError.message}`);
+          }
+        }
+        throw flyError;
+      }
 
-      // Store bot with per-user gateway info and OpenRouter key metadata
-      const botResult = await db.query(
-        `INSERT INTO bots (user_id, bot_name, endpoint, model, system_prompt, status, gateway_id, agent_id, fly_gateway_token, openrouter_key_hash, openrouter_limit_usd)
-         VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10)
-         RETURNING id, bot_name, model, system_prompt, status, created_at`,
-        [
-          userId,
-          config.botName || `Bot for ${userId.substring(0, 8)}`,
-          userGateway.endpoint,
-          config.model || 'openai/gpt-4o',
-          config.systemPrompt || 'You are a helpful assistant.',
-          userGateway.appName,
-          'main',
-          userGateway.gatewayToken,
-          openrouterKeyHash,
-          limitUsd,
-        ]
-      );
+      let botResult;
+      try {
+        // Store bot with per-user gateway info and OpenRouter key metadata
+        botResult = await db.query(
+          `INSERT INTO bots (user_id, bot_name, endpoint, model, system_prompt, status, gateway_id, agent_id, fly_gateway_token, openrouter_key_hash, openrouter_limit_usd)
+           VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10)
+           RETURNING id, bot_name, model, system_prompt, status, created_at`,
+          [
+            userId,
+            config.botName || `Bot for ${userId.substring(0, 8)}`,
+            userGateway.endpoint,
+            config.model || 'openai/gpt-4o',
+            config.systemPrompt || 'You are a helpful assistant.',
+            userGateway.appName,
+            'main',
+            userGateway.gatewayToken,
+            openrouterKeyHash,
+            limitUsd,
+          ]
+        );
+      } catch (dbError) {
+        // Cleanup both Fly.io gateway and provisioned key if DB insert fails
+        console.log('DB insert failed, cleaning up resources...');
+        try {
+          await flyService.deleteUserGateway(userGateway.appName);
+        } catch (cleanupError) {
+          console.warn(`Failed to cleanup Fly.io gateway: ${cleanupError.message}`);
+        }
+        if (openrouterKeyHash && openrouterProvisioningService.isProvisioningConfigured()) {
+          try {
+            await openrouterProvisioningService.deleteKey(openrouterKeyHash);
+          } catch (cleanupError) {
+            console.warn(`Failed to cleanup OpenRouter key: ${cleanupError.message}`);
+          }
+        }
+        throw dbError;
+      }
       
       const bot = botResult.rows[0];
       const botId = bot.id;
