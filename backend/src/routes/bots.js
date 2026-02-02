@@ -13,12 +13,13 @@ router.use(authMiddleware);
 router.post('/create', async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { systemPrompt = '', model = 'openai/gpt-4o', botName = '' } = req.body;
+    const { systemPrompt = '', model = 'openai/gpt-4o', botName = '', limitUsd = null } = req.body;
 
     const bot = await botService.createBot(userId, {
       systemPrompt,
       model,
       botName,
+      limitUsd: limitUsd ? parseFloat(limitUsd) : null,
     });
 
     res.status(201).json({
@@ -177,6 +178,48 @@ router.post('/admin/cleanup', async (req, res, next) => {
       botsDeleted: deletedCount,
     });
   } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Get bot's OpenRouter API key usage
+ */
+router.get('/usage', async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const usage = await botService.getKeyUsage(userId);
+    res.json(usage);
+  } catch (error) {
+    if (error.message.includes('not found') || error.message.includes('No OpenRouter')) {
+      return res.status(404).json({ error: error.message });
+    }
+    next(error);
+  }
+});
+
+/**
+ * Update bot's OpenRouter spending limit
+ */
+router.put('/limit', async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { limitUsd } = req.body;
+
+    if (limitUsd === undefined || limitUsd === null) {
+      return res.status(400).json({ error: 'limitUsd is required' });
+    }
+
+    const result = await botService.updateKeyLimit(userId, parseFloat(limitUsd));
+    res.json({
+      success: true,
+      message: 'Spending limit updated',
+      ...result,
+    });
+  } catch (error) {
+    if (error.message.includes('not found') || error.message.includes('No OpenRouter')) {
+      return res.status(404).json({ error: error.message });
+    }
     next(error);
   }
 });

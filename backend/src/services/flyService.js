@@ -446,6 +446,7 @@ export const flyService = {
       region = 'iad',
       memoryMb = 2048,  // OpenClaw needs 2GB RAM minimum
       cpus = 1,
+      openrouterApiKey = null,
     } = options;
 
     console.log(`Creating per-user gateway for ${userId}: ${appName}...`);
@@ -453,7 +454,8 @@ export const flyService = {
     // Generate unique token for this user's gateway
     const crypto = await import('crypto');
     const gatewayToken = crypto.randomBytes(32).toString('hex');
-    const openrouterApiKey = process.env.OPENROUTER_API_KEY;
+    // Use user's provisioned key if available, otherwise fallback to shared key
+    const effectiveApiKey = openrouterApiKey || process.env.OPENROUTER_API_KEY;
     const openrouterModel = model.startsWith('openrouter/') ? model : `openrouter/${model}`;
 
     // Create the Fly.io app
@@ -515,7 +517,7 @@ export const flyService = {
           OPENCLAW_STATE_DIR: '/data',
           NODE_OPTIONS: '--max-old-space-size=1536',
           OPENCLAW_GATEWAY_TOKEN: gatewayToken,
-          OPENROUTER_API_KEY: openrouterApiKey,
+          OPENROUTER_API_KEY: effectiveApiKey,
         },
         guest: {
           cpu_kind: 'shared',

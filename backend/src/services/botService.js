@@ -2,6 +2,7 @@ import { db } from '../db/index.js';
 import { gatewayService } from './gatewayService.js';
 import { openclawService } from './openclawService.js';
 import { flyService } from './flyService.js';
+import { openrouterProvisioningService } from './openrouterProvisioningService.js';
 import crypto from 'crypto';
 
 export const botService = {
@@ -18,17 +19,36 @@ export const botService = {
     try {
       console.log(`Creating bot for user ${userId} with dedicated instance...`);
 
-      // Create dedicated Fly.io instance for this user
+      let userOpenRouterKey = null;
+      let openrouterKeyHash = null;
+      const limitUsd = config.limitUsd || null;
+
+      if (openrouterProvisioningService.isProvisioningConfigured()) {
+        console.log('Creating per-user OpenRouter API key via provisioning...');
+        const keyResult = await openrouterProvisioningService.createUserKey({
+          name: `MoltRack-${config.botName || 'bot'}-${userId.substring(0, 8)}`,
+          limitUsd: limitUsd,
+          userId: userId,
+        });
+        userOpenRouterKey = keyResult.key;
+        openrouterKeyHash = keyResult.keyHash;
+        console.log(`Created OpenRouter key with hash: ${openrouterKeyHash}${limitUsd ? ` (limit: $${limitUsd})` : ''}`);
+      } else {
+        console.log('No provisioning key configured, using shared OPENROUTER_API_KEY');
+      }
+
+      // Create dedicated Fly.io instance for this user with their own key
       const userGateway = await flyService.createUserGateway(userId, {
         model: config.model || 'openai/gpt-4o',
         systemPrompt: config.systemPrompt || 'You are a helpful assistant.',
         botName: config.botName || 'Assistant',
+        openrouterApiKey: userOpenRouterKey,
       });
 
-      // Store bot with per-user gateway info
+      // Store bot with per-user gateway info and OpenRouter key metadata
       const botResult = await db.query(
-        `INSERT INTO bots (user_id, bot_name, endpoint, model, system_prompt, status, gateway_id, agent_id, fly_gateway_token)
-         VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8)
+        `INSERT INTO bots (user_id, bot_name, endpoint, model, system_prompt, status, gateway_id, agent_id, fly_gateway_token, openrouter_key_hash, openrouter_limit_usd)
+         VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10)
          RETURNING id, bot_name, model, system_prompt, status, created_at`,
         [
           userId,
@@ -36,9 +56,11 @@ export const botService = {
           userGateway.endpoint,
           config.model || 'openai/gpt-4o',
           config.systemPrompt || 'You are a helpful assistant.',
-          userGateway.appName, // Store app name as gateway_id for cleanup
-          'main', // Single agent per gateway
-          userGateway.gatewayToken, // Store gateway token for control panel access
+          userGateway.appName,
+          'main',
+          userGateway.gatewayToken,
+          openrouterKeyHash,
+          limitUsd,
         ]
       );
       
@@ -81,7 +103,7 @@ export const botService = {
 
   getBot: async (userId) => {
     const result = await db.query(
-      `SELECT b.id, b.bot_name, b.gateway_id, b.agent_id, b.endpoint, b.model, b.system_prompt, b.status, b.created_at, b.token_hash, b.fly_gateway_token
+      `SELECT b.id, b.bot_name, b.gateway_id, b.agent_id, b.endpoint, b.model, b.system_prompt, b.status, b.created_at, b.token_hash, b.fly_gateway_token, b.openrouter_key_hash, b.openrouter_limit_usd
        FROM bots b
        WHERE b.user_id = $1`,
       [userId]
@@ -113,6 +135,8 @@ export const botService = {
       createdAt: bot.created_at,
       agentId: bot.agent_id,
       appName: bot.gateway_id,
+      openrouterKeyHash: bot.openrouter_key_hash,
+      openrouterLimitUsd: bot.openrouter_limit_usd ? parseFloat(bot.openrouter_limit_usd) : null,
     };
   },
 
@@ -176,7 +200,7 @@ export const botService = {
 
   deleteBot: async (userId) => {
     const botResult = await db.query(
-      `SELECT id, gateway_id, agent_id FROM bots WHERE user_id = $1`,
+      `SELECT id, gateway_id, agent_id, openrouter_key_hash FROM bots WHERE user_id = $1`,
       [userId]
     );
     
@@ -185,6 +209,16 @@ export const botService = {
     }
     
     const bot = botResult.rows[0];
+
+    // Delete the user's OpenRouter provisioned key
+    if (bot.openrouter_key_hash && openrouterProvisioningService.isProvisioningConfigured()) {
+      try {
+        await openrouterProvisioningService.deleteKey(bot.openrouter_key_hash);
+        console.log(`Deleted OpenRouter key: ${bot.openrouter_key_hash}`);
+      } catch (error) {
+        console.warn(`Failed to delete OpenRouter key: ${error.message}`);
+      }
+    }
 
     // For per-user gateways, gateway_id stores the Fly app name
     if (bot.gateway_id && bot.gateway_id.startsWith('oc-user-')) {
@@ -348,9 +382,19 @@ export const botService = {
 
   deleteAllBots: async () => {
     await db.query(`DELETE FROM bot_tokens`);
-    const result = await db.query(`DELETE FROM bots RETURNING id, gateway_id`);
+    const result = await db.query(`DELETE FROM bots RETURNING id, gateway_id, openrouter_key_hash`);
     
     for (const row of result.rows) {
+      // Delete OpenRouter provisioned key
+      if (row.openrouter_key_hash && openrouterProvisioningService.isProvisioningConfigured()) {
+        try {
+          await openrouterProvisioningService.deleteKey(row.openrouter_key_hash);
+          console.log(`Deleted OpenRouter key: ${row.openrouter_key_hash}`);
+        } catch (error) {
+          console.warn(`Failed to delete OpenRouter key: ${error.message}`);
+        }
+      }
+      
       // For per-user gateways, delete the Fly.io app
       if (row.gateway_id && row.gateway_id.startsWith('oc-user-')) {
         try {
@@ -364,5 +408,78 @@ export const botService = {
     
     console.log(`Deleted ${result.rowCount} bots from database`);
     return result.rowCount;
+  },
+
+  getKeyUsage: async (userId) => {
+    const botResult = await db.query(
+      `SELECT openrouter_key_hash, openrouter_limit_usd FROM bots WHERE user_id = $1`,
+      [userId]
+    );
+    
+    if (botResult.rows.length === 0) {
+      throw new Error('Bot not found for user');
+    }
+    
+    const bot = botResult.rows[0];
+    
+    if (!bot.openrouter_key_hash) {
+      return {
+        hasProvisionedKey: false,
+        message: 'Bot is using shared OpenRouter API key (no per-user billing)',
+        limitUsd: null,
+        usageUsd: null,
+      };
+    }
+    
+    if (!openrouterProvisioningService.isProvisioningConfigured()) {
+      throw new Error('No OpenRouter provisioning key configured');
+    }
+    
+    const keyInfo = await openrouterProvisioningService.getKeyInfo(bot.openrouter_key_hash);
+    
+    return {
+      hasProvisionedKey: true,
+      keyHash: keyInfo.keyHash,
+      limitUsd: keyInfo.limitUsd,
+      usageUsd: keyInfo.usage,
+      disabled: keyInfo.disabled,
+      isFreeTier: keyInfo.isFreeTier,
+      rateLimit: keyInfo.rateLimit,
+    };
+  },
+
+  updateKeyLimit: async (userId, newLimitUsd) => {
+    const botResult = await db.query(
+      `SELECT id, openrouter_key_hash FROM bots WHERE user_id = $1`,
+      [userId]
+    );
+    
+    if (botResult.rows.length === 0) {
+      throw new Error('Bot not found for user');
+    }
+    
+    const bot = botResult.rows[0];
+    
+    if (!bot.openrouter_key_hash) {
+      throw new Error('No OpenRouter provisioned key for this bot');
+    }
+    
+    if (!openrouterProvisioningService.isProvisioningConfigured()) {
+      throw new Error('No OpenRouter provisioning key configured');
+    }
+    
+    const result = await openrouterProvisioningService.updateKeyLimit(bot.openrouter_key_hash, newLimitUsd);
+    
+    // Update local DB record
+    await db.query(
+      `UPDATE bots SET openrouter_limit_usd = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+      [newLimitUsd, bot.id]
+    );
+    
+    return {
+      keyHash: result.keyHash,
+      limitUsd: result.limitUsd,
+      usageUsd: result.usage,
+    };
   },
 };
