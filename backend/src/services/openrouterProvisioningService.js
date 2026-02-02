@@ -74,6 +74,7 @@ export const openrouterProvisioningService = {
     console.log(`Getting info for OpenRouter key: ${keyHash}...`);
     
     const result = await provisioningRequest('GET', `/keys/${keyHash}`);
+    console.log(`OpenRouter key info response:`, JSON.stringify(result.data, null, 2));
 
     return {
       keyHash: result.data?.hash,
