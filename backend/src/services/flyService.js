@@ -555,8 +555,8 @@ export const flyService = {
 
     const machine = await flyService.createMachine(appName, machineConfig);
 
-    // Wait for machine to start (don't wait for full gateway startup to speed up)
-    await flyService.waitForMachine(appName, machine.id, 'started', 30);
+    // Wait for machine to start (OpenClaw takes ~60-90 seconds to boot)
+    await flyService.waitForMachine(appName, machine.id, 'started', 60);
 
     const endpoint = `https://${appName}.fly.dev`;
 

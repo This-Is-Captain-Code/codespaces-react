@@ -51,9 +51,11 @@ export const openrouterProvisioningService = {
       requestBody.limit = limitUsd;
     }
 
-    console.log(`Creating OpenRouter key: ${keyName}${limitUsd ? ` with $${limitUsd} limit` : ''}...`);
+    console.log(`Creating OpenRouter key: ${keyName}${limitUsd ? ` with $${limitUsd} limit` : ' (no limit)'}...`);
+    console.log(`Request body:`, JSON.stringify(requestBody));
 
     const result = await provisioningRequest('POST', '/keys', requestBody);
+    console.log(`OpenRouter response:`, JSON.stringify(result));
 
     console.log(`OpenRouter key created: ${result.data?.hash || 'unknown'}`);
 
