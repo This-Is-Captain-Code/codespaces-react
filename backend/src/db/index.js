@@ -91,6 +91,15 @@ export async function initializeDatabase() {
     ALTER TABLE bots ADD COLUMN IF NOT EXISTS fly_gateway_token VARCHAR(255)
   `).catch(() => {});
 
+  // Add OpenRouter provisioning key metadata columns
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS openrouter_key_hash VARCHAR(255)
+  `).catch(() => {});
+
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS openrouter_limit_usd DECIMAL(10,2)
+  `).catch(() => {});
+
   await db.query(`
     CREATE TABLE IF NOT EXISTS bot_tokens (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
