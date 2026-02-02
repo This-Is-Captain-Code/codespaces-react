@@ -114,7 +114,7 @@ export function AdminDashboard() {
             <p>Running</p>
           </div>
           <div className="stat-card">
-            <h3>${stats.totalLimits?.toFixed(2) || '0.00'}</h3>
+            <h3>${parseFloat(stats.totalLimits || 0).toFixed(2)}</h3>
             <p>Total Limits</p>
           </div>
         </div>
@@ -174,13 +174,13 @@ export function AdminDashboard() {
                         />
                       ) : (
                         <span className="limit-value">
-                          ${bot.limitUsd?.toFixed(2) || '0.00'}
+                          ${parseFloat(bot.limitUsd || 0).toFixed(2)}
                         </span>
                       )}
                     </td>
                     <td>
-                      <span className={`usage-value ${bot.usageUsd >= (bot.limitUsd || 0) ? 'over-limit' : ''}`}>
-                        ${bot.usageUsd?.toFixed(2) || '0.00'}
+                      <span className={`usage-value ${parseFloat(bot.usageUsd || 0) >= parseFloat(bot.limitUsd || 0) ? 'over-limit' : ''}`}>
+                        ${parseFloat(bot.usageUsd || 0).toFixed(2)}
                       </span>
                     </td>
                     <td className="actions-cell">
