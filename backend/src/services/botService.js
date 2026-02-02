@@ -21,7 +21,8 @@ export const botService = {
 
       let userOpenRouterKey = null;
       let openrouterKeyHash = null;
-      const limitUsd = config.limitUsd || null;
+      const DEFAULT_LIMIT_USD = 5.00;
+      const limitUsd = config.limitUsd !== undefined ? config.limitUsd : DEFAULT_LIMIT_USD;
 
       if (openrouterProvisioningService.isProvisioningConfigured()) {
         console.log('Creating per-user OpenRouter API key via provisioning...');
