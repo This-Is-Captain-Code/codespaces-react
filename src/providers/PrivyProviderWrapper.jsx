@@ -18,7 +18,7 @@ export function PrivyProviderWrapper({ children }) {
           logo: 'https://openclaw.ai/logo.png',
         },
         embeddedWallets: {
-          createOnLogin: 'off',
+          createOnLogin: 'users-without-wallets',
         },
       }}
     >

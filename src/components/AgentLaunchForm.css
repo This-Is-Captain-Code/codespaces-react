@@ -1,0 +1,256 @@
+.agent-launch-form {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.agent-launch-form h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: #1a1a2e;
+}
+
+.agent-launch-form .subtitle {
+  margin: 0 0 1.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-group .hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.launch-button {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.launch-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.launch-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fee-info {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.fee-info p {
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+  color: #666;
+}
+
+.fee-info ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #888;
+}
+
+.fee-info li {
+  margin: 0.25rem 0;
+}
+
+.error-message {
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.launch-progress {
+  text-align: center;
+}
+
+.launch-progress h3 {
+  margin: 0 0 1.5rem 0;
+  color: #1a1a2e;
+}
+
+.steps-list {
+  text-align: left;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.step-item:last-child {
+  border-bottom: none;
+}
+
+.step-indicator {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.step-item.pending .step-indicator {
+  background: #f0f0f0;
+  color: #999;
+}
+
+.step-item.current .step-indicator {
+  background: #6366f1;
+  color: #fff;
+  animation: pulse 1.5s infinite;
+}
+
+.step-item.completed .step-indicator {
+  background: #10b981;
+  color: #fff;
+}
+
+.step-item.pending .step-label {
+  color: #999;
+}
+
+.step-item.current .step-label {
+  color: #6366f1;
+  font-weight: 500;
+}
+
+.step-item.completed .step-label {
+  color: #10b981;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.launch-success {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.success-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.launch-success h2 {
+  margin: 0 0 1.5rem 0;
+  color: #10b981;
+}
+
+.launch-details {
+  text-align: left;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.detail-item .value {
+  color: #1a1a2e;
+}
+
+.detail-item .value.mono {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 0.85rem;
+}
+
+.detail-item .value.link {
+  color: #6366f1;
+  text-decoration: none;
+}
+
+.detail-item .value.link:hover {
+  text-decoration: underline;
+}
+
+.trade-button {
+  display: block;
+  width: 100%;
+  padding: 0.875rem;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.trade-button:hover {
+  transform: translateY(-2px);
+}

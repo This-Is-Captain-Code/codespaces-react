@@ -101,6 +101,34 @@ export async function initializeDatabase() {
   `).catch(() => {});
 
   await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS agent_wallet_address VARCHAR(255)
+  `).catch(() => {});
+
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS agent_wallet_id VARCHAR(255)
+  `).catch(() => {});
+
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS token_address VARCHAR(255)
+  `).catch(() => {});
+
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS token_symbol VARCHAR(50)
+  `).catch(() => {});
+
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS token_name VARCHAR(255)
+  `).catch(() => {});
+
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS erc8004_id INTEGER
+  `).catch(() => {});
+
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS user_wallet_address VARCHAR(255)
+  `).catch(() => {});
+
+  await db.query(`
     CREATE TABLE IF NOT EXISTS bot_tokens (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       bot_id UUID NOT NULL REFERENCES bots(id) ON DELETE CASCADE,

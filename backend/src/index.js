@@ -10,6 +10,7 @@ import agentRoutes from './routes/agents.js';
 import billingRoutes from './routes/billing.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
+import launchRoutes from './routes/launch.js';
 import { autoApprovalService } from './services/autoApprovalService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -35,6 +36,7 @@ app.use('/api/bots', botRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/launch', launchRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

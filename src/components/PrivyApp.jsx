@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import '../App.css';
-import { BotDashboard } from './BotDashboard';
+import { AgentDashboard } from './AgentDashboard';
 import { setAuthToken } from '../api/client';
 
 function PrivyApp() {
@@ -39,6 +39,13 @@ function PrivyApp() {
     return user?.id?.substring(0, 12) + '...';
   };
 
+  const getUserWalletAddress = () => {
+    const wallet = user?.linkedAccounts?.find(
+      (account) => account.type === 'wallet' && account.walletClientType === 'privy'
+    );
+    return wallet?.address || null;
+  };
+
   if (!ready) {
     return (
       <div className="App loading-screen">
@@ -55,13 +62,13 @@ function PrivyApp() {
       <div className="App">
         <div className="auth-landing">
           <div className="auth-card">
-            <h1>MoltRack v0</h1>
-            <p className="tagline">Persistent OpenClaw Agent Runtime</p>
+            <h1>Molt.town</h1>
+            <p className="tagline">Launch AI Agents with Tokens</p>
             <p className="description">
-              Create your own AI bot that persists over time. Sign in to get started.
+              Create an AI agent with its own wallet and tradeable token in one click.
             </p>
             <button onClick={login} className="login-button privy-login">
-              Sign In
+              Login with X
             </button>
           </div>
         </div>
@@ -73,7 +80,7 @@ function PrivyApp() {
     return (
       <div className="App loading-screen">
         <div className="loading-content">
-          <h1>MoltRack v0</h1>
+          <h1>Molt.town</h1>
           <p>Authenticating...</p>
         </div>
       </div>
@@ -81,27 +88,10 @@ function PrivyApp() {
   }
 
   return (
-    <div className="App">
-      <header className="app-header">
-        <div className="header-content">
-          <h1>MoltRack v0</h1>
-          <div className="user-info">
-            <span className="username">{getUserDisplay()}</span>
-            <button onClick={handleLogout} className="logout-button">
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="app-main">
-        <BotDashboard userId={user.id} />
-      </main>
-
-      <footer className="app-footer">
-        <p>MoltRack v0 - Powered by OpenClaw & OpenRouter</p>
-      </footer>
-    </div>
+    <AgentDashboard 
+      userWalletAddress={getUserWalletAddress()}
+      onLogout={handleLogout}
+    />
   );
 }
 

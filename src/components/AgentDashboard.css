@@ -1,0 +1,280 @@
+.agent-dashboard {
+  min-height: 100vh;
+  background: #f5f5f7;
+  padding: 2rem;
+}
+
+.agent-dashboard.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.agent-dashboard .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+}
+
+.agent-dashboard .header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1a1a2e;
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  border-color: #999;
+  color: #333;
+}
+
+.agent-card {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.agent-header {
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+}
+
+.agent-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fbbf24;
+}
+
+.status-dot.running {
+  background: #10b981;
+}
+
+.status-dot.stopped {
+  background: #ef4444;
+}
+
+.status-text {
+  font-size: 0.85rem;
+  text-transform: capitalize;
+  opacity: 0.9;
+}
+
+.agent-header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.info-section {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-section:last-of-type {
+  border-bottom: none;
+}
+
+.info-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-item.full {
+  grid-column: span 2;
+}
+
+.info-item .label {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.info-item .value {
+  color: #1a1a2e;
+  word-break: break-all;
+}
+
+.info-item .value.mono {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 0.85rem;
+}
+
+.info-item .value.link {
+  color: #6366f1;
+  text-decoration: none;
+}
+
+.info-item .value.link:hover {
+  text-decoration: underline;
+}
+
+.wallet-actions,
+.token-actions {
+  grid-column: span 2;
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  background: #f5f5f7;
+  border-radius: 6px;
+  color: #666;
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: #e8e8eb;
+  color: #333;
+}
+
+.trade-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.trade-btn:hover {
+  transform: translateY(-2px);
+}
+
+.danger-zone {
+  padding: 1.5rem 2rem;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+}
+
+.danger-zone h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: #dc2626;
+}
+
+.danger-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.recover-btn {
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recover-btn:hover {
+  border-color: #999;
+  color: #333;
+}
+
+.delete-btn {
+  padding: 0.5rem 1rem;
+  background: #dc2626;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  margin: 1rem 2rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+}
+
+@media (max-width: 640px) {
+  .agent-dashboard {
+    padding: 1rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item.full {
+    grid-column: span 1;
+  }
+
+  .wallet-actions,
+  .token-actions {
+    grid-column: span 1;
+    flex-direction: column;
+  }
+
+  .danger-actions {
+    flex-direction: column;
+  }
+}

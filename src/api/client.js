@@ -60,3 +60,13 @@ export const billingAPI = {
 
   addCredits: (amount) => apiClient.post('/billing/add-credits', { amount }),
 };
+
+export const launchAPI = {
+  launch: (config) => apiClient.post('/launch', config),
+
+  getStatus: () => apiClient.get('/launch/status'),
+
+  recoverWallet: () => apiClient.post('/launch/recover-wallet'),
+
+  delete: () => apiClient.delete('/launch'),
+};
