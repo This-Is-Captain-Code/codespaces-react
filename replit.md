@@ -148,13 +148,6 @@ After agent creation, users access:
 ## Architecture
 Users access their bots via the OpenClaw control panel hosted on their dedicated Fly.io instance. This provides a one-click bot creation experience with complete isolation per user.
 
-## Custom OpenClaw Docker Image (for future use)
-Located in `backend/docker/`:
-- `Dockerfile.openclaw` - Custom image with pre-enabled chat API
-- `openclaw-config.json` - Config enabling chatCompletions and toolsInvoke endpoints
-- `entrypoint.sh` - Startup script with config injection
-
-To enable pure OpenClaw chat, build this image and deploy to a container registry, then update `flyService.js` to use the custom image URL.
 
 ## Recent Changes
 - 2026-02-02: Admin Dashboard for Spending Limit Management

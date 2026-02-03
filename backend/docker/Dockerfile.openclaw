@@ -1,8 +1,0 @@
-FROM ghcr.io/openclaw/openclaw:latest
-
-ENV OPENCLAW_STATE_DIR=/data
-ENV OPENCLAW_CONFIG_PATH=/data/config.json
-
-EXPOSE 18789
-
-ENTRYPOINT ["node", "dist/index.js", "gateway", "--port", "18789", "--bind", "all"]
