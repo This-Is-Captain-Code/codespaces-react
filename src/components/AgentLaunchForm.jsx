@@ -35,31 +35,38 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
     setCompletedSteps([]);
 
     try {
-      const response = await launchAPI.launch({
-        agentName: agentName.trim(),
-        tokenSymbol: tokenSymbol.trim().toUpperCase(),
-        tokenName: agentName.trim(),
-        userWalletAddress,
-      });
-
-      if (response.data.progressUpdates) {
-        response.data.progressUpdates.forEach((update) => {
-          if (update.status === 'completed') {
-            setCompletedSteps((prev) => [...prev, update.step]);
+      await launchAPI.launchStream(
+        {
+          agentName: agentName.trim(),
+          tokenSymbol: tokenSymbol.trim().toUpperCase(),
+          tokenName: agentName.trim(),
+          userWalletAddress,
+        },
+        (progress) => {
+          setCurrentStep(progress.step);
+          if (progress.status === 'completed') {
+            setCompletedSteps((prev) => 
+              prev.includes(progress.step) ? prev : [...prev, progress.step]
+            );
           }
-        });
-      }
-
-      setResult(response.data);
-      setCurrentStep(null);
-      
-      if (onLaunchComplete) {
-        onLaunchComplete(response.data);
-      }
+        },
+        (data) => {
+          setResult(data);
+          setCurrentStep(null);
+          setLaunching(false);
+          if (onLaunchComplete) {
+            onLaunchComplete(data);
+          }
+        },
+        (errorData) => {
+          setError(errorData.error || 'Launch failed');
+          setCurrentStep(null);
+          setLaunching(false);
+        }
+      );
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Launch failed');
+      setError(err.message || 'Launch failed');
       setCurrentStep(null);
-    } finally {
       setLaunching(false);
     }
   };
