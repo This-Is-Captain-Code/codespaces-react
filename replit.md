@@ -1,21 +1,33 @@
-# MoltRack v0
+# Molt.town
 
 ## Overview
-MoltRack v0 is a persistent OpenClaw Agent Runtime application. Users sign up, create AI bots that are deployed as isolated agents on dedicated OpenClaw gateway instances running on Fly.io.
+Molt.town is an automated AI agent launch platform that creates agents with their own wallets and tradeable tokens in one click (~30 seconds). Users login with X/Twitter via Privy, input agent name and token symbol, then the system automatically:
+1. Deploys an OpenClaw agent on Fly.io
+2. Creates a Privy server wallet for the agent
+3. Deploys a Clanker token on Base with custom fee splits
+4. Registers the agent identity on-chain via ERC-8004
+5. Installs bankr + erc-8004 skills for autonomous trading
 
-**Model**: 1 user → 1 bot → 1 dedicated Fly.io instance
+**Model**: 1 user → 1 agent → 1 dedicated Fly.io instance + wallet + token
 
-**Architecture**: Per-user dedicated instance model - each user gets their own OpenClaw gateway on Fly.io for complete isolation. Cost: ~$5-15/user/month depending on usage.
+**Architecture**: Per-user dedicated instance model with integrated wallet and token. Each user gets their own OpenClaw gateway on Fly.io, plus a server-side Privy wallet for their agent.
 
 ## Project Structure
 - `/` - Frontend (React + Vite)
 - `/backend` - Backend (Express.js API server)
 - `/src` - Frontend React source files
-- `/src/components` - React UI components (BotDashboard)
+- `/src/components` - React UI components (AgentLaunchForm, AgentDashboard)
 - `/src/api` - API client for backend communication
 - `/backend/src` - Backend source files
-- `/backend/src/routes` - API route handlers
-- `/backend/src/services` - Business logic (botService, flyService, gatewayService, userService)
+- `/backend/src/routes` - API route handlers (launch.js for agent creation)
+- `/backend/src/services` - Business logic services
+  - `agentLaunchService.js` - Orchestrates full launch flow with rollback
+  - `privyWalletService.js` - Server-side wallet creation via Privy
+  - `clankerService.js` - Token deployment via Clanker SDK
+  - `erc8004Service.js` - On-chain identity registration
+  - `skillInstallerService.js` - Auto-install bankr + erc-8004 skills
+  - `flyService.js` - Fly.io machine management
+  - `openrouterProvisioningService.js` - Per-user API key management
 - `/backend/src/db` - Database connection and schema
 - `/backend/src/middleware` - Auth middleware
 
