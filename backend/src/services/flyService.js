@@ -546,13 +546,18 @@ export const flyService = {
     const bankrUsageInstruction = `
 
 ## Crypto Trading (Bankr Skill)
-You have the bankr skill pre-installed. To use it, run the bankr script via exec:
 
-\`\`\`bash
-scripts/bankr.sh "What is the price of ETH?"
+You have the bankr skill pre-installed. **IMPORTANT: Use the exec tool, NOT sessions_spawn.**
+
+To execute crypto commands, use exec like this:
+\`\`\`json
+{"tool": "exec", "arguments": {"command": "/home/node/.openclaw/skills/bankr/scripts/bankr.sh", "args": ["What is the price of ETH?"]}}
 \`\`\`
 
-The script is located at ~/.openclaw/skills/bankr/scripts/bankr.sh
+Examples:
+- Check price: exec /home/node/.openclaw/skills/bankr/scripts/bankr.sh "What is the price of ETH?"
+- Portfolio: exec /home/node/.openclaw/skills/bankr/scripts/bankr.sh "Show my portfolio"
+- Trade: exec /home/node/.openclaw/skills/bankr/scripts/bankr.sh "Buy $10 of ETH on Base"
 
 Use this for: crypto prices, trading, portfolio balances, sending crypto, NFTs, leverage trading, and Polymarket.
 `;
