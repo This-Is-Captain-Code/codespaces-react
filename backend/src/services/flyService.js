@@ -502,14 +502,24 @@ export const flyService = {
           model: {
             primary: openrouterModel
           },
-          tools: {
-            allow: ['*']
-          },
-          allowAgents: ['*']
-        }
-      },
-      tools: {
-        allow: ['*']
+          sandbox: {
+            mode: 'off'
+          }
+        },
+        list: [
+          {
+            id: 'main',
+            default: true,
+            workspace: '/home/node/.openclaw/workspace',
+            sandbox: {
+              mode: 'off'
+            },
+            tools: {
+              allow: ['*']
+            },
+            allowAgents: ['*']
+          }
+        ]
       },
       skills: {
         install: {
