@@ -16,3 +16,30 @@ Molt.town utilizes a per-user dedicated instance model. Each user's AI agent is 
 - **Clanker SDK**: For deploying custom tokens on the Base network.
 - **ERC-8004**: For on-chain AI agent identity registration on Ethereum mainnet.
 - **BankrBot/openclaw-skills GitHub repository**: Source for agent skills like `bankr` (crypto trading) and `erc-8004` (on-chain identity).
+
+## Testnet Mode
+Set `USE_TESTNET=true` to run the entire platform in testnet mode:
+- **Clanker**: Uses Base Sepolia instead of Base mainnet (token deployment is simulated)
+- **ERC-8004**: Uses Sepolia instead of Ethereum mainnet (registration is simulated)
+- **Wallet**: Test wallet with no real funds needed
+
+To switch to mainnet, set `USE_TESTNET=false` (or remove the variable).
+
+### Healthcheck Endpoints
+- Test all integrations: `GET /api/healthcheck/integrations`
+- Generate a new wallet: `GET /api/healthcheck/generate-wallet`
+
+## Environment Variables
+Required:
+- `FLY_API_TOKEN` - Fly.io API token for gateway management
+- `OPENROUTER_API_KEY` - OpenRouter API key for AI models
+- `PRIVY_APP_SECRET` - Privy secret for server-side wallet creation
+- `ADMIN_WALLET_PRIVATE_KEY` - For signing on-chain transactions
+- `BANKR_API_KEY` - Bankr API key (shared across all agents)
+
+Optional:
+- `USE_TESTNET` - Set to `true` for testnet mode (Base Sepolia + Sepolia)
+- `MOLT_REWARD_ADDRESS` - Platform reward wallet address (required for mainnet)
+- `DEV_REWARD_ADDRESS` - Default developer reward address
+- `VITE_PRIVY_APP_ID` - Privy App ID for X/Twitter login
+- `ADMIN_TOKEN` - Token for admin dashboard access

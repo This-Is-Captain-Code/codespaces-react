@@ -248,7 +248,7 @@ export const erc8004Service = {
     }
 
     const publicClient = createPublicClient({
-      chain: base,
+      chain: getChain(),
       transport: http(),
     });
 
