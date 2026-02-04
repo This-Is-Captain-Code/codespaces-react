@@ -86,7 +86,7 @@
   width: 0;
   height: 2px;
   background: linear-gradient(90deg, #ffffff, rgba(255,255,255,0.6), transparent);
-  transform: rotate(45deg);
+  transform: rotate(90deg);
   transform-origin: right center;
   border-radius: 2px;
   animation: shoot 4s ease-out infinite;
@@ -127,7 +127,7 @@
   0% {
     width: 0;
     opacity: 0;
-    transform: rotate(45deg) translate(0, 0);
+    transform: rotate(90deg) translate(0, 0);
   }
   5% {
     opacity: 1;
@@ -139,12 +139,12 @@
   50% {
     width: 100px;
     opacity: 0;
-    transform: rotate(45deg) translate(-80px, 220px);
+    transform: rotate(90deg) translate(0, 250px);
   }
   100% {
     width: 0;
     opacity: 0;
-    transform: rotate(45deg) translate(-80px, 220px);
+    transform: rotate(90deg) translate(0, 250px);
   }
 }
 
