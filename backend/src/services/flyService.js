@@ -513,17 +513,13 @@ export const flyService = {
           sandbox: {
             mode: 'off'
           }
-        },
-        list: [
-          {
-            id: 'main',
-            default: true,
-            workspace: '/home/node/.openclaw/workspace',
-            sandbox: {
-              mode: 'off'
-            }
-          }
-        ]
+        }
+      },
+      tools: {
+        agentToAgent: {
+          enabled: true,
+          allow: ['*']
+        }
       },
       skills: {
         install: {
