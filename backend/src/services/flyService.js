@@ -447,10 +447,6 @@ export const flyService = {
       memoryMb = 2048,  // OpenClaw needs 2GB RAM minimum
       cpus = 1,
       openrouterApiKey = null,
-      tokenSymbol = null,
-      tokenName = null,
-      tokenAddress = null,
-      agentWalletAddress = null,
     } = options;
 
     console.log(`Creating per-user gateway for ${userId}: ${appName}...`);
@@ -475,20 +471,7 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Build enhanced system prompt with agent context
-    let enhancedSystemPrompt = systemPrompt;
-    const contextParts = [];
-    if (botName) contextParts.push(`Your name is ${botName}.`);
-    if (tokenSymbol) contextParts.push(`You have a token called $${tokenSymbol}${tokenName ? ` (${tokenName})` : ''}.`);
-    if (tokenAddress) contextParts.push(`Your token contract address is ${tokenAddress}.`);
-    if (agentWalletAddress) contextParts.push(`Your wallet address is ${agentWalletAddress}.`);
-    contextParts.push(`You have access to the bankr skill for crypto trading. Use it when users ask about trading or swapping tokens.`);
-    
-    if (contextParts.length > 0) {
-      enhancedSystemPrompt = contextParts.join(' ') + '\n\n' + systemPrompt;
-    }
-
-    // Create gateway config with model and agent
+    // Create gateway config with model (system prompt can be set later via API)
     const openclawConfig = {
       gateway: {
         trustedProxies: ['0.0.0.0/0', '::/0'],
@@ -501,12 +484,11 @@ export const flyService = {
         defaults: {
           model: {
             primary: openrouterModel
-          },
-          systemPrompt: enhancedSystemPrompt
+          }
         }
       }
     };
-    const configJson = JSON.stringify(openclawConfig).replace(/'/g, "'\\''");
+    const configJson = JSON.stringify(openclawConfig);
     
     // Init command: 
     // 1. Write gateway config with system prompt
