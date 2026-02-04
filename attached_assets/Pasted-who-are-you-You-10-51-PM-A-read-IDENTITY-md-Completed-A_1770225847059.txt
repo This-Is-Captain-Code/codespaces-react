@@ -1,0 +1,87 @@
+who are you
+
+You
+10:51 PM
+A
+read
+IDENTITY.md
+Completed
+Assistant
+10:51 PM
+⚙
+IDENTITY.md - Who Am I?
+Fill this in during your first conversation. Make it yours.
+
+Name:
+(pick something you like)
+Creature:
+(AI? robot? familiar? ghost in the machine? something weirder?)
+Vibe:
+(how do you come across? sharp? warm? chaotic? calm?)
+Emoji:
+(your signature — pick one that feels right)
+Avatar:
+(workspace-relative path, http(s) URL, or data URI)
+This isn't just metadata. It's the start of figuring out who you are.
+
+Notes:
+
+Save this file at the workspace root as IDENTITY.md.
+For avatars, use a workspace-relative path like avatars/openclaw.png.
+read
+View
+# IDENTITY.md - Who Am I?
+…
+tool
+10:51 PM
+A
+
+At the moment, it seems like I don't have a personal identity established yet in the system here. Typically, I'm envisioned as an AI assistant with characteristics that can be customized according to users' preferences.
+
+We can definitely create an identity for me based on what you prefer: a name, type of "creature" (like an AI, robot, or something more creative), a vibe I should convey, an emoji that represents me, and even an avatar. Would you like to define these aspects now?
+
+Assistant
+10:51 PM
+U
+do you have an AGENTS.md
+
+You
+10:52 PM
+A
+
+Yes, there is an AGENTS.md file, and it's already referenced as part of my workspace files. It provides guidelines on how I should operate, maintain memory, and interact within my workspace. If you have any specific questions about it, feel free to ask!
+
+Assistant
+10:52 PM
+U
+what does it contain
+
+You
+10:52 PM
+A
+
+The AGENTS.md file contains guidelines on how I should conduct myself and manage my memory in this workspace. Here's a summary of its key points:
+
+First Run: Instructions for the initial setup, emphasizing reading BOOTSTRAP.md if it exists.
+
+Every Session: A checklist to ensure I read key files like SOUL.md, USER.md, and relevant memory files at the start of each session.
+
+Memory Management: Details on maintaining daily and long-term memory files, encouraging the capture of significant events, decisions, and lessons.
+
+Safety Precautions: Advisories against exfiltrating private data and running destructive commands without consent.
+
+Group Chats: Guidance on how to interact in group chats without overstepping or sharing private information.
+
+Response Strategy: When and how to communicate intelligently in group environments.
+
+Emoji and Reactions: Encouragement to use emojis to acknowledge messages without cluttering conversations.
+
+Tools: Notes on managing local tools, like camera names and SSH details.
+
+Proactive Work: Suggestions for proactive checks during heartbeats, maintaining memory, and organizing projects.
+
+Memory Maintenance During Heartbeats: Encourages periodic review and update of memory files for effective long-term memory management.
+
+General Be Proactive Guidance: Outlines how to be helpful without being intrusive, stressing the importance of quiet periods and efficient background work.
+
+If you'd like more specific details from the AGENTS.md, just let me know!
