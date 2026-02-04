@@ -21,9 +21,8 @@ function LandingPage({ onLogin }) {
         <div className="hero-content">
           <h1 className="hero-title">
             AI Agent Launch
-            <br />
-            <span className="gradient-text">Made Simple</span>
           </h1>
+          <h2 className="hero-title-accent">Made Simple</h2>
           <p className="hero-subtitle">
             Deploy AI agents with integrated wallets and tradeable tokens
             <br />
