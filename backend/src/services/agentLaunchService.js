@@ -224,7 +224,7 @@ export const agentLaunchService = {
       return {
         success: true,
         botId: bot.id,
-        token,
+        accessToken: token,
         agentName: bot.bot_name,
         endpoint: userGateway.endpoint,
         controlUrl: userGateway.controlUrl,

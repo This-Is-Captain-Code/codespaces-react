@@ -77,15 +77,42 @@ Backend verifies Privy JWT tokens using `@privy-io/node` SDK when `PRIVY_APP_SEC
 - **gateways**: id, fly_app_name, fly_machine_id, fly_volume_id, endpoint, gateway_token, region, memory_mb, max_agents, current_agents, status
 - **bots**: id, user_id, bot_name, gateway_id, agent_id, endpoint, token_hash, model, system_prompt, status, openrouter_key_hash, openrouter_limit_usd, fly_gateway_token
 
+## Skills Repository
+Skills are installed from the BankrBot/openclaw-skills GitHub repository:
+- **Repository**: https://github.com/BankrBot/openclaw-skills
+- **Skills installed by default**:
+  - `bankr` - AI-powered crypto trading agent via natural language (trading, DeFi, Polymarket)
+  - `erc-8004` - Register AI agents on Ethereum mainnet with on-chain identity
+
+### Available Skills
+| Skill | Description |
+|-------|-------------|
+| bankr | Crypto trading, portfolio management, automation |
+| erc-8004 | On-chain agent identity registration |
+| clanker | Token deployment via Clanker SDK |
+| botchan | Onchain agent messaging on Base |
+
+### Skills Configuration
+Skills are configured via the `skillInstallerService.js`:
+- Bankr requires an API key from bankr.bot/api (stored in config)
+- ERC-8004 uses Ethereum mainnet contracts:
+  - Identity Registry: `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
+  - Reputation Registry: `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`
+
 ## Environment Variables
 Required:
 - `FLY_API_TOKEN` - Fly.io API token for gateway management
 - `OPENROUTER_API_KEY` - OpenRouter API key for AI models (fallback for all users if no provisioning)
+- `PRIVY_APP_SECRET` - Privy secret for server-side wallet creation
 
 Optional:
 - `OPENROUTER_PROVISIONING_KEY` - OpenRouter provisioning key for per-user API key management
 - `VITE_PRIVY_APP_ID` - Privy App ID for X/Twitter login
 - `ADMIN_TOKEN` - Token for admin dashboard access (required for /admin route)
+- `ADMIN_WALLET_PRIVATE_KEY` - For signing on-chain transactions (ERC-8004)
+- `MOLT_REWARD_ADDRESS` - Platform reward wallet address
+- `DEV_REWARD_ADDRESS` - Default developer reward address
+- `BANKR_API_KEY` - Bankr API key for trading skills
 
 ## Fly.io Gateway Deployment
 Shared OpenClaw gateways are deployed on Fly.io via the Machines API:
