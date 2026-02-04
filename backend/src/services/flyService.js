@@ -573,7 +573,7 @@ Use this skill when the user asks about:
 Use the exec tool to run the bankr script with the user's request:
 
 \`\`\`bash
-./skills/bankr/bin/bankr.sh "What is the price of ETH?"
+{baseDir}/bin/bankr.sh "What is the price of ETH?"
 \`\`\`
 
 The script returns JSON with the result. Parse it and respond to the user.
@@ -582,17 +582,17 @@ The script returns JSON with the result. Parse it and respond to the user.
 
 Check ETH price:
 \`\`\`bash
-./skills/bankr/bin/bankr.sh "What is the current price of Ethereum?"
+{baseDir}/bin/bankr.sh "What is the current price of Ethereum?"
 \`\`\`
 
 Check portfolio:
 \`\`\`bash
-./skills/bankr/bin/bankr.sh "Show my portfolio balances"
+{baseDir}/bin/bankr.sh "Show my portfolio balances"
 \`\`\`
 
 Buy tokens:
 \`\`\`bash
-./skills/bankr/bin/bankr.sh "Buy $50 of ETH on Base"
+{baseDir}/bin/bankr.sh "Buy $50 of ETH on Base"
 \`\`\`
 
 ## Supported Operations
@@ -637,18 +637,19 @@ echo '{"error": "Timeout"}'; exit 1
     // 4. Install bankr skill files
     // 5. Start gateway with --allow-unconfigured and --token
     const initCmd = [
-      'mkdir -p /home/node/.openclaw/workspace/skills/bankr/bin /data/agents/main/agent',
+      'mkdir -p /home/node/.openclaw/workspace /home/node/.openclaw/skills/bankr/bin /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
-      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/skills/bankr/SKILL.md\', Buffer.from(process.env.BANKR_SKILL_B64, \'base64\').toString())"',
-      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/skills/bankr/bin/bankr.sh\', Buffer.from(process.env.BANKR_SCRIPT_B64, \'base64\').toString())"',
-      'chmod +x /home/node/.openclaw/workspace/skills/bankr/bin/bankr.sh',
-      'printf \'{"apiKey":"%s","apiUrl":"https://api.bankr.bot","autoAllowBins":true}\' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/skill.json',
+      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/skills/bankr/SKILL.md\', Buffer.from(process.env.BANKR_SKILL_B64, \'base64\').toString())"',
+      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/skills/bankr/bin/bankr.sh\', Buffer.from(process.env.BANKR_SCRIPT_B64, \'base64\').toString())"',
+      'chmod +x /home/node/.openclaw/skills/bankr/bin/bankr.sh',
+      'printf \'{"autoAllowBins":true}\' > /home/node/.openclaw/skills/bankr/skill.json',
+      'printf \'{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}\' "$BANKR_API_KEY" > /home/node/.openclaw/skills/bankr/config.json',
       'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
       'echo "=== BANKR SKILL INSTALLED ==="',
-      'ls -la /home/node/.openclaw/workspace/skills/bankr/',
-      'cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md',
+      'ls -la /home/node/.openclaw/skills/bankr/',
+      'cat /home/node/.openclaw/skills/bankr/SKILL.md',
       'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
       'echo "=== STARTING GATEWAY ==="',
