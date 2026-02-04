@@ -486,7 +486,7 @@ export const flyService = {
       enhancedSystemPrompt = contextParts.join(' ') + '\n\n' + systemPrompt;
     }
 
-    // Create gateway config with model and enhanced system prompt
+    // Create gateway config with model, skills, and enhanced system prompt
     const openclawConfig = {
       gateway: {
         bind: 'lan',
@@ -501,6 +501,22 @@ export const flyService = {
         defaults: {
           model: {
             primary: openrouterModel
+          }
+        }
+      },
+      skills: {
+        install: {
+          nodeManager: 'npm'
+        },
+        entries: {
+          bankr: {
+            enabled: true,
+            source: 'github:BankrBot/openclaw-skills/bankr',
+            env: {
+              BANKR_API_KEY: process.env.BANKR_API_KEY || '',
+              BANKR_API_URL: 'https://api.bankr.bot',
+              WALLET_ADDRESS: walletAddress || ''
+            }
           }
         }
       }
