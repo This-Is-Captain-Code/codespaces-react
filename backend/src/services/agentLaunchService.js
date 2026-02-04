@@ -7,6 +7,9 @@ import { skillInstallerService } from './skillInstallerService.js';
 import { openrouterProvisioningService } from './openrouterProvisioningService.js';
 import crypto from 'crypto';
 
+const USE_TESTNET = process.env.USE_TESTNET === 'true';
+const getNetworkMode = () => USE_TESTNET ? 'TESTNET' : 'MAINNET';
+
 const LAUNCH_STEPS = [
   'creating_openrouter_key',
   'deploying_agent',
@@ -53,6 +56,8 @@ export const agentLaunchService = {
           stepIndex: LAUNCH_STEPS.indexOf(step),
           totalSteps: LAUNCH_STEPS.length,
           status,
+          networkMode: getNetworkMode(),
+          timestamp: new Date().toISOString(),
           ...data,
         });
       }
@@ -71,7 +76,10 @@ export const agentLaunchService = {
       let userOpenRouterKey = null;
       let openrouterKeyHash = null;
 
-      sendProgress('creating_openrouter_key', 'in_progress');
+      sendProgress('creating_openrouter_key', 'in_progress', {
+        api: 'openrouter.ai',
+        limitUsd,
+      });
       if (openrouterProvisioningService.isProvisioningConfigured()) {
         const keyResult = await openrouterProvisioningService.createUserKey({
           name: `Molt-${agentName}-${userId.substring(0, 8)}`,
@@ -82,9 +90,16 @@ export const agentLaunchService = {
         openrouterKeyHash = keyResult.keyHash;
         launchState.openrouterKeyHash = openrouterKeyHash;
       }
-      sendProgress('creating_openrouter_key', 'completed');
+      sendProgress('creating_openrouter_key', 'completed', {
+        api: 'openrouter.ai',
+        keyCreated: !!userOpenRouterKey,
+        limitUsd,
+      });
 
-      sendProgress('deploying_agent', 'in_progress');
+      sendProgress('deploying_agent', 'in_progress', {
+        provider: 'fly.io',
+        region: 'iad',
+      });
       let userGateway;
       try {
         userGateway = await flyService.createUserGateway(userId, {
@@ -100,9 +115,18 @@ export const agentLaunchService = {
         }
         throw flyError;
       }
-      sendProgress('deploying_agent', 'completed', { endpoint: userGateway.endpoint });
+      sendProgress('deploying_agent', 'completed', { 
+        provider: 'fly.io',
+        appName: userGateway.appName,
+        endpoint: userGateway.endpoint,
+        region: userGateway.region || 'iad',
+        machineId: userGateway.machineId,
+      });
 
-      sendProgress('creating_wallet', 'in_progress');
+      sendProgress('creating_wallet', 'in_progress', {
+        provider: 'privy.io',
+        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+      });
       let agentWallet = null;
       if (privyWalletService.isConfigured()) {
         try {
@@ -113,10 +137,16 @@ export const agentLaunchService = {
         }
       }
       sendProgress('creating_wallet', 'completed', { 
-        walletAddress: agentWallet?.address || null 
+        provider: 'privy.io',
+        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+        walletAddress: agentWallet?.address || null,
+        walletId: agentWallet?.walletId || null,
       });
 
-      sendProgress('installing_skills', 'in_progress');
+      sendProgress('installing_skills', 'in_progress', {
+        source: 'github.com/BankrBot/openclaw-skills',
+        targetSkills: ['bankr', 'erc-8004'],
+      });
       let skillsResult = { installedSkills: [], errors: [] };
       try {
         skillsResult = await skillInstallerService.installSkills(
@@ -130,10 +160,16 @@ export const agentLaunchService = {
         console.warn('Skill installation failed:', skillError.message);
       }
       sendProgress('installing_skills', 'completed', { 
-        skills: skillsResult.installedSkills 
+        source: 'github.com/BankrBot/openclaw-skills',
+        skills: skillsResult.installedSkills,
+        errors: skillsResult.errors?.length || 0,
       });
 
-      sendProgress('registering_identity', 'in_progress');
+      sendProgress('registering_identity', 'in_progress', {
+        protocol: 'ERC-8004',
+        chain: USE_TESTNET ? 'Sepolia' : 'Ethereum Mainnet',
+        simulated: USE_TESTNET,
+      });
       let erc8004Result = { registered: false, agentId: null };
       if (erc8004Service.isConfigured()) {
         try {
@@ -150,11 +186,20 @@ export const agentLaunchService = {
         }
       }
       sendProgress('registering_identity', 'completed', { 
+        protocol: 'ERC-8004',
+        chain: USE_TESTNET ? 'Sepolia' : 'Ethereum Mainnet',
+        simulated: USE_TESTNET,
         agentId: erc8004Result.agentId,
         registered: erc8004Result.registered,
+        txHash: erc8004Result.txHash || null,
       });
 
-      sendProgress('deploying_token', 'in_progress');
+      sendProgress('deploying_token', 'in_progress', {
+        protocol: 'Clanker',
+        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+        simulated: USE_TESTNET,
+        symbol: tokenSymbol,
+      });
       let tokenResult = null;
       if (clankerService.isConfigured() && tokenSymbol) {
         try {
@@ -172,9 +217,14 @@ export const agentLaunchService = {
         }
       }
       sendProgress('deploying_token', 'completed', {
+        protocol: 'Clanker',
+        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+        simulated: USE_TESTNET,
         tokenAddress: tokenResult?.tokenAddress,
         symbol: tokenSymbol,
         tradeUrl: tokenResult?.tradeUrl,
+        basescanUrl: tokenResult?.basescanUrl,
+        txHash: tokenResult?.txHash || null,
       });
 
       sendProgress('finalizing', 'in_progress');
