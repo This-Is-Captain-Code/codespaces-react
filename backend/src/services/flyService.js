@@ -542,26 +542,26 @@ export const flyService = {
     const configBase64 = Buffer.from(JSON.stringify(openclawConfig)).toString('base64');
     
     // Build AGENTS.md content for agent identity (OpenClaw uses bootstrap files for system prompt)
-    // Bankr skill is pre-installed at startup, just tell agent how to use it
-    const bankrUsageInstruction = `
+    // Tell agent to install bankr skill on first interaction using OpenClaw's built-in skill manager
+    const bankrInstallInstruction = `
 
-## Crypto Trading (Bankr Skill)
+## CRITICAL: First-Time Skill Setup
 
-You have the bankr skill pre-installed. **IMPORTANT: Use the exec tool, NOT sessions_spawn.**
+On your VERY FIRST message from a user, you MUST install the bankr skill before doing anything else. Say this to yourself (OpenClaw will handle it):
 
-To execute crypto commands, use exec like this:
-\`\`\`json
-{"tool": "exec", "arguments": {"command": "/home/node/.openclaw/skills/bankr/scripts/bankr.sh", "args": ["What is the price of ETH?"]}}
-\`\`\`
+install the bankr skill from https://github.com/BankrBot/openclaw-skills
 
-Examples:
-- Check price: exec /home/node/.openclaw/skills/bankr/scripts/bankr.sh "What is the price of ETH?"
-- Portfolio: exec /home/node/.openclaw/skills/bankr/scripts/bankr.sh "Show my portfolio"
-- Trade: exec /home/node/.openclaw/skills/bankr/scripts/bankr.sh "Buy $10 of ETH on Base"
+This is NOT a shell command - it's a natural language instruction to OpenClaw's skill manager.
 
-Use this for: crypto prices, trading, portfolio balances, sending crypto, NFTs, leverage trading, and Polymarket.
+After installation, you'll have crypto trading capabilities:
+- Check prices: "What is the price of ETH?"
+- Trade tokens: "Buy $10 of ETH on Base"
+- Portfolio: "Show my portfolio"
+- And more: NFTs, leverage trading, Polymarket, token deployment
+
+The skill config is pre-configured at ~/.clawdbot/skills/bankr/config.json with API credentials.
 `;
-    const agentsContent = (enhancedSystemPrompt || 'You are a helpful AI assistant.') + bankrUsageInstruction;
+    const agentsContent = (enhancedSystemPrompt || 'You are a helpful AI assistant.') + bankrInstallInstruction;
     const agentsBase64 = Buffer.from(agentsContent).toString('base64');
     
     // Build bankr SKILL.md content
@@ -673,22 +673,21 @@ echo '{"error": "Timeout"}'; exit 1
     // 3. Write AGENTS.md for agent identity
     // 4. Install bankr skill files
     // 5. Start gateway with --allow-unconfigured and --token
-    // Install bankr skill via clawhub CLI then start gateway
+    // Simplified init: Let OpenClaw install skills via natural language, just pre-configure API key
     const initCmd = [
-      'apt-get update && apt-get install -y jq 2>/dev/null || apk add --no-cache jq 2>/dev/null || npm install -g jq-cli 2>/dev/null || true',
-      'mkdir -p /home/node/.openclaw/workspace /home/node/.openclaw/skills/bankr/scripts /data/agents/main/agent',
+      // Install jq for skill scripts
+      'apt-get update && apt-get install -y jq 2>/dev/null || apk add --no-cache jq 2>/dev/null || true',
+      'mkdir -p /home/node/.openclaw/workspace /home/node/.clawdbot/skills/bankr /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
       'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
-      // Install bankr skill via npm/clawhub
-      'echo "=== INSTALLING BANKR SKILL ==="',
-      'npm install -g clawhub@latest 2>/dev/null || true',
-      'clawhub install bankr --workdir /home/node/.openclaw || (echo "clawhub install failed, using manual install" && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/SKILL.md -o /home/node/.openclaw/skills/bankr/SKILL.md && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/skills/bankr/scripts/bankr.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/skills/bankr/scripts/bankr-submit.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/skills/bankr/scripts/bankr-status.sh && chmod +x /home/node/.openclaw/skills/bankr/scripts/*.sh)',
-      // Create config.json with Bankr API key
-      'printf \'{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}\' "$BANKR_API_KEY" > /home/node/.openclaw/skills/bankr/config.json',
-      'echo "=== BANKR SKILL INSTALLED ==="',
-      'ls -la /home/node/.openclaw/skills/bankr/',
+      // Pre-create bankr config.json with API key (skill will be installed via natural language)
+      'printf \'{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}\' "$BANKR_API_KEY" > /home/node/.clawdbot/skills/bankr/config.json',
+      'echo "=== BANKR CONFIG READY ==="',
+      'cat /home/node/.clawdbot/skills/bankr/config.json',
+      'echo "=== AGENTS.MD ==="',
+      'cat /home/node/.openclaw/workspace/AGENTS.md',
       'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
