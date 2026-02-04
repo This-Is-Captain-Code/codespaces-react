@@ -12,6 +12,7 @@ function LandingPage({ onLogin }) {
         <div className="shooting-star"></div>
         <div className="shooting-star"></div>
         <div className="shooting-star"></div>
+        <div className="shooting-star"></div>
       </div>
       <div className="hero-grid"></div>
       
