@@ -128,6 +128,9 @@ export const agentLaunchService = {
           systemPrompt,
           botName: agentName,
           openrouterApiKey: userOpenRouterKey,
+          tokenSymbol,
+          tokenName: tokenName || agentName,
+          agentWalletAddress: agentWallet?.address,
         });
         launchState.flyAppName = userGateway.appName;
       } catch (flyError) {

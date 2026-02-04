@@ -447,6 +447,9 @@ export const flyService = {
       memoryMb = 2048,  // OpenClaw needs 2GB RAM minimum
       cpus = 1,
       openrouterApiKey = null,
+      tokenSymbol = null,
+      tokenName = null,
+      agentWalletAddress = null,
     } = options;
 
     console.log(`Creating per-user gateway for ${userId}: ${appName}...`);
@@ -471,7 +474,19 @@ export const flyService = {
       sizeGb: 1,
     });
 
-    // Create gateway config with model (system prompt can be set later via API)
+    // Build enhanced system prompt with agent context
+    let enhancedSystemPrompt = systemPrompt;
+    const contextParts = [];
+    if (botName) contextParts.push(`Your name is ${botName}.`);
+    if (tokenSymbol) contextParts.push(`You have a token called $${tokenSymbol}${tokenName ? ` (${tokenName})` : ''}.`);
+    if (agentWalletAddress) contextParts.push(`Your wallet address is ${agentWalletAddress}.`);
+    contextParts.push(`You have access to the bankr skill for crypto trading. Use it when users ask about trading or swapping tokens.`);
+    
+    if (contextParts.length > 0) {
+      enhancedSystemPrompt = contextParts.join(' ') + '\n\n' + systemPrompt;
+    }
+
+    // Create gateway config with model and enhanced system prompt
     const openclawConfig = {
       gateway: {
         trustedProxies: ['0.0.0.0/0', '::/0'],
@@ -484,19 +499,22 @@ export const flyService = {
         defaults: {
           model: {
             primary: openrouterModel
-          }
+          },
+          systemPrompt: enhancedSystemPrompt
         }
       }
     };
-    const configJson = JSON.stringify(openclawConfig);
+    
+    // Base64 encode the config to avoid shell escaping issues
+    const configBase64 = Buffer.from(JSON.stringify(openclawConfig)).toString('base64');
     
     // Init command: 
-    // 1. Write gateway config with system prompt
+    // 1. Decode base64 config using Node.js (guaranteed available in openclaw image)
     // 2. Write auth-profiles.json with OpenRouter API key
     // 3. Start gateway with --allow-unconfigured and --token
     const initCmd = [
       'mkdir -p /home/node/.openclaw /data/agents/main/agent',
-      `echo '${configJson}' > /home/node/.openclaw/openclaw.json`,
+      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
       'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
       'echo "=== OPENCLAW CONFIG ==="',
@@ -519,6 +537,7 @@ export const flyService = {
           OPENCLAW_GATEWAY_TOKEN: gatewayToken,
           OPENROUTER_API_KEY: effectiveApiKey,
           BANKR_API_KEY: process.env.BANKR_API_KEY || '',
+          OPENCLAW_CONFIG_B64: configBase64,
         },
         guest: {
           cpu_kind: 'shared',
