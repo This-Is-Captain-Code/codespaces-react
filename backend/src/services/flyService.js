@@ -499,8 +499,7 @@ export const flyService = {
         defaults: {
           model: {
             primary: openrouterModel
-          },
-          systemPrompt: enhancedSystemPrompt
+          }
         }
       }
     };

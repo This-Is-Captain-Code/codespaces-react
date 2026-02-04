@@ -1,0 +1,94 @@
+16:27:42
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AUTH PROFILES ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind 0.0.0.0 --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+16:27:42
+ INFO [fly api proxy] listening at /.fly/api
+16:27:42
+Machine started in 1.319s
+16:27:42
+machine started in 1.412018945s
+16:27:42
+2026/02/04 16:27:42 INFO SSH listening listen_address=[fdaa:44:9071:a7b:434:4186:793b:2]:22
+16:27:42
+=== OPENCLAW CONFIG ===
+16:27:42
+{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/openai/gpt-4o"},"systemPrompt":"Your name is Alfred. You have a token called $FRED (Alfred). Your wallet address is 0x7eC56dB579c047775687131fFE5Ec0CCfcA0f921. You have access to the bankr skill for crypto trading. Use it when users ask about trading or swapping tokens.\n\nYou are a helpful AI assistant."}}}=== AUTH PROFILES ===
+16:27:42
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"..."}},"lastGood":{"openrouter":"openrouter:default"}}
+16:27:42
+=== STARTING GATEWAY ===
+16:27:47
+waiting for machine to be reachable on 0.0.0.0:18789 (waited 5.593672299s so far)
+16:27:50
+[PM05] failed to connect to machine: gave up after 15 attempts (in 8.76799609s)
+16:27:52
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:27:59
+[PR04] could not find a good candidate within 40 attempts at load balancing
+16:28:03
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:28:15
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:28:29
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:28:39
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:28:45
+[PR04] could not find a good candidate within 40 attempts at load balancing
+16:29:05
+Invalid config at /home/node/.openclaw/openclaw.json:\n- agents.defaults: Unrecognized key: "systemPrompt"
+16:29:05
+|
+16:29:05
+o  Config ---------------------------------------------------+
+16:29:05
+|                                                            |
+16:29:05
+|  Config invalid; doctor will run with best-effort config.  |
+16:29:05
+|                                                            |
+16:29:05
++------------------------------------------------------------+
+16:29:05
+|
+16:29:05
+o  Unknown config keys ------------+
+16:29:05
+|                                  |
+16:29:05
+|  - agents.defaults.systemPrompt  |
+16:29:05
+|                                  |
+16:29:05
++----------------------------------+
+16:29:05
+|
+16:29:05
+o  Doctor --------------------------------------------+
+16:29:05
+|                                                     |
+16:29:05
+|  Run "openclaw doctor --fix" to remove these keys.  |
+16:29:05
+|                                                     |
+16:29:05
++-----------------------------------------------------+
+16:29:05
+Config invalid
+16:29:05
+File: ~/.openclaw/openclaw.json
+16:29:05
+Problem:
+16:29:05
+  - agents.defaults: Unrecognized key: "systemPrompt"
+16:29:05
+Run: openclaw doctor --fix
+16:29:06
+ INFO Main child exited normally with code: 1
+16:29:06
+ INFO Starting clean up.
+16:29:06
+ INFO Umounting /dev/vdc from /data
+16:29:06
+[   85.420309] reboot: Restarting system
+16:29:06
+machine has reached its max restart count of 5
