@@ -14,6 +14,7 @@ router.get('/integrations', async (req, res) => {
     { name: 'flyio', test: testFlyio },
     { name: 'privy', test: testPrivy },
     { name: 'openrouter', test: testOpenRouter },
+    { name: 'clanker', test: testClanker },
     { name: 'erc8004_contracts', test: testERC8004Contracts },
   ];
 
@@ -144,6 +145,41 @@ async function testOpenRouter() {
   };
 }
 
+async function testClanker() {
+  const adminKey = process.env.ADMIN_WALLET_PRIVATE_KEY;
+  if (!adminKey) {
+    throw new Error('ADMIN_WALLET_PRIVATE_KEY not set');
+  }
+
+  const moltRewardAddress = process.env.MOLT_REWARD_ADDRESS;
+  if (!moltRewardAddress) {
+    throw new Error('MOLT_REWARD_ADDRESS not set');
+  }
+
+  try {
+    const { Clanker } = await import('clanker-sdk/v4');
+    
+    const { createPublicClient, http } = await import('viem');
+    const { base } = await import('viem/chains');
+    
+    const publicClient = createPublicClient({
+      chain: base,
+      transport: http(),
+    });
+
+    const blockNumber = await publicClient.getBlockNumber();
+
+    return { 
+      message: 'Clanker SDK ready',
+      network: 'Base',
+      latestBlock: Number(blockNumber),
+      rewardAddress: moltRewardAddress.substring(0, 10) + '...'
+    };
+  } catch (error) {
+    throw new Error(`Clanker SDK error: ${error.message}`);
+  }
+}
+
 async function testERC8004Contracts() {
   const identityRegistry = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
   const reputationRegistry = '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
@@ -177,6 +213,7 @@ function getHint(name) {
     flyio: 'Get token from fly.io dashboard and add as FLY_API_TOKEN secret',
     privy: 'Set VITE_PRIVY_APP_ID and PRIVY_APP_SECRET from privy.io dashboard',
     openrouter: 'Get API key from openrouter.ai and add as OPENROUTER_API_KEY secret',
+    clanker: 'Set ADMIN_WALLET_PRIVATE_KEY (for signing) and MOLT_REWARD_ADDRESS (platform rewards)',
     erc8004_contracts: 'Contracts should be deployed on Ethereum mainnet'
   };
   return hints[name] || 'Check configuration';
