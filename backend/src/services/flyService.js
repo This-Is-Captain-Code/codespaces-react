@@ -509,22 +509,30 @@ export const flyService = {
     // Base64 encode the config to avoid shell escaping issues
     const configBase64 = Buffer.from(JSON.stringify(openclawConfig)).toString('base64');
     
+    // Build AGENTS.md content for agent identity (OpenClaw uses bootstrap files for system prompt)
+    const agentsContent = enhancedSystemPrompt || 'You are a helpful AI assistant.';
+    const agentsBase64 = Buffer.from(agentsContent).toString('base64');
+    
     // Init command: 
     // 1. Decode base64 config using Node.js (guaranteed available in openclaw image)
     // 2. Write auth-profiles.json with OpenRouter API key
-    // 3. Start gateway with --allow-unconfigured and --token
+    // 3. Write AGENTS.md for agent identity
+    // 4. Start gateway with --allow-unconfigured and --token
     const initCmd = [
       'mkdir -p /home/node/.openclaw /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
+      'node -e "require(\'fs\').writeFileSync(\'/data/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
       'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
       'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
+      'echo "=== AGENTS.MD ==="',
+      'cat /data/AGENTS.md',
       'echo "=== AUTH PROFILES ==="',
       'cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\\"]*/.../g"',
       'echo ""',
       'echo "=== STARTING GATEWAY ==="',
-      'node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN" 2>&1 || echo "Gateway exited with code $?"'
+      'exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
 
     const machineConfig = {
@@ -539,6 +547,7 @@ export const flyService = {
           OPENROUTER_API_KEY: effectiveApiKey,
           BANKR_API_KEY: process.env.BANKR_API_KEY || '',
           OPENCLAW_CONFIG_B64: configBase64,
+          AGENTS_MD_B64: agentsBase64,
         },
         guest: {
           cpu_kind: 'shared',
