@@ -675,8 +675,9 @@ echo '{"error": "Timeout"}'; exit 1
     // 5. Start gateway with --allow-unconfigured and --token
     // Install bankr skill in workspace/skills directory (correct OpenClaw path)
     const initCmd = [
-      // Install jq for skill scripts
-      'apt-get update && apt-get install -y jq 2>/dev/null || apk add --no-cache jq 2>/dev/null || true',
+      // Install jq for skill scripts - try apk (Alpine), apt (Debian), or download binary
+      '(which jq || apk add --no-cache jq 2>/dev/null || apt-get update && apt-get install -y jq 2>/dev/null || (curl -sL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /tmp/jq && chmod +x /tmp/jq && mv /tmp/jq /usr/bin/jq))',
+      'jq --version',
       'mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
