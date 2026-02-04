@@ -67,8 +67,16 @@ export const flyService = {
   },
 
   listMachines: async (appName) => {
-    const result = await flyRequest('GET', `/v1/apps/${appName}/machines`);
-    return result || [];
+    try {
+      const result = await flyRequest('GET', `/v1/apps/${appName}/machines`);
+      return result || [];
+    } catch (error) {
+      if (error.message.includes('no rows in result set') || error.message.includes('not found')) {
+        console.log(`App ${appName} not found, returning empty machines list`);
+        return [];
+      }
+      throw error;
+    }
   },
 
   startMachine: async (appName, machineId) => {
