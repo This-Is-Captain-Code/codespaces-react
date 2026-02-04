@@ -89,6 +89,7 @@
   border-radius: 2px;
   animation: shoot 3.5s ease-out infinite;
   filter: drop-shadow(0 0 4px rgba(255,255,255,0.6));
+  transform: rotate(-20deg);
 }
 
 .shooting-star::after {
@@ -125,7 +126,7 @@
   0% {
     height: 0;
     opacity: 0;
-    transform: translateY(0);
+    transform: rotate(-20deg) translate(0, 0);
   }
   8% {
     opacity: 1;
@@ -137,12 +138,12 @@
   60% {
     height: 120px;
     opacity: 0;
-    transform: translateY(400px);
+    transform: rotate(-20deg) translate(-100px, 400px);
   }
   100% {
     height: 0;
     opacity: 0;
-    transform: translateY(400px);
+    transform: rotate(-20deg) translate(-100px, 400px);
   }
 }
 
