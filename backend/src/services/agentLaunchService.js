@@ -291,7 +291,7 @@ export const agentLaunchService = {
         b.agent_wallet_address, b.agent_wallet_id,
         b.token_address, b.token_symbol, b.token_name,
         b.erc8004_id, b.user_wallet_address,
-        b.gateway_id, b.created_at
+        b.gateway_id, b.fly_gateway_token, b.created_at
       FROM bots b
       WHERE b.user_id = $1`,
       [userId]
@@ -302,11 +302,15 @@ export const agentLaunchService = {
     }
 
     const bot = result.rows[0];
+    const controlUrl = bot.endpoint && bot.fly_gateway_token
+      ? `${bot.endpoint}/?token=${bot.fly_gateway_token}`
+      : bot.endpoint;
 
     return {
       botId: bot.id,
       agentName: bot.bot_name,
       endpoint: bot.endpoint,
+      controlUrl: controlUrl,
       status: bot.status,
       model: bot.model,
       agentWallet: bot.agent_wallet_address ? {

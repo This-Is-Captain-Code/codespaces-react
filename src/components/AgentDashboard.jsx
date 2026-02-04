@@ -103,7 +103,7 @@ export function AgentDashboard({ userWalletAddress, onLogout }) {
           <div className="info-grid">
             <div className="info-item">
               <span className="label">Endpoint</span>
-              <a href={agent.endpoint} target="_blank" rel="noopener noreferrer" className="value link">
+              <a href={agent.controlUrl || agent.endpoint} target="_blank" rel="noopener noreferrer" className="value link">
                 {agent.endpoint}
               </a>
             </div>
