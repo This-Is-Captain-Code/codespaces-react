@@ -675,6 +675,7 @@ echo '{"error": "Timeout"}'; exit 1
     // 5. Start gateway with --allow-unconfigured and --token
     // Install bankr skill via clawhub CLI then start gateway
     const initCmd = [
+      'apt-get update && apt-get install -y jq 2>/dev/null || apk add --no-cache jq 2>/dev/null || npm install -g jq-cli 2>/dev/null || true',
       'mkdir -p /home/node/.openclaw/workspace /home/node/.openclaw/skills/bankr/scripts /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
