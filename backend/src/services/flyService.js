@@ -519,15 +519,15 @@ export const flyService = {
     // 3. Write AGENTS.md for agent identity
     // 4. Start gateway with --allow-unconfigured and --token
     const initCmd = [
-      'mkdir -p /home/node/.openclaw /data/agents/main/agent',
+      'mkdir -p /home/node/.openclaw/workspace /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
-      'node -e "require(\'fs\').writeFileSync(\'/home/node/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
+      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
       'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
       'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
       'echo "=== AGENTS.MD ==="',
-      'cat /home/node/AGENTS.md',
+      'cat /home/node/.openclaw/workspace/AGENTS.md',
       'echo "=== AUTH PROFILES ==="',
       'cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\\"]*/.../g"',
       'echo ""',
