@@ -541,7 +541,7 @@ export const flyService = {
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
       'echo "=== INSTALLING BANKR SKILL ==="',
       'npm i -g clawdhub 2>/dev/null || true',
-      'cd /home/node/.openclaw && clawdhub install bankr --no-input 2>/dev/null || echo "Skill install skipped"',
+      '(cd /home/node/.openclaw && clawdhub install bankr --no-input 2>/dev/null) || echo "Skill install skipped"',
       'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
       'echo "=== AGENTS.MD ==="',
