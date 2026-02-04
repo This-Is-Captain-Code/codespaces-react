@@ -489,6 +489,8 @@ export const flyService = {
     // Create gateway config with model and enhanced system prompt
     const openclawConfig = {
       gateway: {
+        bind: 'lan',
+        port: 18789,
         trustedProxies: ['0.0.0.0/0', '::/0'],
         controlUi: {
           enabled: true,
@@ -522,7 +524,7 @@ export const flyService = {
       'cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\\"]*/.../g"',
       'echo ""',
       'echo "=== STARTING GATEWAY ==="',
-      'exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
+      'node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN" 2>&1 || echo "Gateway exited with code $?"'
     ].join(' && ');
 
     const machineConfig = {

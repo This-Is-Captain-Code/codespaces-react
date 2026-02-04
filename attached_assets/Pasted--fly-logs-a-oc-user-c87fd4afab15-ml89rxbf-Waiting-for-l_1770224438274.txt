@@ -1,0 +1,74 @@
+$ fly logs -a oc-user-c87fd4afab15-ml89rxbf 
+Waiting for logs...
+16:56:30
+Pulling container image ghcr.io/openclaw/openclaw@sha256:8909f47c0360633b1e74976015a74b15902ff02ec0b026b9a71cd951f7b4ee5f
+16:58:29
+Successfully prepared image ghcr.io/openclaw/openclaw@sha256:8909f47c0360633b1e74976015a74b15902ff02ec0b026b9a71cd951f7b4ee5f (1m58.75887694s)
+16:58:29
+Setting up volume 'user_data'
+16:58:29
+Uninitialized volume 'user_data', initializing...
+16:58:29
+Encrypting volume
+16:58:30
+Opening encrypted volume
+16:58:31
+Formatting volume
+16:58:32
+Configuring firecracker
+16:58:32
+2026-02-04T16:58:32.762529814 [01KGMSB0Z1YMBT04M9J051JCQ8:main] Running Firecracker v1.12.1
+16:58:32
+2026-02-04T16:58:32.762708047 [01KGMSB0Z1YMBT04M9J051JCQ8:main] Listening on API socket ("/fc.sock").
+16:58:34
+ INFO Starting init (commit: 350f2667)...
+16:58:34
+ INFO Checking filesystem on /data
+16:58:34
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+16:58:34
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+16:58:34
+ INFO Resized /data to 1056964608 bytes
+16:58:34
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AUTH PROFILES ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+16:58:34
+ INFO [fly api proxy] listening at /.fly/api
+16:58:34
+Machine created and started in 2m3.733s
+16:58:34
+2026/02/04 16:58:34 INFO SSH listening listen_address=[fdaa:44:9071:a7b:1d8:9acf:adce:2]:22
+16:58:34
+=== OPENCLAW CONFIG ===
+16:58:34
+{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/openai/gpt-4o"}}}}=== AUTH PROFILES ===
+16:58:34
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:58:34
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"..."}},"lastGood":{"openrouter":"openrouter:default"}}
+16:58:34
+=== STARTING GATEWAY ===
+16:58:46
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:58:56
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:59:06
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:59:10
+[PR04] could not find a good candidate within 40 attempts at load balancing
+16:59:18
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:59:30
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:59:40
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:59:46
+[PR04] could not find a good candidate within 40 attempts at load balancing
+16:59:50
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+17:00:02
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+17:00:14
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+17:00:25
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
