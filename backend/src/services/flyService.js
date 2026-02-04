@@ -560,6 +560,34 @@ metadata:
 
 Execute crypto trading and DeFi operations using natural language through the Bankr API.
 
+## IMPORTANT: How to Execute
+
+**ALWAYS use the \`exec\` tool to run shell commands. NEVER use sessions_spawn.**
+
+To use this skill, call exec with the bankr script:
+
+\`\`\`json
+{
+  "tool": "exec",
+  "arguments": {
+    "command": "{baseDir}/bin/bankr.sh",
+    "args": ["What is the price of ETH?"]
+  }
+}
+\`\`\`
+
+Or in a single command string:
+\`\`\`json
+{
+  "tool": "exec", 
+  "arguments": {
+    "command": "{baseDir}/bin/bankr.sh \\"What is the price of ETH?\\""
+  }
+}
+\`\`\`
+
+The script returns JSON. Parse it and respond to the user naturally.
+
 ## When to Use
 
 Use this skill when the user asks about:
@@ -568,31 +596,21 @@ Use this skill when the user asks about:
 - Portfolio balances (e.g., "Show my portfolio", "What's my balance?")
 - Sending crypto (e.g., "Send 0.1 ETH to vitalik.eth")
 
-## How to Use
-
-Use the exec tool to run the bankr script with the user's request:
-
-\`\`\`bash
-{baseDir}/bin/bankr.sh "What is the price of ETH?"
-\`\`\`
-
-The script returns JSON with the result. Parse it and respond to the user.
-
-## Examples
+## Example Commands
 
 Check ETH price:
-\`\`\`bash
-{baseDir}/bin/bankr.sh "What is the current price of Ethereum?"
+\`\`\`
+exec: {baseDir}/bin/bankr.sh "What is the current price of Ethereum?"
 \`\`\`
 
 Check portfolio:
-\`\`\`bash
-{baseDir}/bin/bankr.sh "Show my portfolio balances"
+\`\`\`
+exec: {baseDir}/bin/bankr.sh "Show my portfolio balances"
 \`\`\`
 
 Buy tokens:
-\`\`\`bash
-{baseDir}/bin/bankr.sh "Buy $50 of ETH on Base"
+\`\`\`
+exec: {baseDir}/bin/bankr.sh "Buy $50 of ETH on Base"
 \`\`\`
 
 ## Supported Operations
