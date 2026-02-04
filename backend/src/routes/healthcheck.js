@@ -1,10 +1,32 @@
 import express from 'express';
+import { clankerService } from '../services/clankerService.js';
 
 const router = express.Router();
+
+const USE_TESTNET = process.env.USE_TESTNET === 'true';
+
+router.get('/generate-wallet', async (req, res) => {
+  try {
+    const wallet = clankerService.generateWallet();
+    res.json({
+      success: true,
+      wallet: {
+        address: wallet.address,
+        privateKey: wallet.privateKey,
+      },
+      network: USE_TESTNET ? 'Base Sepolia (testnet)' : 'Base (mainnet)',
+      faucet: USE_TESTNET ? 'https://www.alchemy.com/faucets/base-sepolia' : null,
+      note: 'Save the private key securely! Add as ADMIN_WALLET_PRIVATE_KEY secret.',
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 router.get('/integrations', async (req, res) => {
   const results = {
     timestamp: new Date().toISOString(),
+    networkMode: USE_TESTNET ? 'TESTNET' : 'MAINNET',
     integrations: {},
     summary: { total: 0, passed: 0, failed: 0 }
   };
@@ -152,28 +174,38 @@ async function testClanker() {
   }
 
   const moltRewardAddress = process.env.MOLT_REWARD_ADDRESS;
-  if (!moltRewardAddress) {
+  if (!moltRewardAddress && !USE_TESTNET) {
     throw new Error('MOLT_REWARD_ADDRESS not set');
   }
 
   try {
-    const { Clanker } = await import('clanker-sdk/v4');
-    
     const { createPublicClient, http } = await import('viem');
-    const { base } = await import('viem/chains');
+    const { base, baseSepolia } = await import('viem/chains');
+    const { privateKeyToAccount } = await import('viem/accounts');
+    
+    const chain = USE_TESTNET ? baseSepolia : base;
+    const account = privateKeyToAccount(adminKey);
     
     const publicClient = createPublicClient({
-      chain: base,
+      chain,
       transport: http(),
     });
 
-    const blockNumber = await publicClient.getBlockNumber();
+    const [blockNumber, balance] = await Promise.all([
+      publicClient.getBlockNumber(),
+      publicClient.getBalance({ address: account.address }),
+    ]);
+
+    const { formatEther } = await import('viem');
+    const ethBalance = formatEther(balance);
 
     return { 
-      message: 'Clanker SDK ready',
-      network: 'Base',
+      message: USE_TESTNET ? 'Clanker ready (TESTNET mode)' : 'Clanker SDK ready',
+      network: chain.name,
+      walletAddress: account.address,
+      balance: `${ethBalance} ETH`,
       latestBlock: Number(blockNumber),
-      rewardAddress: moltRewardAddress.substring(0, 10) + '...'
+      rewardAddress: moltRewardAddress ? moltRewardAddress.substring(0, 10) + '...' : 'N/A (testnet)',
     };
   } catch (error) {
     throw new Error(`Clanker SDK error: ${error.message}`);
@@ -183,6 +215,14 @@ async function testClanker() {
 async function testERC8004Contracts() {
   const identityRegistry = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
   const reputationRegistry = '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
+
+  if (USE_TESTNET) {
+    return { 
+      message: 'ERC-8004 ready (TESTNET mode - registration will be simulated)',
+      network: 'Sepolia',
+      note: 'No real on-chain registration in testnet mode',
+    };
+  }
 
   const response = await fetch(`https://eth.llamarpc.com`, {
     method: 'POST',

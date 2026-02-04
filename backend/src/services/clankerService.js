@@ -1,14 +1,48 @@
-import { createPublicClient, createWalletClient, http } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { base } from 'viem/chains';
+import { createPublicClient, createWalletClient, http, formatEther } from 'viem';
+import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts';
+import { base, baseSepolia } from 'viem/chains';
 
+const USE_TESTNET = process.env.USE_TESTNET === 'true';
 const ADMIN_WALLET_PRIVATE_KEY = process.env.ADMIN_WALLET_PRIVATE_KEY;
 const MOLT_REWARD_ADDRESS = process.env.MOLT_REWARD_ADDRESS || '0x0000000000000000000000000000000000000000';
 const DEV_REWARD_ADDRESS = process.env.DEV_REWARD_ADDRESS;
 
+const getChain = () => USE_TESTNET ? baseSepolia : base;
+const getExplorerUrl = () => USE_TESTNET ? 'https://sepolia.basescan.org' : 'https://basescan.org';
+
 export const clankerService = {
   isConfigured: () => {
     return !!ADMIN_WALLET_PRIVATE_KEY;
+  },
+
+  isTestnet: () => USE_TESTNET,
+  
+  getNetworkInfo: () => ({
+    isTestnet: USE_TESTNET,
+    chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+    chainId: USE_TESTNET ? baseSepolia.id : base.id,
+    explorerUrl: getExplorerUrl(),
+  }),
+
+  generateWallet: () => {
+    const privateKey = generatePrivateKey();
+    const account = privateKeyToAccount(privateKey);
+    return {
+      privateKey,
+      address: account.address,
+    };
+  },
+
+  getWalletBalance: async (address) => {
+    const publicClient = createPublicClient({
+      chain: getChain(),
+      transport: http(),
+    });
+    const balance = await publicClient.getBalance({ address });
+    return {
+      wei: balance.toString(),
+      eth: formatEther(balance),
+    };
   },
 
   deployToken: async (options) => {
@@ -26,7 +60,23 @@ export const clankerService = {
       throw new Error('ADMIN_WALLET_PRIVATE_KEY not configured');
     }
 
-    console.log(`Deploying Clanker token: ${name} (${symbol})...`);
+    const chain = getChain();
+    console.log(`Deploying Clanker token: ${name} (${symbol}) on ${chain.name}...`);
+
+    if (USE_TESTNET) {
+      console.log('TESTNET MODE: Simulating token deployment...');
+      const mockAddress = `0x${Date.now().toString(16).padStart(40, '0')}`;
+      return {
+        tokenAddress: mockAddress,
+        txHash: `0x${'test'.repeat(16)}`,
+        name,
+        symbol,
+        tradeUrl: `https://clanker.world/clanker/${mockAddress}`,
+        basescanUrl: `${getExplorerUrl()}/token/${mockAddress}`,
+        isTestnet: true,
+        note: 'Testnet mock - Clanker SDK only works on mainnet',
+      };
+    }
 
     try {
       const { Clanker, POOL_POSITIONS, FEE_CONFIGS } = await import('clanker-sdk/v4');
@@ -34,13 +84,13 @@ export const clankerService = {
       const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
       
       const publicClient = createPublicClient({
-        chain: base,
+        chain,
         transport: http(),
       });
       
       const walletClient = createWalletClient({
         account,
-        chain: base,
+        chain,
         transport: http(),
       });
 
@@ -115,7 +165,8 @@ export const clankerService = {
         name,
         symbol,
         tradeUrl: `https://clanker.world/clanker/${address}`,
-        basescanUrl: `https://basescan.org/token/${address}`,
+        basescanUrl: `${getExplorerUrl()}/token/${address}`,
+        isTestnet: USE_TESTNET,
       };
     } catch (error) {
       console.error('Clanker deployment failed:', error);
@@ -126,7 +177,7 @@ export const clankerService = {
   getTokenInfo: async (tokenAddress) => {
     try {
       const publicClient = createPublicClient({
-        chain: base,
+        chain: getChain(),
         transport: http(),
       });
 

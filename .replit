@@ -67,3 +67,4 @@ build = ["npm", "run", "build"]
 
 [userenv.shared]
 ADMIN_TOKEN = "moltrock-admin-2026"
+USE_TESTNET = "true"

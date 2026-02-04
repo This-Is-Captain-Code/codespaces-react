@@ -1,9 +1,16 @@
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { base } from 'viem/chains';
+import { mainnet, sepolia } from 'viem/chains';
 
+const USE_TESTNET = process.env.USE_TESTNET === 'true';
 const ADMIN_WALLET_PRIVATE_KEY = process.env.ADMIN_WALLET_PRIVATE_KEY;
-const ERC8004_REGISTRY_ADDRESS = process.env.ERC8004_REGISTRY_ADDRESS;
+
+const MAINNET_REGISTRY = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
+const TESTNET_REGISTRY = process.env.ERC8004_TESTNET_REGISTRY || null;
+
+const getChain = () => USE_TESTNET ? sepolia : mainnet;
+const getRegistryAddress = () => USE_TESTNET ? TESTNET_REGISTRY : MAINNET_REGISTRY;
+const ERC8004_REGISTRY_ADDRESS = getRegistryAddress();
 
 const IDENTITY_REGISTRY_ABI = [
   {
@@ -109,8 +116,17 @@ function encodeRegistrationAsDataUri(registrationFile) {
 
 export const erc8004Service = {
   isConfigured: () => {
-    return !!(ADMIN_WALLET_PRIVATE_KEY && ERC8004_REGISTRY_ADDRESS);
+    return !!(ADMIN_WALLET_PRIVATE_KEY && (ERC8004_REGISTRY_ADDRESS || USE_TESTNET));
   },
+
+  isTestnet: () => USE_TESTNET,
+
+  getNetworkInfo: () => ({
+    isTestnet: USE_TESTNET,
+    chain: USE_TESTNET ? 'Sepolia' : 'Ethereum Mainnet',
+    chainId: USE_TESTNET ? sepolia.id : mainnet.id,
+    registryAddress: ERC8004_REGISTRY_ADDRESS,
+  }),
 
   registerAgent: async (options) => {
     const {
@@ -135,19 +151,36 @@ export const erc8004Service = {
       };
     }
 
-    console.log(`Registering agent "${name}" on ERC-8004 registry...`);
+    const chain = getChain();
+    console.log(`Registering agent "${name}" on ERC-8004 registry (${chain.name})...`);
+
+    if (USE_TESTNET && !TESTNET_REGISTRY) {
+      console.log('TESTNET MODE: Simulating ERC-8004 registration...');
+      const mockAgentId = Math.floor(Math.random() * 1000000);
+      const registrationFile = createAgentRegistrationFile({
+        name, description, image, agentEndpoint, tokenAddress, agentWalletAddress, agentId: mockAgentId,
+      });
+      return {
+        agentId: mockAgentId,
+        registered: true,
+        txHash: `0x${'test'.repeat(16)}`,
+        registrationFile,
+        isTestnet: true,
+        note: 'Testnet mock - no on-chain transaction',
+      };
+    }
 
     try {
       const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
       
       const publicClient = createPublicClient({
-        chain: base,
+        chain,
         transport: http(),
       });
       
       const walletClient = createWalletClient({
         account,
-        chain: base,
+        chain,
         transport: http(),
       });
 
