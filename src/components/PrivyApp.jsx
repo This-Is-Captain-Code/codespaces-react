@@ -8,7 +8,7 @@ import { setAuthToken } from '../api/client';
 function LandingPage({ onLogin }) {
   return (
     <div className="landing-page">
-      <div className="landing-glow"></div>
+      <div className="space-background"></div>
       
       <nav className="landing-nav">
         <div className="nav-logo">Molt.town</div>

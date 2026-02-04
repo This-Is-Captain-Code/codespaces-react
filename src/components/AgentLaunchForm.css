@@ -11,11 +11,9 @@
 .agent-launch-form h2 {
   margin: 0 0 8px 0;
   font-size: 1.75rem;
-  background: var(--gradient-accent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .agent-launch-form .subtitle {
@@ -53,8 +51,8 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--gradient-start);
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .form-group .hint {
@@ -97,20 +95,22 @@
 .launch-button {
   width: 100%;
   padding: 16px;
-  background: var(--gradient-accent);
+  background: var(--accent-primary);
   color: #fff;
   border: none;
   border-radius: var(--radius-md);
   font-size: 1.1rem;
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   margin-top: 24px;
+  box-shadow: 0 0 30px var(--accent-glow);
 }
 
 .launch-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 10px 50px var(--accent-glow);
 }
 
 .launch-button:disabled {
@@ -198,10 +198,10 @@
 }
 
 .step-item.current .step-indicator {
-  background: var(--gradient-accent);
+  background: var(--accent-primary);
   color: #fff;
   animation: pulse 1.5s infinite;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 20px var(--accent-glow);
 }
 
 .step-item.completed .step-indicator {
@@ -287,7 +287,7 @@
 }
 
 .detail-item .value.link {
-  color: var(--gradient-start);
+  color: var(--accent-primary);
   text-decoration: none;
   transition: opacity 0.2s;
 }
@@ -301,18 +301,19 @@
   width: 100%;
   padding: 16px;
   margin-top: 20px;
-  background: var(--gradient-accent);
+  background: var(--accent-primary);
   color: #fff;
   text-decoration: none;
   border-radius: var(--radius-md);
   font-weight: 600;
   text-align: center;
   transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 30px var(--accent-glow);
 }
 
 .trade-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 10px 50px var(--accent-glow);
 }
 
 .chat-button {
@@ -332,5 +333,5 @@
 
 .chat-button:hover {
   background: var(--bg-card);
-  border-color: var(--gradient-start);
+  border-color: var(--accent-primary);
 }

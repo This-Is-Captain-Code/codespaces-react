@@ -5,16 +5,54 @@
   overflow-x: hidden;
 }
 
-.landing-glow {
+.space-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
+  background: 
+    radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 40px 70px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 50px 160px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 160px 120px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 200px 50px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 250px 180px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 280px 90px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 320px 140px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 350px 30px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 400px 200px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 450px 70px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 500px 160px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 550px 100px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 600px 40px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 650px 180px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 700px 120px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 750px 60px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 800px 150px, rgba(255, 255, 255, 0.6), transparent);
+  background-size: 850px 220px;
+  animation: twinkle 8s ease-in-out infinite;
+}
+
+.space-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse 800px 600px at 15% 25%, rgba(124, 58, 237, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 400px at 85% 75%, rgba(6, 182, 212, 0.06) 0%, transparent 70%);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .landing-nav {
@@ -29,30 +67,35 @@
 .nav-logo {
   font-size: 1.5rem;
   font-weight: 700;
-  background: var(--gradient-accent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.nav-logo::before {
+  content: '◆ ';
+  color: var(--accent-primary);
 }
 
 .nav-login-btn {
   padding: 10px 24px;
-  background: var(--bg-elevated);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
   color: var(--text-primary);
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  backdrop-filter: blur(10px);
 }
 
 .nav-login-btn:hover {
-  background: var(--bg-card);
-  border-color: var(--gradient-start);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-primary);
 }
 
 .hero {
-  padding: 80px 40px 120px;
+  padding: 100px 40px 140px;
   text-align: center;
   position: relative;
   z-index: 1;
@@ -69,13 +112,11 @@
   line-height: 1.1;
   margin: 0 0 24px 0;
   color: var(--text-primary);
+  letter-spacing: -0.03em;
 }
 
 .hero-title .gradient-text {
-  background: var(--gradient-accent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--accent-primary);
 }
 
 .hero-subtitle {
@@ -83,27 +124,30 @@
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0 0 40px 0;
+  font-weight: 400;
 }
 
 .hero-cta {
   padding: 18px 48px;
-  background: var(--gradient-accent);
+  background: var(--accent-primary);
   border: none;
   border-radius: var(--radius-full);
   color: white;
   font-size: 1.1rem;
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s;
+  box-shadow: 0 0 30px var(--accent-glow);
 }
 
 .hero-cta:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 40px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 10px 50px var(--accent-glow);
 }
 
 .how-it-works {
-  padding: 80px 40px;
+  padding: 100px 40px;
   text-align: center;
   position: relative;
   z-index: 1;
@@ -114,12 +158,14 @@
   font-weight: 700;
   margin: 0 0 16px 0;
   color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .section-subtitle {
   font-size: 1.1rem;
   color: var(--text-secondary);
   margin: 0 0 60px 0;
+  font-weight: 400;
 }
 
 .steps-grid {
@@ -139,19 +185,20 @@
   padding: 32px;
   width: 240px;
   text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s;
+  backdrop-filter: blur(20px);
 }
 
 .step-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  border-color: var(--gradient-start);
+  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
 .step-number {
   width: 56px;
   height: 56px;
-  background: var(--gradient-accent);
+  background: var(--accent-primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -160,13 +207,14 @@
   font-weight: 700;
   color: white;
   margin: 0 auto 20px;
-  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 30px var(--accent-glow);
 }
 
 .step-card h3 {
   margin: 0 0 12px 0;
   color: var(--text-primary);
   font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .step-card p {
@@ -179,14 +227,24 @@
 .step-connector {
   width: 40px;
   height: 2px;
-  background: var(--border-color);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .features {
-  padding: 80px 40px;
+  padding: 100px 40px;
   background: var(--bg-secondary);
   position: relative;
   z-index: 1;
+}
+
+.features::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
 .features .section-title {
@@ -207,12 +265,13 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 28px;
-  transition: transform 0.2s, border-color 0.2s;
+  transition: all 0.3s;
+  backdrop-filter: blur(20px);
 }
 
 .feature-card:hover {
   transform: translateY(-3px);
-  border-color: var(--gradient-start);
+  border-color: rgba(124, 58, 237, 0.3);
 }
 
 .feature-icon {
@@ -224,6 +283,7 @@
   margin: 0 0 10px 0;
   color: var(--text-primary);
   font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .feature-card p {
@@ -234,7 +294,7 @@
 }
 
 .cta-section {
-  padding: 100px 40px;
+  padding: 120px 40px;
   text-align: center;
   position: relative;
   z-index: 1;
@@ -245,6 +305,7 @@
   font-weight: 700;
   margin: 0 0 12px 0;
   color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .cta-section p {
