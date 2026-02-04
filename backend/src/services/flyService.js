@@ -523,7 +523,7 @@ export const flyService = {
       'cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\\"]*/.../g"',
       'echo ""',
       'echo "=== STARTING GATEWAY ==="',
-      'exec node dist/index.js gateway --bind lan --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
+      'exec node dist/index.js gateway --bind 0.0.0.0:18789 --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
 
     const machineConfig = {
