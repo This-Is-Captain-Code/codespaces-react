@@ -548,46 +548,60 @@ export const flyService = {
     // Build bankr SKILL.md content
     const bankrSkillMd = `---
 name: bankr
-description: AI-powered crypto trading agent via natural language. Use when the user wants to trade crypto (buy/sell/swap tokens), check portfolio balances, view token prices, transfer crypto, or manage DeFi operations. Supports Base, Ethereum, Polygon, Solana, and Unichain.
+description: AI-powered crypto trading agent via natural language. Use when the user wants to trade crypto (buy/sell/swap tokens), check portfolio balances, view token prices, transfer crypto, or manage DeFi operations.
 metadata:
-  clawdbot:
-    emoji: "📺"
+  openclaw:
+    emoji: "💰"
     homepage: "https://bankr.bot"
     requires: { "bins": ["curl", "jq"] }
 ---
 
-# Bankr
+# Bankr Crypto Trading Skill
 
-Execute crypto trading and DeFi operations using natural language through Bankr's AI agent API.
+Execute crypto trading and DeFi operations using natural language through the Bankr API.
 
-## Usage
+## When to Use
+
+Use this skill when the user asks about:
+- Crypto prices (e.g., "What's the price of ETH?", "How much is Bitcoin?")
+- Trading tokens (e.g., "Buy ETH", "Swap USDC for ETH")
+- Portfolio balances (e.g., "Show my portfolio", "What's my balance?")
+- Sending crypto (e.g., "Send 0.1 ETH to vitalik.eth")
+
+## How to Use
+
+Use the exec tool to run the bankr script with the user's request:
 
 \`\`\`bash
-scripts/bankr.sh "What is my ETH balance?"
-scripts/bankr.sh "Buy $20 of ETH on Base"
-scripts/bankr.sh "What's the price of Bitcoin?"
+./skills/bankr/bin/bankr.sh "What is the price of ETH?"
 \`\`\`
 
-## Capabilities
-
-- **Trading**: Buy/sell/swap tokens, limit orders, stop loss, DCA
-- **Portfolio**: Check balances, view USD valuations, track holdings  
-- **Market Research**: Token prices, technical analysis, trending tokens
-- **Transfers**: Send to addresses, ENS, or social handles
-- **Polymarket**: Search markets, place bets, view positions
-- **Leverage**: Long/short positions up to 50x via Avantis
-
-## Supported Chains
-
-Base, Ethereum, Polygon, Solana, Unichain
+The script returns JSON with the result. Parse it and respond to the user.
 
 ## Examples
 
-- "Show my portfolio"
-- "Buy $50 of ETH on Base"  
-- "What's the price of PEPE?"
-- "Swap 0.1 ETH for USDC"
-- "Send 0.01 ETH to vitalik.eth"
+Check ETH price:
+\`\`\`bash
+./skills/bankr/bin/bankr.sh "What is the current price of Ethereum?"
+\`\`\`
+
+Check portfolio:
+\`\`\`bash
+./skills/bankr/bin/bankr.sh "Show my portfolio balances"
+\`\`\`
+
+Buy tokens:
+\`\`\`bash
+./skills/bankr/bin/bankr.sh "Buy $50 of ETH on Base"
+\`\`\`
+
+## Supported Operations
+
+- **Trading**: Buy/sell/swap tokens, limit orders, DCA
+- **Portfolio**: Check balances, view USD valuations
+- **Market Research**: Token prices, trending tokens
+- **Transfers**: Send to addresses, ENS, or social handles
+- **Chains**: Base, Ethereum, Polygon, Solana, Unichain
 `;
     const bankrSkillBase64 = Buffer.from(bankrSkillMd).toString('base64');
 
@@ -623,21 +637,20 @@ echo '{"error": "Timeout"}'; exit 1
     // 4. Install bankr skill files
     // 5. Start gateway with --allow-unconfigured and --token
     const initCmd = [
-      'mkdir -p /home/node/.openclaw/workspace /home/node/.openclaw/skills/bankr/scripts /data/agents/main/agent',
+      'mkdir -p /home/node/.openclaw/workspace/skills/bankr/bin /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
-      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/skills/bankr/SKILL.md\', Buffer.from(process.env.BANKR_SKILL_B64, \'base64\').toString())"',
-      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/skills/bankr/scripts/bankr.sh\', Buffer.from(process.env.BANKR_SCRIPT_B64, \'base64\').toString())"',
-      'chmod +x /home/node/.openclaw/skills/bankr/scripts/bankr.sh',
-      'printf \'{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}\' "$BANKR_API_KEY" > /home/node/.openclaw/skills/bankr/config.json',
+      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/skills/bankr/SKILL.md\', Buffer.from(process.env.BANKR_SKILL_B64, \'base64\').toString())"',
+      'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/skills/bankr/bin/bankr.sh\', Buffer.from(process.env.BANKR_SCRIPT_B64, \'base64\').toString())"',
+      'chmod +x /home/node/.openclaw/workspace/skills/bankr/bin/bankr.sh',
+      'printf \'{"apiKey":"%s","apiUrl":"https://api.bankr.bot","autoAllowBins":true}\' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/skill.json',
       'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
       'echo "=== BANKR SKILL INSTALLED ==="',
-      'ls -la /home/node/.openclaw/skills/bankr/',
+      'ls -la /home/node/.openclaw/workspace/skills/bankr/',
+      'cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md',
       'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
-      'echo "=== AGENTS.MD ==="',
-      'cat /home/node/.openclaw/workspace/AGENTS.md',
       'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
