@@ -1,0 +1,220 @@
+$ fly logs -a oc-user-c265acc893dd-ml893e47 
+Waiting for logs...
+16:38:09
+[   10.045793] reboot: Restarting system
+16:38:10
+2026-02-04T16:38:10.864540761 [01KGMR83EZ4HFF50FV8G469V4H:main] Running Firecracker v1.12.1
+16:38:10
+2026-02-04T16:38:10.864703398 [01KGMR83EZ4HFF50FV8G469V4H:main] Listening on API socket ("/fc.sock").
+16:38:11
+ INFO Starting init (commit: 350f2667)...
+16:38:11
+ INFO Checking filesystem on /data
+16:38:11
+/dev/vdc: clean, 15/64512 files, 8789/258048 blocks
+16:38:11
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+16:38:11
+ INFO Resized /data to 1056964608 bytes
+16:38:11
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AUTH PROFILES ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind 0.0.0.0 --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+16:38:11
+ INFO [fly api proxy] listening at /.fly/api
+16:38:12
+Machine started in 1.368s
+16:38:12
+2026/02/04 16:38:12 INFO SSH listening listen_address=[fdaa:44:9071:a7b:409:48ff:de5f:2]:22
+16:38:12
+=== OPENCLAW CONFIG ===
+16:38:12
+{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/openai/gpt-4o"}}}}=== AUTH PROFILES ===
+16:38:12
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"..."}},"lastGood":{"openrouter":"openrouter:default"}}
+16:38:12
+=== STARTING GATEWAY ===
+16:38:16
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:38:19
+2026-02-04T16:38:19.940Z Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")
+16:38:20
+ INFO Main child exited normally with code: 1
+16:38:20
+ INFO Starting clean up.
+16:38:20
+ INFO Umounting /dev/vdc from /data
+16:38:20
+[   10.028413] reboot: Restarting system
+16:38:22
+Starting machine
+16:38:22
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PM07] failed to change machine state: machine still active, refusing to start
+16:38:23
+Starting machine
+16:38:23
+[PM01] machines API returned an error: "machine still attempting to start"
+16:38:23
+2026-02-04T16:38:23.483935898 [01KGMR83EZ4HFF50FV8G469V4H:main] Running Firecracker v1.12.1
+16:38:23
+2026-02-04T16:38:23.484067166 [01KGMR83EZ4HFF50FV8G469V4H:main] Listening on API socket ("/fc.sock").
+16:38:24
+Starting machine
+16:38:24
+[PM01] machines API returned an error: "machine still attempting to start"
+16:38:24
+ INFO Starting init (commit: 350f2667)...
+16:38:24
+ INFO Checking filesystem on /data
+16:38:24
+/dev/vdc: clean, 15/64512 files, 8789/258048 blocks
+16:38:24
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+16:38:24
+ INFO Resized /data to 1056964608 bytes
+16:38:24
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AUTH PROFILES ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind 0.0.0.0 --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+16:38:24
+ INFO [fly api proxy] listening at /.fly/api
+16:38:24
+Machine started in 1.39s
+16:38:24
+2026/02/04 16:38:24 INFO SSH listening listen_address=[fdaa:44:9071:a7b:409:48ff:de5f:2]:22
+16:38:24
+=== OPENCLAW CONFIG ===
+16:38:24
+{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/openai/gpt-4o"}}}}=== AUTH PROFILES ===
+16:38:24
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"..."}},"lastGood":{"openrouter":"openrouter:default"}}
+16:38:24
+=== STARTING GATEWAY ===
+16:38:25
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:38:32
+2026-02-04T16:38:32.301Z Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")
+16:38:32
+ INFO Main child exited normally with code: 1
+16:38:32
+ INFO Starting clean up.
+16:38:32
+ INFO Umounting /dev/vdc from /data
+16:38:32
+[    9.082379] reboot: Restarting system
+16:38:33
+machine has reached its max restart count of 5
+16:38:33
+Starting machine
+16:38:33
+2026-02-04T16:38:33.698049136 [01KGMR83EZ4HFF50FV8G469V4H:main] Running Firecracker v1.12.1
+16:38:33
+2026-02-04T16:38:33.698238693 [01KGMR83EZ4HFF50FV8G469V4H:main] Listening on API socket ("/fc.sock").
+16:38:34
+ INFO Starting init (commit: 350f2667)...
+16:38:34
+ INFO Checking filesystem on /data
+16:38:34
+/dev/vdc: clean, 15/64512 files, 8789/258048 blocks
+16:38:34
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+16:38:34
+ INFO Resized /data to 1056964608 bytes
+16:38:34
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AUTH PROFILES ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind 0.0.0.0 --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+16:38:34
+ INFO [fly api proxy] listening at /.fly/api
+16:38:34
+Machine started in 1.287s
+16:38:34
+machine started in 1.360771961s
+16:38:35
+2026/02/04 16:38:35 INFO SSH listening listen_address=[fdaa:44:9071:a7b:409:48ff:de5f:2]:22
+16:38:35
+=== OPENCLAW CONFIG ===
+16:38:35
+{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/openai/gpt-4o"}}}}=== AUTH PROFILES ===
+16:38:35
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"..."}},"lastGood":{"openrouter":"openrouter:default"}}
+16:38:35
+=== STARTING GATEWAY ===
+16:38:40
+waiting for machine to be reachable on 0.0.0.0:18789 (waited 5.417930177s so far)
+16:38:43
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PM05] failed to connect to machine: gave up after 15 attempts (in 8.510647215s)
+16:38:44
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:38:52
+[PR04] could not find a good candidate within 40 attempts at load balancing
+16:38:59
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:39:02
+2026-02-04T16:39:02.934Z Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")
+16:39:03
+ INFO Main child exited normally with code: 1
+16:39:03
+ INFO Starting clean up.
+16:39:03
+ INFO Umounting /dev/vdc from /data
+16:39:03
+[   30.027916] reboot: Restarting system
+16:39:04
+machine has reached its max restart count of 5
+16:39:04
+Starting machine
+16:39:05
+2026-02-04T16:39:05.068440796 [01KGMR83EZ4HFF50FV8G469V4H:main] Running Firecracker v1.12.1
+16:39:05
+2026-02-04T16:39:05.068678583 [01KGMR83EZ4HFF50FV8G469V4H:main] Listening on API socket ("/fc.sock").
+16:39:06
+ INFO Starting init (commit: 350f2667)...
+16:39:07
+ INFO Checking filesystem on /data
+16:39:07
+/dev/vdc: clean, 15/64512 files, 8789/258048 blocks
+16:39:07
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+16:39:07
+ INFO Resized /data to 1056964608 bytes
+16:39:07
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AUTH PROFILES ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --bind 0.0.0.0 --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+16:39:07
+ INFO [fly api proxy] listening at /.fly/api
+16:39:07
+Machine started in 3.002s
+16:39:07
+machine started in 3.062792892s
+16:39:10
+=== OPENCLAW CONFIG ===
+16:39:10
+{"gateway":{"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/openai/gpt-4o"}}}}=== AUTH PROFILES ===
+16:39:10
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"..."}},"lastGood":{"openrouter":"openrouter:default"}}
+16:39:10
+=== STARTING GATEWAY ===
+16:39:10
+2026/02/04 16:39:10 INFO SSH listening listen_address=[fdaa:44:9071:a7b:409:48ff:de5f:2]:22
+16:39:13
+waiting for machine to be reachable on 0.0.0.0:18789 (waited 5.578807498s so far)
+16:39:16
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PM05] failed to connect to machine: gave up after 15 attempts (in 8.819376142s)
+16:39:18
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:39:29
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:39:48
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:40:13
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:40:24
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+16:40:28
+[PR04] could not find a good candidate within 40 attempts at load balancing
+16:40:33
+2026-02-04T16:40:33.585Z Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")
+16:40:34
+ INFO Main child exited normally with code: 1
+16:40:34
+ INFO Starting clean up.
+16:40:34
+ INFO Umounting /dev/vdc from /data
+16:40:34
+[   89.136602] reboot: Restarting system
+16:40:34
+machine has reached its max restart count of 5
