@@ -515,7 +515,7 @@ export const flyService = {
             env: {
               BANKR_API_KEY: process.env.BANKR_API_KEY || '',
               BANKR_API_URL: 'https://api.bankr.bot',
-              WALLET_ADDRESS: walletAddress || ''
+              WALLET_ADDRESS: agentWalletAddress || ''
             }
           }
         }
