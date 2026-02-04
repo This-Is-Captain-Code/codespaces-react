@@ -511,7 +511,6 @@ export const flyService = {
         entries: {
           bankr: {
             enabled: true,
-            source: 'github:BankrBot/openclaw-skills/bankr',
             env: {
               BANKR_API_KEY: process.env.BANKR_API_KEY || '',
               BANKR_API_URL: 'https://api.bankr.bot',
@@ -540,6 +539,9 @@ export const flyService = {
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
       'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
+      'echo "=== INSTALLING BANKR SKILL ==="',
+      'npm i -g clawdhub 2>/dev/null || true',
+      'cd /home/node/.openclaw && clawdhub install bankr --no-input 2>/dev/null || echo "Skill install skipped"',
       'echo "=== OPENCLAW CONFIG ==="',
       'cat /home/node/.openclaw/openclaw.json',
       'echo "=== AGENTS.MD ==="',

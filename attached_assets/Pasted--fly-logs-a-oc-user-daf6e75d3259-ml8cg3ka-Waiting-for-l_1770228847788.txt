@@ -1,0 +1,204 @@
+$ fly logs -a oc-user-daf6e75d3259-ml8cg3ka 
+Waiting for logs...
+18:12:16
+|                                                            |
+18:12:16
++------------------------------------------------------------+
+18:12:16
+|
+18:12:16
+o  Unknown config keys -----------+
+18:12:16
+|                                 |
+18:12:16
+|  - skills.entries.bankr.source  |
+18:12:16
+|                                 |
+18:12:16
++---------------------------------+
+18:12:16
+|
+18:12:16
+o  Doctor --------------------------------------------+
+18:12:16
+|                                                     |
+18:12:16
+|  Run "openclaw doctor --fix" to remove these keys.  |
+18:12:16
+|                                                     |
+18:12:16
++-----------------------------------------------------+
+18:12:16
+Config invalid
+18:12:16
+File: ~/.openclaw/openclaw.json
+18:12:16
+Problem:
+18:12:16
+  - skills.entries.bankr: Unrecognized key: "source"
+18:12:16
+Run: openclaw doctor --fix
+18:12:16
+ INFO Main child exited normally with code: 1
+18:12:16
+ INFO Starting clean up.
+18:12:16
+ INFO Umounting /dev/vdc from /data
+18:12:16
+[   10.422906] reboot: Restarting system
+18:12:18
+Starting machine
+18:12:18
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PM07] failed to change machine state: machine still active, refusing to start
+18:12:19
+2026-02-04T18:12:19.512144867 [01KGMXKZ1ACYB0NCQVKMQJSD79:main] Running Firecracker v1.12.1
+18:12:19
+2026-02-04T18:12:19.512318690 [01KGMXKZ1ACYB0NCQVKMQJSD79:main] Listening on API socket ("/fc.sock").
+18:12:20
+ INFO Starting init (commit: 350f2667)...
+18:12:20
+ INFO Checking filesystem on /data
+18:12:20
+/dev/vdc: clean, 15/64512 files, 8789/258048 blocks
+18:12:20
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+18:12:20
+ INFO Resized /data to 1056964608 bytes
+18:12:20
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw/workspace /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && node -e "require('fs').writeFileSync('/home/node/.openclaw/workspace/AGENTS.md', Buffer.from(process.env.AGENTS_MD_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AGENTS.MD ===" && cat /home/node/.openclaw/workspace/AGENTS.md && echo "=== AUTH PROFILES ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+18:12:20
+ INFO [fly api proxy] listening at /.fly/api
+18:12:21
+Machine started in 1.762s
+18:12:21
+2026/02/04 18:12:21 INFO SSH listening listen_address=[fdaa:44:9071:a7b:1b7:e95:9e7c:2]:22
+18:12:21
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+18:12:21
+=== OPENCLAW CONFIG ===
+18:12:21
+{"gateway":{"bind":"lan","port":18789,"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/openai/gpt-4o"}}},"skills":{"install":{"nodeManager":"npm"},"entries":{"bankr":{"enabled":true,"source":"github:BankrBot/openclaw-skills/bankr","env":{"BANKR_API_KEY":"bk_8RPW32KGXXW4LDM3V3C9UZ2A9ZU6XEZL","BANKR_API_URL":"https://api.bankr.bot","WALLET_ADDRESS":"0x7650eCD5099A78dFE5fe1f4eF433D9AF16c140f6"}}}}}=== AGENTS.MD ===
+18:12:21
+Your name is Alfred. You have a token called $FRED (Alfred). Your wallet address is 0x7650eCD5099A78dFE5fe1f4eF433D9AF16c140f6. You have access to the bankr skill for crypto trading. Use it when users ask about trading or swapping tokens.
+18:12:21
+You are a helpful AI assistant.=== AUTH PROFILES ===
+18:12:21
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"..."}},"lastGood":{"openrouter":"openrouter:default"}}
+18:12:21
+=== STARTING GATEWAY ===
+18:12:31
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+18:12:34
+[PR04] could not find a good candidate within 40 attempts at load balancing
+18:12:39
+Invalid config at /home/node/.openclaw/openclaw.json:\n- skills.entries.bankr: Unrecognized key: "source"
+18:12:39
+|
+18:12:39
+o  Config ---------------------------------------------------+
+18:12:39
+|                                                            |
+18:12:39
+|  Config invalid; doctor will run with best-effort config.  |
+18:12:39
+|                                                            |
+18:12:39
++------------------------------------------------------------+
+18:12:39
+|
+18:12:39
+o  Unknown config keys -----------+
+18:12:39
+|                                 |
+18:12:39
+|  - skills.entries.bankr.source  |
+18:12:39
+|                                 |
+18:12:39
++---------------------------------+
+18:12:39
+|
+18:12:39
+o  Doctor --------------------------------------------+
+18:12:39
+|                                                     |
+18:12:39
+|  Run "openclaw doctor --fix" to remove these keys.  |
+18:12:39
+|                                                     |
+18:12:39
++-----------------------------------------------------+
+18:12:40
+Config invalid
+18:12:40
+File: ~/.openclaw/openclaw.json
+18:12:40
+Problem:
+18:12:40
+  - skills.entries.bankr: Unrecognized key: "source"
+18:12:40
+Run: openclaw doctor --fix
+18:12:41
+ INFO Main child exited normally with code: 1
+18:12:41
+ INFO Starting clean up.
+18:12:42
+ INFO Umounting /dev/vdc from /data
+18:12:42
+[   22.474593] reboot: Restarting system
+18:12:42
+machine has reached its max restart count of 5
+18:12:43
+Starting machine
+18:12:43
+2026-02-04T18:12:43.482004875 [01KGMXKZ1ACYB0NCQVKMQJSD79:main] Running Firecracker v1.12.1
+18:12:43
+2026-02-04T18:12:43.482185008 [01KGMXKZ1ACYB0NCQVKMQJSD79:main] Listening on API socket ("/fc.sock").
+18:12:47
+ INFO Starting init (commit: 350f2667)...
+18:12:47
+ INFO Checking filesystem on /data
+18:12:47
+/dev/vdc: clean, 15/64512 files, 8789/258048 blocks
+18:12:47
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+18:12:47
+ INFO Resized /data to 1056964608 bytes
+18:12:47
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.openclaw/workspace /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && node -e "require('fs').writeFileSync('/home/node/.openclaw/workspace/AGENTS.md', Buffer.from(process.env.AGENTS_MD_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== OPENCLAW CONFIG ===" && cat /home/node/.openclaw/openclaw.json && echo "=== AGENTS.MD ===" && cat /home/node/.openclaw/workspace/AGENTS.md && echo "=== AUTH PROFILES ===" && cat /data/agents/main/agent/auth-profiles.json | sed "s/sk-or-v1-[^\"]*/.../g" && echo "" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+18:12:47
+ INFO [fly api proxy] listening at /.fly/api
+18:12:48
+Machine started in 4.595s
+18:12:48
+machine started in 4.696222835s
+18:12:53
+2026/02/04 18:12:53 INFO SSH listening listen_address=[fdaa:44:9071:a7b:1b7:e95:9e7c:2]:22
+18:12:53
+=== OPENCLAW CONFIG ===
+18:12:53
+{"gateway":{"bind":"lan","port":18789,"trustedProxies":["0.0.0.0/0","::/0"],"controlUi":{"enabled":true,"allowInsecureAuth":true}},"agents":{"defaults":{"model":{"primary":"openrouter/openai/gpt-4o"}}},"skills":{"install":{"nodeManager":"npm"},"entries":{"bankr":{"enabled":true,"source":"github:BankrBot/openclaw-skills/bankr","env":{"BANKR_API_KEY":"bk_8RPW32KGXXW4LDM3V3C9UZ2A9ZU6XEZL","BANKR_API_URL":"https://api.bankr.bot","WALLET_ADDRESS":"0x7650eCD5099A78dFE5fe1f4eF433D9AF16c140f6"}}}}}=== AGENTS.MD ===
+18:12:53
+Your name is Alfred. You have a token called $FRED (Alfred). Your wallet address is 0x7650eCD5099A78dFE5fe1f4eF433D9AF16c140f6. You have access to the bankr skill for crypto trading. Use it when users ask about trading or swapping tokens.
+18:12:53
+You are a helpful AI assistant.=== AUTH PROFILES ===
+18:12:53
+{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"..."}},"lastGood":{"openrouter":"openrouter:default"}}
+18:12:53
+=== STARTING GATEWAY ===
+18:12:53
+waiting for machine to be reachable on 0.0.0.0:18789 (waited 5.779464946s so far)
+18:12:56
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PM05] failed to connect to machine: gave up after 15 attempts (in 8.858852798s)
+18:12:57
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+18:13:09
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+18:13:20
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+18:13:34
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+18:13:37
+[PR04] could not find a good candidate within 40 attempts at load balancing
+18:13:50
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
