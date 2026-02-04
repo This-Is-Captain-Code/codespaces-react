@@ -13,29 +13,6 @@
   height: 100%;
   pointer-events: none;
   z-index: 0;
-  background: 
-    radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 40px 70px, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1px 1px at 50px 160px, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1.5px 1.5px at 160px 120px, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1px 1px at 200px 50px, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1px 1px at 250px 180px, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1px 1px at 280px 90px, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1.5px 1.5px at 320px 140px, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 350px 30px, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1px 1px at 400px 200px, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1px 1px at 450px 70px, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1.5px 1.5px at 500px 160px, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1px 1px at 550px 100px, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1px 1px at 600px 40px, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1px 1px at 650px 180px, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1px 1px at 700px 120px, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 750px 60px, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 800px 150px, rgba(255, 255, 255, 0.6), transparent);
-  background-size: 850px 220px;
-  animation: twinkle 8s ease-in-out infinite;
 }
 
 .space-background::before {
@@ -46,13 +23,98 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(ellipse 800px 600px at 15% 25%, rgba(124, 58, 237, 0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 600px 400px at 85% 75%, rgba(6, 182, 212, 0.06) 0%, transparent 70%);
+    radial-gradient(1.5px 1.5px at 20px 30px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 40px 70px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 50px 160px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 130px 80px, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(2px 2px at 160px 120px, rgba(139, 92, 246, 0.9), transparent),
+    radial-gradient(1px 1px at 200px 50px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 250px 180px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 280px 90px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(2px 2px at 320px 140px, rgba(6, 182, 212, 0.8), transparent),
+    radial-gradient(1px 1px at 350px 30px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 400px 200px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 450px 70px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(2px 2px at 500px 160px, rgba(139, 92, 246, 0.85), transparent),
+    radial-gradient(1px 1px at 550px 100px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 600px 40px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 650px 180px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 700px 120px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(2px 2px at 750px 60px, rgba(6, 182, 212, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 800px 150px, rgba(255, 255, 255, 0.85), transparent);
+  background-size: 850px 220px;
+  animation: twinkle 6s ease-in-out infinite;
+}
+
+.space-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse 600px 400px at 10% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 500px 300px at 90% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 300px 200px at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
 }
 
 @keyframes twinkle {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  50% { opacity: 0.6; }
+}
+
+.hero-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(139, 92, 246, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.06) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 50%, transparent 80%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 50%, transparent 80%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.shooting-star {
+  position: absolute;
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
+  animation: shoot 3s ease-in-out infinite;
+  opacity: 0;
+}
+
+.shooting-star:nth-child(1) {
+  top: 15%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.shooting-star:nth-child(2) {
+  top: 25%;
+  right: 20%;
+  animation-delay: 1.5s;
+  transform: rotate(-15deg);
+}
+
+.shooting-star:nth-child(3) {
+  top: 8%;
+  left: 60%;
+  animation-delay: 2.5s;
+  transform: rotate(10deg);
+}
+
+@keyframes shoot {
+  0% { opacity: 0; transform: translateX(0) translateY(0); }
+  10% { opacity: 1; }
+  30% { opacity: 0; transform: translateX(200px) translateY(50px); }
+  100% { opacity: 0; transform: translateX(200px) translateY(50px); }
 }
 
 .landing-nav {
@@ -122,7 +184,7 @@
   margin: 0 0 24px 0;
   color: #a78bfa;
   letter-spacing: -0.03em;
-  text-shadow: 0 0 60px rgba(167, 139, 250, 0.5);
+  text-shadow: 0 0 80px rgba(139, 92, 246, 0.7);
 }
 
 .hero-subtitle {

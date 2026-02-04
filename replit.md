@@ -4,9 +4,12 @@
 Molt.town is an automated AI agent launch platform designed to quickly deploy AI agents with integrated wallets and tradeable tokens. It enables users to create a dedicated AI agent in approximately 30 seconds, complete with its own Fly.io instance, server-side Privy wallet, and a custom Clanker token on Base with fee splits. The platform also registers the agent's identity on-chain via ERC-8004 and installs autonomous trading skills (bankr + erc-8004). The vision is to provide a dedicated, isolated AI agent environment for each user, fostering autonomous trading and on-chain identity for AI.
 
 ## User Preferences
-- Space theme with starfield texture background (less gradients, more textures)
+- Dark space theme with high contrast (near-black background #020208)
+- Starfield texture background with colored stars (purple/cyan accents)
+- Grid overlay with fade effect on hero section
+- Shooting star animations
 - SpaceGrotesk font from Google Fonts for a sci-fi aesthetic
-- Purple accent color (#7c3aed) with subtle glow effects
+- Purple accent color (#8b5cf6) with glow effects
 - Telegram integration should be configured upfront during agent launch
 - Twitter integration planned for future (currently disabled with "Coming Soon" badge)
 
