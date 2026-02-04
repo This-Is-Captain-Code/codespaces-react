@@ -501,8 +501,15 @@ export const flyService = {
         defaults: {
           model: {
             primary: openrouterModel
-          }
+          },
+          tools: {
+            allow: ['*']
+          },
+          allowAgents: ['*']
         }
+      },
+      tools: {
+        allow: ['*']
       },
       skills: {
         install: {
