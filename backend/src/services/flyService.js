@@ -458,6 +458,7 @@ export const flyService = {
       tokenSymbol = null,
       tokenName = null,
       agentWalletAddress = null,
+      telegramBotToken = null,
     } = options;
 
     console.log(`Creating per-user gateway for ${userId}: ${appName}...`);
@@ -535,7 +536,14 @@ export const flyService = {
             }
           }
         }
-      }
+      },
+      ...(telegramBotToken ? {
+        telegram: {
+          enabled: true,
+          botToken: telegramBotToken,
+          allowedUpdates: ['message', 'callback_query']
+        }
+      } : {})
     };
     
     // Base64 encode the config to avoid shell escaping issues
@@ -765,6 +773,8 @@ echo '{"error": "Timeout"}'; exit 1
       controlUrl: `${endpoint}/?token=${gatewayToken}`,
       region,
       model: openrouterModel,
+      telegramConfigured: !!telegramBotToken,
+      telegramUsername: null,
     };
   },
 

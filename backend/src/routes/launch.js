@@ -103,6 +103,8 @@ router.post('/stream', authMiddleware, async (req, res) => {
       userWalletAddress,
       devRewardAddress,
       limitUsd,
+      telegramBotToken,
+      twitterToken,
     } = req.body;
 
     if (!agentName || !agentName.trim()) {
@@ -141,6 +143,8 @@ router.post('/stream', authMiddleware, async (req, res) => {
       userWalletAddress,
       devRewardAddress,
       limitUsd,
+      telegramBotToken: telegramBotToken?.trim() || undefined,
+      twitterToken: twitterToken?.trim() || undefined,
     }, (progress) => {
       sendEvent('progress', progress);
     });

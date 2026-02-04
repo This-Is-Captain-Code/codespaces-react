@@ -4,7 +4,9 @@
 Molt.town is an automated AI agent launch platform designed to quickly deploy AI agents with integrated wallets and tradeable tokens. It enables users to create a dedicated AI agent in approximately 30 seconds, complete with its own Fly.io instance, server-side Privy wallet, and a custom Clanker token on Base with fee splits. The platform also registers the agent's identity on-chain via ERC-8004 and installs autonomous trading skills (bankr + erc-8004). The vision is to provide a dedicated, isolated AI agent environment for each user, fostering autonomous trading and on-chain identity for AI.
 
 ## User Preferences
-Not specified.
+- Dark theme inspired by Mintair.xyz (purple/blue gradient accents, dark backgrounds)
+- Telegram integration should be configured upfront during agent launch
+- Twitter integration planned for future (currently disabled with "Coming Soon" badge)
 
 ## System Architecture
 Molt.town utilizes a per-user dedicated instance model. Each user's AI agent is deployed on its own OpenClaw gateway hosted on Fly.io, ensuring complete isolation. A server-side Privy wallet is provisioned for each agent, alongside a unique Clanker token. The frontend is built with React 18 and Vite, communicating with an Express.js backend. PostgreSQL is used for data persistence. Deployment of OpenClaw gateways is managed via the Fly.io Machines API. AI model access is handled through the OpenRouter API, with a provisioning system that assigns per-user API keys and spending limits. The system supports dual-mode authentication via Privy (for X/Twitter, Google, email login) or a fallback username-based system. Agents are equipped with skills installed from the BankrBot/openclaw-skills GitHub repository, including `bankr` for crypto trading and `erc-8004` for on-chain identity registration. OpenClaw gateways are configured to run with specific Docker images and commands, injecting configuration via base64-encoded environment variables and persisting agent data on Fly.io volumes.

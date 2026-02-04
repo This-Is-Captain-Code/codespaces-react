@@ -1,6 +1,6 @@
 .agent-dashboard {
   min-height: 100vh;
-  background: #f5f5f7;
+  background: var(--bg-primary);
   padding: 2rem;
 }
 
@@ -9,13 +9,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  color: var(--text-secondary);
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #f0f0f0;
-  border-top-color: #6366f1;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--gradient-start);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -34,37 +35,42 @@
 
 .agent-dashboard .header h1 {
   margin: 0;
-  font-size: 1.5rem;
-  color: #1a1a2e;
+  font-size: 1.75rem;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
 }
 
 .logout-btn {
   padding: 0.5rem 1rem;
-  background: transparent;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  color: #666;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .logout-btn:hover {
-  border-color: #999;
-  color: #333;
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .agent-card {
   max-width: 800px;
   margin: 0 auto;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   overflow: hidden;
 }
 
 .agent-header {
   padding: 1.5rem 2rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-accent);
   color: #fff;
 }
 
@@ -79,15 +85,16 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #fbbf24;
+  background: var(--warning);
 }
 
 .status-dot.running {
-  background: #10b981;
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success);
 }
 
 .status-dot.stopped {
-  background: #ef4444;
+  background: var(--error);
 }
 
 .status-text {
@@ -103,7 +110,7 @@
 
 .info-section {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .info-section:last-of-type {
@@ -112,10 +119,10 @@
 
 .info-section h3 {
   margin: 0 0 1rem 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #888;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
 }
 
 .info-grid {
@@ -136,26 +143,31 @@
 
 .info-item .label {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .info-item .value {
-  color: #1a1a2e;
+  color: var(--text-primary);
   word-break: break-all;
 }
 
 .info-item .value.mono {
-  font-family: 'Monaco', 'Consolas', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
+  background: var(--bg-elevated);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
 }
 
 .info-item .value.link {
-  color: #6366f1;
+  color: var(--gradient-start);
   text-decoration: none;
+  transition: opacity 0.2s;
 }
 
 .info-item .value.link:hover {
-  text-decoration: underline;
+  opacity: 0.8;
 }
 
 .wallet-actions,
@@ -163,82 +175,104 @@
   grid-column: span 2;
   display: flex;
   gap: 0.75rem;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .action-btn {
   padding: 0.5rem 1rem;
-  background: #f5f5f7;
-  border-radius: 6px;
-  color: #666;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.85rem;
   transition: all 0.2s;
 }
 
 .action-btn:hover {
-  background: #e8e8eb;
-  color: #333;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
 }
 
 .trade-btn {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--gradient-accent);
   color: #fff;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-weight: 600;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .trade-btn:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.4);
+}
+
+.chat-action-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--gradient-start);
+  color: var(--gradient-start);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.chat-action-btn:hover {
+  background: rgba(168, 85, 247, 0.1);
 }
 
 .danger-zone {
   padding: 1.5rem 2rem;
-  background: #fef2f2;
-  border-top: 1px solid #fecaca;
+  background: rgba(239, 68, 68, 0.05);
+  border-top: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .danger-zone h3 {
   margin: 0 0 1rem 0;
-  font-size: 0.9rem;
-  color: #dc2626;
+  font-size: 0.85rem;
+  color: var(--error);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .danger-actions {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .recover-btn {
   padding: 0.5rem 1rem;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  color: #666;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .recover-btn:hover {
-  border-color: #999;
-  color: #333;
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
 .delete-btn {
   padding: 0.5rem 1rem;
-  background: #dc2626;
+  background: var(--error);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   color: #fff;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .delete-btn:hover:not(:disabled) {
-  background: #b91c1c;
+  opacity: 0.9;
 }
 
 .delete-btn:disabled {
@@ -249,10 +283,32 @@
 .error-message {
   margin: 1rem 2rem;
   padding: 0.75rem 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--error);
+}
+
+.telegram-section {
+  margin-top: 0.5rem;
+}
+
+.telegram-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 136, 204, 0.1);
+  border: 1px solid rgba(0, 136, 204, 0.3);
+  border-radius: var(--radius-md);
+  color: #0088cc;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.telegram-link:hover {
+  background: rgba(0, 136, 204, 0.2);
 }
 
 @media (max-width: 640px) {

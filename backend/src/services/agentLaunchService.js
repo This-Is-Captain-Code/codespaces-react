@@ -14,6 +14,7 @@ const LAUNCH_STEPS = [
   'creating_openrouter_key',
   'creating_wallet',
   'deploying_agent',
+  'configuring_telegram',
   'installing_skills',
   'registering_identity',
   'deploying_token',
@@ -31,6 +32,8 @@ export const agentLaunchService = {
       userWalletAddress,
       devRewardAddress,
       limitUsd = 5.00,
+      telegramBotToken,
+      twitterToken,
     } = config;
 
     const launchState = {
@@ -131,6 +134,7 @@ export const agentLaunchService = {
           tokenSymbol,
           tokenName: tokenName || agentName,
           agentWalletAddress: agentWallet?.address,
+          telegramBotToken,
         });
         launchState.flyAppName = userGateway.appName;
       } catch (flyError) {
@@ -145,6 +149,18 @@ export const agentLaunchService = {
         endpoint: userGateway.endpoint,
         region: userGateway.region || 'iad',
         machineId: userGateway.machineId,
+      });
+
+      sendProgress('configuring_telegram', 'in_progress', {
+        configured: !!telegramBotToken,
+      });
+      let telegramResult = { configured: false, username: null };
+      if (telegramBotToken) {
+        telegramResult = { configured: true, username: userGateway.telegramUsername || null };
+      }
+      sendProgress('configuring_telegram', 'completed', {
+        configured: telegramResult.configured,
+        username: telegramResult.username,
       });
 
       sendProgress('installing_skills', 'in_progress', {
@@ -296,6 +312,10 @@ export const agentLaunchService = {
         erc8004: erc8004Result.registered ? {
           agentId: erc8004Result.agentId,
           registryAddress: erc8004Result.registryAddress,
+        } : null,
+        telegram: telegramResult.configured ? {
+          configured: true,
+          username: telegramResult.username,
         } : null,
         skills: skillsResult.installedSkills,
         status: 'running',
