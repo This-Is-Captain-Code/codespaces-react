@@ -521,11 +521,7 @@ export const flyService = {
             workspace: '/home/node/.openclaw/workspace',
             sandbox: {
               mode: 'off'
-            },
-            tools: {
-              allow: ['*']
-            },
-            allowAgents: ['*']
+            }
           }
         ]
       },
