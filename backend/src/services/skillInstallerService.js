@@ -1,3 +1,6 @@
+// Skills are installed from the BankrBot/openclaw-skills GitHub repository
+// Bankr uses a SHARED PLATFORM API KEY (BANKR_API_KEY env var) for all agents
+// Each agent trades using their own Privy wallet - the API key just authenticates the platform
 const SKILLS_REPO = 'https://github.com/BankrBot/openclaw-skills';
 
 const AVAILABLE_SKILLS = {
