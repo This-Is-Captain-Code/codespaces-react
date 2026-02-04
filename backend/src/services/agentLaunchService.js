@@ -12,8 +12,8 @@ const getNetworkMode = () => USE_TESTNET ? 'TESTNET' : 'MAINNET';
 
 const LAUNCH_STEPS = [
   'creating_openrouter_key',
-  'deploying_agent',
   'creating_wallet',
+  'deploying_agent',
   'installing_skills',
   'registering_identity',
   'deploying_token',
@@ -96,33 +96,7 @@ export const agentLaunchService = {
         limitUsd,
       });
 
-      sendProgress('deploying_agent', 'in_progress', {
-        provider: 'fly.io',
-        region: 'iad',
-      });
-      let userGateway;
-      try {
-        userGateway = await flyService.createUserGateway(userId, {
-          model,
-          systemPrompt,
-          botName: agentName,
-          openrouterApiKey: userOpenRouterKey,
-        });
-        launchState.flyAppName = userGateway.appName;
-      } catch (flyError) {
-        if (openrouterKeyHash) {
-          await cleanupOpenRouterKey(openrouterKeyHash);
-        }
-        throw flyError;
-      }
-      sendProgress('deploying_agent', 'completed', { 
-        provider: 'fly.io',
-        appName: userGateway.appName,
-        endpoint: userGateway.endpoint,
-        region: userGateway.region || 'iad',
-        machineId: userGateway.machineId,
-      });
-
+      // Create wallet FIRST so we can include the address in the gateway config
       sendProgress('creating_wallet', 'in_progress', {
         provider: 'privy.io',
         chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
@@ -141,6 +115,36 @@ export const agentLaunchService = {
         chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
         walletAddress: agentWallet?.address || null,
         walletId: agentWallet?.walletId || null,
+      });
+
+      sendProgress('deploying_agent', 'in_progress', {
+        provider: 'fly.io',
+        region: 'iad',
+      });
+      let userGateway;
+      try {
+        userGateway = await flyService.createUserGateway(userId, {
+          model,
+          systemPrompt,
+          botName: agentName,
+          openrouterApiKey: userOpenRouterKey,
+          tokenSymbol,
+          tokenName: tokenName || agentName,
+          agentWalletAddress: agentWallet?.address,
+        });
+        launchState.flyAppName = userGateway.appName;
+      } catch (flyError) {
+        if (openrouterKeyHash) {
+          await cleanupOpenRouterKey(openrouterKeyHash);
+        }
+        throw flyError;
+      }
+      sendProgress('deploying_agent', 'completed', { 
+        provider: 'fly.io',
+        appName: userGateway.appName,
+        endpoint: userGateway.endpoint,
+        region: userGateway.region || 'iad',
+        machineId: userGateway.machineId,
       });
 
       sendProgress('installing_skills', 'in_progress', {

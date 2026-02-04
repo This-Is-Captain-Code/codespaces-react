@@ -4,8 +4,8 @@ import './AgentLaunchForm.css';
 
 const LAUNCH_STEPS = [
   { key: 'creating_openrouter_key', label: 'Setting up AI model' },
-  { key: 'deploying_agent', label: 'Deploying agent server' },
   { key: 'creating_wallet', label: 'Creating agent wallet' },
+  { key: 'deploying_agent', label: 'Deploying agent server' },
   { key: 'installing_skills', label: 'Installing skills' },
   { key: 'registering_identity', label: 'Registering on-chain identity' },
   { key: 'deploying_token', label: 'Deploying token' },
