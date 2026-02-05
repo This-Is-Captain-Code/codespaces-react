@@ -522,11 +522,15 @@ export const flyService = {
             primary: openrouterModel
           },
           sandbox: {
-            mode: 'off'
+            mode: 'off',
+            browser: {
+              allowHostControl: true
+            }
           },
           browser: {
             enabled: true,
-            autoStart: true
+            autoStart: true,
+            launchArgs: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
           }
         }
       },
