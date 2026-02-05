@@ -135,7 +135,7 @@ export const flyService = {
       gatewayToken,
       openrouterApiKey,
       region = 'iad',
-      memoryMb = 2048,
+      memoryMb = 4096,  // 4GB RAM for better performance
       cpus = 2,
     } = options;
 
@@ -458,8 +458,8 @@ export const flyService = {
       systemPrompt = 'You are a helpful assistant.',
       botName = 'Assistant',
       region = 'iad',
-      memoryMb = 2048,  // OpenClaw needs 2GB RAM minimum
-      cpus = 1,
+      memoryMb = 4096,  // 4GB RAM for better performance
+      cpus = 2,         // 2 shared CPUs
       openrouterApiKey = null,
       tokenSymbol = null,
       tokenName = null,
