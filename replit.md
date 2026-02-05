@@ -43,7 +43,7 @@ Required:
 - `OPENROUTER_API_KEY` - OpenRouter API key for AI models
 - `PRIVY_APP_SECRET` - Privy secret for server-side wallet creation
 - `ADMIN_WALLET_PRIVATE_KEY` - For signing on-chain transactions
-- `BANKR_API_KEY` - Bankr API key (shared across all agents)
+- `BANKR_API_KEY` - Bankr API key (shared across all agents). Get from https://bankr.bot/api and ensure **Agent API access** is enabled.
 
 Optional:
 - `USE_TESTNET` - Set to `true` for testnet mode (Base Sepolia + Sepolia)
