@@ -729,12 +729,17 @@ echo '{"error": "Timeout"}'; exit 1
         env: {
           NODE_ENV: 'production',
           OPENCLAW_STATE_DIR: '/data',
-          NODE_OPTIONS: '--max-old-space-size=1536',
+          NODE_OPTIONS: '--max-old-space-size=3072',
           OPENCLAW_GATEWAY_TOKEN: gatewayToken,
           OPENROUTER_API_KEY: effectiveApiKey,
           BANKR_API_KEY: process.env.BANKR_API_KEY || '',
           OPENCLAW_CONFIG_B64: configBase64,
           AGENTS_MD_B64: agentsBase64,
+          PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser',
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true',
+          CHROMIUM_PATH: '/usr/bin/chromium-browser',
+          PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
+          CHROMIUM_FLAGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
         },
         guest: {
           cpu_kind: 'shared',
