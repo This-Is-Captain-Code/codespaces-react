@@ -698,11 +698,10 @@ echo '{"error": "Timeout"}'; exit 1
     // Install bankr skill in workspace/skills directory (correct OpenClaw path)
     const initCmd = [
       // Note: OpenClaw container runs as non-root 'node' user
-      // Chromium should be pre-installed in the OpenClaw image
-      // Install jq to user-writable location if not available
+      // Install jq to user-writable location using Node.js (handles SSL properly)
       'mkdir -p /home/node/.local/bin',
       'export PATH="/home/node/.local/bin:$PATH"',
-      '(which jq >/dev/null 2>&1 || (curl -sfL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /home/node/.local/bin/jq && chmod +x /home/node/.local/bin/jq)) || echo "jq install failed"',
+      '(which jq >/dev/null 2>&1 || node -e "const https=require(\'https\'),fs=require(\'fs\');const f=fs.createWriteStream(\'/home/node/.local/bin/jq\');https.get(\'https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64\',r=>{if(r.statusCode===302){https.get(r.headers.location,r2=>r2.pipe(f).on(\'finish\',()=>{fs.chmodSync(\'/home/node/.local/bin/jq\',0o755);process.exit(0)}))}else{r.pipe(f).on(\'finish\',()=>{fs.chmodSync(\'/home/node/.local/bin/jq\',0o755);process.exit(0)})}})")',
       'jq --version || echo "jq not available, bankr skill may have limited functionality"',
       'mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
