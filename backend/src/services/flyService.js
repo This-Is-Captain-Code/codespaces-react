@@ -589,6 +589,7 @@ export const flyService = {
         channels: {
           telegram: {
             enabled: true,
+            mode: 'webhook',
             botToken: telegramBotToken
           }
         }
