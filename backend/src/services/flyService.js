@@ -697,8 +697,12 @@ echo '{"error": "Timeout"}'; exit 1
     // 5. Start gateway with --allow-unconfigured and --token
     // Install bankr skill in workspace/skills directory (correct OpenClaw path)
     const initCmd = [
-      // Install jq and chromium via apk (Alpine package manager)
-      'apk add --no-cache jq chromium >/dev/null 2>&1 || echo "apk install skipped"',
+      // Note: OpenClaw container runs as non-root 'node' user
+      // Chromium should be pre-installed in the OpenClaw image
+      // Install jq to user-writable location if not available
+      'mkdir -p /home/node/.local/bin',
+      'export PATH="/home/node/.local/bin:$PATH"',
+      '(which jq >/dev/null 2>&1 || (curl -sfL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /home/node/.local/bin/jq && chmod +x /home/node/.local/bin/jq)) || echo "jq install failed"',
       'jq --version || echo "jq not available, bankr skill may have limited functionality"',
       'mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
@@ -711,7 +715,8 @@ echo '{"error": "Timeout"}'; exit 1
       'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh',
       'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh',
       'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh',
-      // Make skill scripts executable
+      // Inject PATH into scripts so they can find jq, then make executable
+      'for f in /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh; do sed -i \'1a export PATH="/home/node/.local/bin:$PATH"\' "$f" 2>/dev/null || true; done',
       'chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh',
       // Create config.json with Bankr API key
       'printf \'{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}\' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json',
