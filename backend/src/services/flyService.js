@@ -552,7 +552,8 @@ export const flyService = {
           telegram: {
             enabled: true,
             botToken: telegramBotToken,
-            dmPolicy: 'open'
+            dmPolicy: 'open',
+            allowFrom: ['*']
           }
         }
       } : {})
