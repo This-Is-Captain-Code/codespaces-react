@@ -521,6 +521,7 @@ export const flyService = {
         defaultProfile: 'openclaw',
         noSandbox: true,
         headless: true,
+        executablePath: '/home/node/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome',
         profiles: {
           openclaw: {
             cdpPort: 18800,
