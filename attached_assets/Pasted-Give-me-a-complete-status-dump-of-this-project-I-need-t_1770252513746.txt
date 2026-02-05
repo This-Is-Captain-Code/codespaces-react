@@ -1,0 +1,66 @@
+Give me a complete status dump of this project. I need to hand this off to another AI for design and architecture review. Answer every question below in detail:
+
+## 1. PROJECT STRUCTURE
+- What is the full file/folder tree of this project?
+- What framework/stack is this built on? (Next.js, Express, Flask, etc.)
+- What's the frontend framework? (React, vanilla, etc.)
+- What database/storage is being used if any?
+- What are the key config files and their contents?
+
+## 2. ROUTES & PAGES
+- List every route/page that exists
+- Which ones are public vs authenticated?
+- What does the landing page route serve?
+- What does the dashboard/post-launch page look like?
+- Is there an agent directory or listing page?
+
+## 3. AUTH
+- What auth system is implemented? (Google OAuth, Twitter/X OAuth, Privy, etc.)
+- Is Twitter/X login working?
+- What happens after login — where does the user land?
+
+## 4. THE ONE-CLICK FLOW — What's the status of each step:
+- [ ] Agent deployment to Fly.dev — working? how is it triggered?
+- [ ] Privy wallet generation — integrated? how is the wallet created?
+- [ ] Skill auto-installation (bankr + erc-8004) — working? how?
+- [ ] EIP-8004 on-chain identity registration — working? which chain?
+- [ ] Clanker v4 token deployment — working? direct API or via Bankr?
+- [ ] Fee split configuration (0.2% Clanker / 0.1% agent / 0.4% dev / 0.5% molt.town) — configured?
+
+For each step: is it done, partially done, or not started? What's the actual code path?
+
+## 5. CLANKER INTEGRATION
+- Are we calling Clanker API directly or going through Bankr?
+- How are Reward Recipients configured?
+- What's the actual API call look like?
+- Is token deployment tested on testnet or mainnet?
+
+## 6. AGENT RUNTIME
+- What OpenClaw version/config is being deployed?
+- What model is the default? (Claude Opus 4.5, etc.)
+- How does the agent get its personality/system prompt?
+- Can the user customize the agent after launch?
+
+## 7. DASHBOARD (POST-LAUNCH)
+- What info is shown after an agent is launched?
+- Is there an earnings tracker?
+- Can the user see their agent's wallet balance?
+- Can the user see their agent's token price/volume?
+- Is there a link to the agent's control panel?
+
+## 8. ENVIRONMENT VARIABLES
+- List all env vars this project uses (names only, not values)
+- Which ones are required vs optional?
+- Which external services do they connect to?
+
+## 9. WHAT'S BROKEN OR INCOMPLETE
+- What features are partially built but not working?
+- What errors are you seeing?
+- What's blocking the next step?
+
+## 10. DEPLOYMENT
+- Where is this currently deployed? (replit URL, custom domain, etc.)
+- Is molt.town domain connected?
+- What's the current live URL?
+
+Format the entire response as a single markdown document I can copy and paste.
