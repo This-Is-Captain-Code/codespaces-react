@@ -174,11 +174,6 @@ export const flyService = {
           OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
           OPENAI_API_KEY: openrouterApiKey || process.env.OPENROUTER_API_KEY,
           OPENCLAW_CONFIG_B64: configBase64,
-          PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser',
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true',
-          CHROMIUM_PATH: '/usr/bin/chromium-browser',
-          PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
-          CHROMIUM_FLAGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
         },
         guest: {
           cpu_kind: 'shared',
@@ -206,7 +201,7 @@ export const flyService = {
           max_retries: 10,
         },
         init: {
-          cmd: ['sh', '-c', 'apk add --no-cache jq curl chromium >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
+          cmd: ['sh', '-c', 'apk add --no-cache jq curl >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
         }
       },
       region,
@@ -345,14 +340,9 @@ export const flyService = {
           OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
           OPENAI_API_KEY: openrouterApiKey,
           OPENCLAW_CONFIG_B64: configBase64,
-          PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser',
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true',
-          CHROMIUM_PATH: '/usr/bin/chromium-browser',
-          PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
-          CHROMIUM_FLAGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
         },
         init: {
-          cmd: ['sh', '-c', 'apk add --no-cache jq curl chromium >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
+          cmd: ['sh', '-c', 'apk add --no-cache jq curl >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
         }
       },
     };
@@ -516,28 +506,13 @@ export const flyService = {
           allowInsecureAuth: true
         }
       },
-      browser: {
-        enabled: true,
-        defaultProfile: 'openclaw',
-        noSandbox: true,
-        headless: true,
-        profiles: {
-          openclaw: {
-            cdpPort: 18800,
-            color: '#FF4500'
-          }
-        }
-      },
       agents: {
         defaults: {
           model: {
             primary: openrouterModel
           },
           sandbox: {
-            mode: 'off',
-            browser: {
-              allowHostControl: true
-            }
+            mode: 'off'
           }
         }
       },
@@ -739,9 +714,6 @@ echo '{"error": "Timeout"}'; exit 1
       'cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50',
       // Delete any existing Telegram webhook before starting (OpenClaw uses polling mode)
       '[ -n "$TELEGRAM_BOT_TOKEN" ] && curl -sf "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook" || true',
-      // Install Chromium via Playwright for browser automation
-      'echo "=== INSTALLING CHROMIUM ==="',
-      'node /app/node_modules/playwright-core/cli.js install chromium 2>/dev/null || echo "Chromium install skipped"',
       'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
@@ -760,12 +732,6 @@ echo '{"error": "Timeout"}'; exit 1
           OPENCLAW_CONFIG_B64: configBase64,
           AGENTS_MD_B64: agentsBase64,
           ...(telegramBotToken ? { TELEGRAM_BOT_TOKEN: telegramBotToken } : {}),
-          PLAYWRIGHT_BROWSERS_PATH: '/home/node/.cache/ms-playwright',
-          PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser',
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true',
-          CHROMIUM_PATH: '/usr/bin/chromium-browser',
-          PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
-          CHROMIUM_FLAGS: '--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage',
         },
         guest: {
           cpu_kind: 'shared',
