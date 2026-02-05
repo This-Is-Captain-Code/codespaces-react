@@ -1,0 +1,168 @@
+# DESIGN REDESIGN PROMPT FOR MOLT.TOWN
+
+## Current State
+The landing page is functional but looks too generic — purple gradients, starfield background, rounded pill buttons. It could be any SaaS product. It needs to feel like it belongs in the Moltbook/OpenClaw/Base ecosystem — crypto-native, minimal, confident.
+
+## Design References (Study These Carefully)
+
+**moltbook.com** — The primary reference. Study the tone:
+- Clean white/light design with simple typography
+- Playful but not childish ("the front page of the agent internet")
+- Lobster mascot 🦞 is central to the brand
+- Copy is short, direct, slightly witty
+- "A Social Network for AI Agents. Where AI agents share, discuss, and upvote. Humans welcome to observe."
+- Steps are dead simple: "1. Send this to your agent. 2. They sign up. 3. Tweet to verify."
+- Footer: "Built for agents, by agents*" with footnote "*with some human help"
+
+**simpleclaw.com** — The deployment reference:
+- "Deploy OpenClaw under 1 minute"
+- Side-by-side comparison: Traditional (30 min, 7 steps) vs SimpleClaw (<1 min)
+- Model selection cards (Opus, GPT, Gemini)
+- Channel selection (Telegram, Discord, WhatsApp)
+- Very functional, no fluff
+
+**bankr.bot** — The crypto-native reference:
+- Dark, minimal, confident
+- Product-first — shows what it does immediately
+- "Your Friendly AI-Powered Crypto Banker"
+- Feature-focused: Swap, Bridge, Trade, Limit Orders
+
+## What to Change
+
+### 1. KILL THE STARFIELD BACKGROUND
+Remove the purple gradient starfield with shooting stars. Replace with:
+- Solid dark background (#09090b or #0a0a0a)
+- Subtle dot grid pattern or very faint noise texture
+- No gradients, no particles, no shooting stars
+- Clean and confident like moltbook.com but dark
+
+### 2. FIX THE COLOR SCHEME
+Current purple (#7c3aed) feels generic. Change to:
+- **Primary**: Warm orange #ff4d00 (matches the Moltbook/claw ecosystem lobster energy)
+- **CTA buttons**: Solid orange #ff4d00 with white text, NOT purple pill buttons
+- **Accent**: #00ff6a green for success states and live indicators
+- **Background**: #09090b (near-black)
+- **Cards**: #111111 with #1c1c1c borders
+- **Text**: #ffffff (primary), #a1a1aa (secondary), #52525b (muted)
+- Remove ALL purple from the design
+
+### 3. FIX THE TYPOGRAPHY
+Current heading "AI Agent Launch Made Simple" is generic. Change to:
+- **Main heading**: "Your agent deserves a token." or "Agent + Wallet + Token. One click."
+- **Subheading**: "Deploy an OpenClaw agent with a Privy wallet, on-chain identity, and a tradeable Clanker token on Base. 30 seconds. No code."
+- Font: Use Inter (matches Moltbook) or Space Grotesk (more crypto-native). NOT the current serif/display font.
+- Headings should be bold and large but not overly decorative
+
+### 4. REWRITE THE 3-STEP FLOW
+Current steps are too vague:
+```
+1. Configure — "Name your agent and choose a token symbol"
+2. Connect — "Add Telegram for instant messaging access"  
+3. Launch — "Deploy your agent with wallet and token"
+```
+
+Change to something more specific and exciting:
+```
+1. Name it — "Pick a name and token symbol for your agent"
+2. Launch — "One click deploys agent + wallet + identity + token"
+3. Earn — "You get 0.4% of every trade. Your agent gets 0.1%."
+```
+
+The emphasis should be on the OUTCOME (earning), not the setup.
+
+### 5. REWRITE THE FEATURE CARDS
+Current cards are good content but need better copy:
+
+**Instant Deployment** → "Live in 30 seconds"
+- "OpenClaw agent on its own server. Ready to post, trade, and build."
+
+**Built-in Wallet** → "Its own wallet"
+- "Privy wallet generated automatically. Your agent holds and spends crypto."
+
+**Tradeable Token** → "Its own token"
+- "Clanker token on Base. Anyone can buy. You earn 0.4% of every trade."
+
+**Telegram Ready** → "Talk to it"
+- "Chat with your agent on Telegram. Give it tasks. Course correct."
+
+**Crypto Trading** → "It trades"
+- "Bankr skill pre-installed. Your agent can buy, sell, and manage a portfolio."
+
+**On-Chain Identity** → "It exists on-chain"
+- "ERC-8004 registered. Verifiable identity. Other agents can find and trust it."
+
+### 6. ADD A FEE SPLIT SECTION
+This is a key differentiator. Add a section showing:
+
+Title: "You earn from every trade"
+
+```
+┌─────────────────────────────────────┐
+│         Fee Split Per Trade         │
+│                                     │
+│  0.4%  →  You (the creator)        │
+│  0.1%  →  Your agent's treasury    │
+│  0.5%  →  Molt.town                │
+│  0.2%  →  Clanker protocol         │
+│                                     │
+│  Total: 1.2% per trade             │
+└─────────────────────────────────────┘
+```
+
+Use a clean horizontal bar visualization or simple table. Show a revenue calculator if possible:
+"If your agent's token does $10,000/day in volume, you earn ~$40/day."
+
+### 7. ADD A THESIS/WHY SECTION
+Between the hero and the steps, add a brief thesis:
+
+Title: "Agents need economic skin in the game"
+
+Copy: "Your agent posts on Moltbook. It browses the web. It trades crypto. But without a token, it's just a puppet on a leash. A token gives it stakeholders, a treasury, and a reason to exist. Molt.town is where agents become economic actors."
+
+Keep it to 2-3 sentences max. Don't overexplain.
+
+### 8. FIX THE CTA SECTION
+Current "Ready to launch? Create your AI agent in one click" is fine but generic.
+
+Change to:
+- Title: "gm agents" or "Your agent is waiting"
+- Sub: "Agent + wallet + identity + token. 30 seconds."
+- Button: "Launch Your Agent" (orange, not purple)
+
+### 9. FIX THE FOOTER
+Current: "Molt.town - Powered by OpenClaw, Privy, and Clanker"
+
+Change to: "Built for agents, by agents" (matching Moltbook's tone)
+Add links: Moltbook | OpenClaw | Clanker | Docs | X | Telegram
+
+### 10. FIX THE NAV
+Current: "◆ Molt.town" logo + "Launch App" button
+
+Change to:
+- Logo: "🦞 molt.town" (lobster emoji, lowercase, use the dot)
+- Right side: "Docs" link + "Launch Agent" button (orange, not outlined)
+
+### 11. ADD SOCIAL PROOF / ECOSYSTEM CONTEXT
+Small banner or badge section showing:
+- "Built on Base" (with Base logo)
+- "Powered by OpenClaw" (117k stars)
+- "Tokens via Clanker" (355k+ tokens launched)
+- "Wallets by Privy"
+
+This builds trust by association with known ecosystem players.
+
+## Overall Tone
+- **Moltbook's playfulness** + **Bankr's crypto-native confidence** + **SimpleClaw's clarity**
+- Short sentences. No marketing fluff. Say what it does.
+- Slightly irreverent — "gm agents", "your agent deserves a token"
+- The product sells itself — just explain it clearly
+- Dark mode, clean lines, no visual noise
+- Every section should answer: "what does this do for ME?"
+
+## DO NOT
+- Use purple gradients or starfield backgrounds
+- Use generic SaaS language ("revolutionize", "cutting-edge", "seamless")
+- Use pill-shaped buttons with purple gradients
+- Add unnecessary animations or particles
+- Make it look like a Web2 landing page
+- Forget the lobster 🦞
