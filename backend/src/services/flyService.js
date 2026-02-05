@@ -697,8 +697,8 @@ echo '{"error": "Timeout"}'; exit 1
     // 5. Start gateway with --allow-unconfigured and --token
     // Install bankr skill in workspace/skills directory (correct OpenClaw path)
     const initCmd = [
-      // Install jq via apk (Alpine package manager - more reliable than downloading binary)
-      '(which jq >/dev/null 2>&1 || apk add --no-cache jq >/dev/null 2>&1 || echo "jq install skipped")',
+      // Install jq and chromium via apk (Alpine package manager)
+      'apk add --no-cache jq chromium >/dev/null 2>&1 || echo "apk install skipped"',
       'jq --version || echo "jq not available, bankr skill may have limited functionality"',
       'mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
