@@ -522,7 +522,11 @@ export const flyService = {
             primary: openrouterModel
           },
           sandbox: {
-            mode: 'off'
+            mode: 'all',
+            browser: {
+              enabled: true,
+              autoStart: true
+            }
           }
         }
       },
@@ -913,6 +917,13 @@ echo '{"error": "Timeout"}'; exit 1
           defaults: {
             model: {
               primary: openrouterModel || 'openrouter/openai/gpt-4o'
+            },
+            sandbox: {
+              mode: 'all',
+              browser: {
+                enabled: true,
+                autoStart: true
+              }
             }
           }
         }
