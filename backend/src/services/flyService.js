@@ -516,6 +516,12 @@ export const flyService = {
           allowInsecureAuth: true
         }
       },
+      browser: {
+        enabled: true,
+        executablePath: '/usr/bin/chromium-browser',
+        noSandbox: true,
+        headless: true
+      },
       agents: {
         defaults: {
           model: {
