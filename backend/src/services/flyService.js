@@ -456,7 +456,7 @@ export const flyService = {
     const {
       model = 'openrouter/openai/gpt-4o',
       systemPrompt = 'You are a helpful assistant.',
-      botName = 'Assistant',
+      botName = 'Molty',
       region = 'iad',
       memoryMb = 4096,  // 4GB RAM for better performance
       cpus = 2,         // 2 shared CPUs
