@@ -33,7 +33,6 @@ export const agentLaunchService = {
       devRewardAddress,
       limitUsd = 5.00,
       telegramBotToken,
-      telegramUserId,
       twitterToken,
     } = config;
 
@@ -136,7 +135,6 @@ export const agentLaunchService = {
           tokenName: tokenName || agentName,
           agentWalletAddress: agentWallet?.address,
           telegramBotToken,
-          telegramUserId,
         });
         launchState.flyAppName = userGateway.appName;
       } catch (flyError) {
