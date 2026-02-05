@@ -523,7 +523,8 @@ export const flyService = {
         headless: true,
         profiles: {
           openclaw: {
-            cdpPort: 18800
+            cdpPort: 18800,
+            color: '#FF4500'
           }
         }
       },

@@ -1,0 +1,268 @@
+$ fly logs -a oc-user-f2bc39b90d6f-ml8yk2bi 
+Waiting for logs...
+04:30:16
+Pulling container image ghcr.io/openclaw/openclaw@sha256:a02b8193cc9d985dce3479eb1986a326f1e28253275b1c43491ac7923d6167e5
+04:31:05
+Successfully prepared image ghcr.io/openclaw/openclaw@sha256:a02b8193cc9d985dce3479eb1986a326f1e28253275b1c43491ac7923d6167e5 (49.109456935s)
+04:31:05
+Setting up volume 'user_data'
+04:31:05
+Uninitialized volume 'user_data', initializing...
+04:31:05
+Encrypting volume
+04:31:06
+Opening encrypted volume
+04:31:06
+Formatting volume
+04:31:07
+Configuring firecracker
+04:31:07
+2026-02-05T04:31:07.755775891 [01KGP11B7N3TRRD495KA2V3BEB:main] Running Firecracker v1.12.1
+04:31:07
+2026-02-05T04:31:07.755942890 [01KGP11B7N3TRRD495KA2V3BEB:main] Listening on API socket ("/fc.sock").
+04:31:08
+ INFO Starting init (commit: 350f2667)...
+04:31:08
+ INFO Checking filesystem on /data
+04:31:08
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+04:31:08
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+04:31:08
+ INFO Resized /data to 1056964608 bytes
+04:31:08
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.local/bin && export PATH="/home/node/.local/bin:$PATH" && (which jq >/dev/null 2>&1 || node -e "const https=require('https'),fs=require('fs');const f=fs.createWriteStream('/home/node/.local/bin/jq');https.get('https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64',r=>{if(r.statusCode===302){https.get(r.headers.location,r2=>r2.pipe(f).on('finish',()=>{fs.chmodSync('/home/node/.local/bin/jq',0o755);process.exit(0)}))}else{r.pipe(f).on('finish',()=>{fs.chmodSync('/home/node/.local/bin/jq',0o755);process.exit(0)})}})") && jq --version || echo "jq not available, bankr skill may have limited functionality" && mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && node -e "require('fs').writeFileSync('/home/node/.openclaw/workspace/AGENTS.md', Buffer.from(process.env.AGENTS_MD_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== INSTALLING BANKR SKILL ===" && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/SKILL.md -o /home/node/.openclaw/workspace/skills/bankr/SKILL.md && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh && for f in /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh; do sed -i '1a export PATH="/home/node/.local/bin:$PATH"' "$f" 2>/dev/null || true; done && chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh && printf '{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json && echo "=== BANKR SKILL INSTALLED ===" && ls -la /home/node/.openclaw/workspace/skills/bankr/ && cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50 && [ -n "$TELEGRAM_BOT_TOKEN" ] && curl -sf "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook" || true && echo "=== INSTALLING CHROMIUM ===" && node /app/node_modules/playwright-core/cli.js install chromium 2>/dev/null || echo "Chromium install skipped" && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+04:31:08
+ INFO [fly api proxy] listening at /.fly/api
+04:31:08
+Machine created and started in 52.37s
+04:31:08
+2026/02/05 04:31:08 INFO SSH listening listen_address=[fdaa:44:9071:a7b:40a:2ec9:e28f:2]:22
+04:31:10
+jq-1.7.1
+04:31:10
+=== INSTALLING BANKR SKILL ===
+04:31:10
+=== BANKR SKILL INSTALLED ===
+04:31:10
+total 28
+04:31:10
+drwxr-xr-x 3 node node  4096 Feb  5 04:31 .
+04:31:10
+drwxr-xr-x 3 node node  4096 Feb  5 04:31 ..
+04:31:10
+-rw-r--r-- 1 node node 12205 Feb  5 04:31 SKILL.md
+04:31:10
+-rw-r--r-- 1 node node    81 Feb  5 04:31 config.json
+04:31:10
+drwxr-xr-x 2 node node  4096 Feb  5 04:31 scripts
+04:31:10
+---
+04:31:10
+name: bankr
+04:31:10
+description: AI-powered crypto trading agent via natural language. Use when the user wants to trade crypto (buy/sell/swap tokens), check portfolio balances, view token prices, transfer crypto, manage NFTs, use leverage, bet on Polymarket, deploy tokens, set up automated trading strategies, submit raw transactions, execute calldata, or send transaction JSON. Supports Base, Ethereum, Polygon, Solana, and Unichain. Comprehensive capabilities include trading, portfolio management, market research, NFT operations, prediction markets, leverage trading, DeFi operations, automation, and arbitrary transaction submission.
+04:31:10
+metadata:
+04:31:10
+  {
+04:31:10
+    "clawdbot":
+04:31:10
+      {
+04:31:10
+        "emoji": "📺",
+04:31:10
+        "homepage": "https://bankr.bot",
+04:31:10
+        "requires": { "bins": ["curl", "jq"] },
+04:31:10
+      },
+04:31:10
+  }
+04:31:10
+---
+04:31:10
+# Bankr
+04:31:10
+Execute crypto trading and DeFi operations using natural language through Bankr's AI agent API.
+04:31:10
+## Quick Start
+04:31:10
+### First-Time Setup
+04:31:10
+There are two ways to get started:
+04:31:10
+#### Option A: User provides an existing API key
+04:31:10
+If the user already has a Bankr API key, they can provide it directly:
+04:31:10
+```bash
+04:31:10
+mkdir -p ~/.clawdbot/skills/bankr
+04:31:10
+cat > ~/.clawdbot/skills/bankr/config.json << 'EOF'
+04:31:10
+{
+04:31:10
+  "apiKey": "bk_YOUR_KEY_HERE",
+04:31:10
+  "apiUrl": "https://api.bankr.bot"
+04:31:10
+}
+04:31:10
+EOF
+04:31:10
+```
+04:31:10
+API keys can be created and managed at [bankr.bot/api](https://bankr.bot/api). The key must have **Agent API** access enabled.
+04:31:10
+#### Option B: Create a new account (guided by Clawd)
+04:31:10
+Clawd can walk the user through the full signup flow:
+04:31:10
+1. **Sign up / Sign in** — User provides their email address. Bankr sends a one-time passcode (OTP) to that email. Creating a new account automatically provisions **EVM wallets** (Base, Ethereum, Polygon, Unichain) and a **Solana wallet** — no manual wallet setup needed.
+04:31:10
+2. **Enter OTP** — User checks their email and provides the OTP code.
+04:31:10
+3. **Generate API key** — Once authenticated, navigate to [bankr.bot/api](https://bankr.bot/api) to create an API key with **Agent API** access enabled.
+04:31:10
+4. **Configure** — Save the key (starts with `bk_`) to config:
+04:31:10
+```bash
+04:31:11
+{"ok":true,"result":true,"description":"Webhook is already deleted"}=== INSTALLING CHROMIUM ===
+04:31:11
+Downloading Chrome for Testing 145.0.7632.6 (playwright chromium v1208) from https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+04:31:12
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+04:31:12
+|                                                                                |   0% of 167.3 MiB
+04:31:12
+|■■■■■■■■                                                                        |  10% of 167.3 MiB
+04:31:12
+|■■■■■■■■■■■■■■■■                                                                |  20% of 167.3 MiB
+04:31:12
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 167.3 MiB
+04:31:12
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 167.3 MiB
+04:31:12
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 167.3 MiB
+04:31:12
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 167.3 MiB
+04:31:13
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 167.3 MiB
+04:31:13
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 167.3 MiB
+04:31:13
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 167.3 MiB
+04:31:13
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 167.3 MiB
+04:31:22
+Chrome for Testing 145.0.7632.6 (playwright chromium v1208) downloaded to /home/node/.cache/ms-playwright/chromium-1208
+04:31:22
+Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+04:31:22
+|                                                                                |   0% of 2.3 MiB
+04:31:22
+|■■■■■■■■                                                                        |  10% of 2.3 MiB
+04:31:22
+|■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+04:31:22
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+04:31:22
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+04:31:22
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+04:31:22
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+04:31:22
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+04:31:22
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+04:31:22
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+04:31:22
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+04:31:22
+FFmpeg (playwright ffmpeg v1011) downloaded to /home/node/.cache/ms-playwright/ffmpeg-1011
+04:31:22
+Downloading Chrome Headless Shell 145.0.7632.6 (playwright chromium-headless-shell v1208) from https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-headless-shell-linux64.zip
+04:31:23
+|                                                                                |   0% of 110.9 MiB
+04:31:23
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+04:31:23
+|■■■■■■■■                                                                        |  10% of 110.9 MiB
+04:31:23
+|■■■■■■■■■■■■■■■■                                                                |  20% of 110.9 MiB
+04:31:23
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 110.9 MiB
+04:31:23
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 110.9 MiB
+04:31:23
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 110.9 MiB
+04:31:23
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 110.9 MiB
+04:31:23
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 110.9 MiB
+04:31:23
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 110.9 MiB
+04:31:23
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 110.9 MiB
+04:31:23
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 110.9 MiB
+04:31:26
+Chrome Headless Shell 145.0.7632.6 (playwright chromium-headless-shell v1208) downloaded to /home/node/.cache/ms-playwright/chromium_headless_shell-1208
+04:31:26
+=== STARTING GATEWAY ===
+04:31:33
+Invalid config at /home/node/.openclaw/openclaw.json:\n- browser.profiles.openclaw.color: Invalid input: expected string, received undefined
+04:31:33
+|
+04:31:33
+o  Config ---------------------------------------------------+
+04:31:33
+|                                                            |
+04:31:33
+|  Config invalid; doctor will run with best-effort config.  |
+04:31:33
+|                                                            |
+04:31:33
++------------------------------------------------------------+
+04:31:33
+|
+04:31:33
+o  Doctor changes ------------------------+
+04:31:33
+|                                         |
+04:31:33
+|  Telegram configured, not enabled yet.  |
+04:31:33
+|                                         |
+04:31:33
++-----------------------------------------+
+04:31:33
+|
+04:31:33
+o  Doctor ----------------------------------------------+
+04:31:33
+|                                                       |
+04:31:33
+|  Run "openclaw doctor --fix" to apply these changes.  |
+04:31:33
+|                                                       |
+04:31:33
++-------------------------------------------------------+
+04:31:33
+Config invalid
+04:31:33
+File: ~/.openclaw/openclaw.json
+04:31:33
+Problem:
+04:31:33
+  - browser.profiles.openclaw.color: Invalid input: expected string, received undefined
+04:31:33
+Run: openclaw doctor --fix
+04:31:33
+ INFO Main child exited normally with code: 1
