@@ -27,7 +27,7 @@ export const agentLaunchService = {
       agentName,
       tokenSymbol,
       tokenName,
-      model = 'openai/gpt-4o',
+      model = 'anthropic/claude-opus-4.5',
       systemPrompt = 'You are a helpful AI assistant.',
       userWalletAddress,
       devRewardAddress,

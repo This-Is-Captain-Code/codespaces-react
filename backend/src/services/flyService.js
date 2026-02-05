@@ -458,7 +458,7 @@ export const flyService = {
     const appName = `oc-user-${shortUserId}-${Date.now().toString(36)}`;
     
     const {
-      model = 'openrouter/openai/gpt-4o',
+      model = 'openrouter/anthropic/claude-opus-4.5',
       systemPrompt = 'You are a helpful assistant.',
       botName = 'Molty',
       region = 'iad',

@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { launchAPI } from '../api/client';
 import './AgentLaunchForm.css';
 
+const AI_MODELS = [
+  { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', provider: 'Anthropic' },
+  { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'Anthropic' },
+  { id: 'openai/gpt-5.2', name: 'GPT 5.2', provider: 'OpenAI' },
+  { id: 'deepseek/deepseek-chat-v3.1', name: 'DeepSeek V3.1', provider: 'DeepSeek' },
+  { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'Google' },
+];
+
 const LAUNCH_STEPS = [
   { key: 'creating_openrouter_key', label: 'Setting up AI model' },
   { key: 'creating_wallet', label: 'Creating agent wallet' },
@@ -16,6 +24,7 @@ const LAUNCH_STEPS = [
 export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
   const [agentName, setAgentName] = useState('');
   const [tokenSymbol, setTokenSymbol] = useState('');
+  const [selectedModel, setSelectedModel] = useState(AI_MODELS[0].id);
   const [telegramBotToken, setTelegramBotToken] = useState('');
   const [twitterToken, setTwitterToken] = useState('');
   const [launching, setLaunching] = useState(false);
@@ -43,6 +52,7 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
           agentName: agentName.trim(),
           tokenSymbol: tokenSymbol.trim().toUpperCase(),
           tokenName: agentName.trim(),
+          model: selectedModel,
           userWalletAddress,
           telegramBotToken: telegramBotToken.trim() || undefined,
           twitterToken: twitterToken.trim() || undefined,
@@ -200,6 +210,23 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
               required
             />
             <span className="hint">This will be the ticker for your token on Base</span>
+          </div>
+
+          <div className="form-group">
+            <label>AI Model</label>
+            <div className="model-selector">
+              {AI_MODELS.map((model) => (
+                <button
+                  key={model.id}
+                  type="button"
+                  className={`model-button ${selectedModel === model.id ? 'selected' : ''}`}
+                  onClick={() => setSelectedModel(model.id)}
+                >
+                  <span className="model-name">{model.name}</span>
+                  <span className="model-provider">{model.provider}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="form-section">
