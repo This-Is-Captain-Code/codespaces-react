@@ -518,8 +518,14 @@ export const flyService = {
       },
       browser: {
         enabled: true,
+        defaultProfile: 'openclaw',
         noSandbox: true,
-        headless: true
+        headless: true,
+        profiles: {
+          openclaw: {
+            cdpPort: 18800
+          }
+        }
       },
       agents: {
         defaults: {
