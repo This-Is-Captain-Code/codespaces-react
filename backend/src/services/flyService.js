@@ -660,6 +660,7 @@ exec: {baseDir}/bin/bankr.sh "Buy $50 of ETH on Base"
     const bankrScript = `#!/bin/bash
 # Bankr Agent API wrapper
 set -euo pipefail
+export PATH="/home/node/.local/bin:\$PATH"
 SKILL_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG_FILE="\$SKILL_DIR/config.json"
 API_KEY=$(jq -r '.apiKey' "\$CONFIG_FILE")
@@ -689,9 +690,11 @@ echo '{"error": "Timeout"}'; exit 1
     // 5. Start gateway with --allow-unconfigured and --token
     // Install bankr skill in workspace/skills directory (correct OpenClaw path)
     const initCmd = [
-      // Install jq for skill scripts - try apk (Alpine), apt (Debian), or download binary
-      '(which jq || apk add --no-cache jq 2>/dev/null || apt-get update && apt-get install -y jq 2>/dev/null || (curl -sL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /tmp/jq && chmod +x /tmp/jq && mv /tmp/jq /usr/bin/jq))',
-      'jq --version',
+      // Install jq for skill scripts to user-writable location (container runs as non-root 'node' user)
+      'mkdir -p /home/node/.local/bin',
+      'export PATH="/home/node/.local/bin:$PATH"',
+      '(which jq >/dev/null 2>&1 || (curl -sL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /home/node/.local/bin/jq && chmod +x /home/node/.local/bin/jq))',
+      'jq --version || echo "jq not available, bankr skill may have limited functionality"',
       'mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
@@ -703,6 +706,8 @@ echo '{"error": "Timeout"}'; exit 1
       'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh',
       'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh',
       'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh',
+      // Inject PATH into downloaded scripts so they can find jq in user's local bin
+      'for f in /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh; do sed -i \'2i export PATH="/home/node/.local/bin:$PATH"\' "$f"; done',
       'chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh',
       // Create config.json with Bankr API key
       'printf \'{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}\' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json',

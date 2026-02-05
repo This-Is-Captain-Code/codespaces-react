@@ -1,0 +1,74 @@
+fly logs -a oc-user-9a23611a181e-ml8qu8sy 
+Waiting for logs...
+00:54:14
+Pulling container image ghcr.io/openclaw/openclaw@sha256:8909f47c0360633b1e74976015a74b15902ff02ec0b026b9a71cd951f7b4ee5f
+00:54:49
+Successfully prepared image ghcr.io/openclaw/openclaw@sha256:8909f47c0360633b1e74976015a74b15902ff02ec0b026b9a71cd951f7b4ee5f (34.648198114s)
+00:54:49
+Setting up volume 'user_data'
+00:54:49
+Uninitialized volume 'user_data', initializing...
+00:54:49
+Encrypting volume
+00:54:49
+Opening encrypted volume
+00:54:50
+Formatting volume
+00:54:50
+Configuring firecracker
+00:54:51
+2026-02-05T00:54:51.108490721 [01KGNMNS8GC99VHWN5K8XQSWJE:main] Running Firecracker v1.12.1
+00:54:51
+2026-02-05T00:54:51.108614261 [01KGNMNS8GC99VHWN5K8XQSWJE:main] Listening on API socket ("/fc.sock").
+00:54:51
+ INFO Starting init (commit: 350f2667)...
+00:54:51
+ INFO Checking filesystem on /data
+00:54:51
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+00:54:51
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+00:54:51
+ INFO Resized /data to 1056964608 bytes
+00:54:51
+ INFO Preparing to run: `docker-entrypoint.sh sh -c (which jq || apk add --no-cache jq 2>/dev/null || apt-get update && apt-get install -y jq 2>/dev/null || (curl -sL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /tmp/jq && chmod +x /tmp/jq && mv /tmp/jq /usr/bin/jq)) && jq --version && mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && node -e "require('fs').writeFileSync('/home/node/.openclaw/workspace/AGENTS.md', Buffer.from(process.env.AGENTS_MD_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== INSTALLING BANKR SKILL ===" && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/SKILL.md -o /home/node/.openclaw/workspace/skills/bankr/SKILL.md && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh && chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh && printf '{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json && echo "=== BANKR SKILL INSTALLED ===" && ls -la /home/node/.openclaw/workspace/skills/bankr/ && cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50 && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+00:54:51
+ INFO [fly api proxy] listening at /.fly/api
+00:54:52
+Reading package lists...
+00:54:52
+E: List directory /var/lib/apt/lists/partial is missing. - Acquire (13: Permission denied)
+00:54:52
+Machine created and started in 37.427s
+00:54:52
+2026/02/05 00:54:52 INFO SSH listening listen_address=[fdaa:44:9071:a7b:514:4f08:1796:2]:22
+00:54:54
+mv: cannot move '/tmp/jq' to '/usr/bin/jq': Permission denied
+00:54:54
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+00:54:54
+ INFO Main child exited normally with code: 1
+00:54:54
+ INFO Starting clean up.
+00:54:55
+ INFO Umounting /dev/vdc from /data
+00:54:55
+[    3.834168] reboot: Restarting system
+00:54:56
+2026-02-05T00:54:56.140824906 [01KGNMNS8GC99VHWN5K8XQSWJE:main] Running Firecracker v1.12.1
+00:54:56
+2026-02-05T00:54:56.140936607 [01KGNMNS8GC99VHWN5K8XQSWJE:main] Listening on API socket ("/fc.sock").
+00:54:56
+ INFO Starting init (commit: 350f2667)...
+00:54:56
+ INFO Checking filesystem on /data
+00:54:56
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+00:54:56
+Starting machine
+00:54:56
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+00:54:56
+[PM01] machines API returned an error: "machine still attempting to start"
+00:54:56
+ INFO Resized /data to 1056964608 bytes
