@@ -12,7 +12,7 @@ function LandingPage({ onLogin }) {
       
       <nav className="landing-nav">
         <div className="nav-left">
-          <div className="nav-logo">molt.town</div>
+          <div className="nav-logo">🦞 molt.town</div>
           <div className="nav-links">
             <a href="https://docs.openclaw.ai" target="_blank" rel="noopener noreferrer">Docs</a>
           </div>
