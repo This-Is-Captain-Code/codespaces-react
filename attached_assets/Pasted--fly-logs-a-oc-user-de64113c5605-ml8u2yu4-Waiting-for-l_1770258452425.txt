@@ -1,0 +1,64 @@
+$ fly logs -a oc-user-de64113c5605-ml8u2yu4 
+Waiting for logs...
+02:25:00
+Pulling container image ghcr.io/openclaw/openclaw@sha256:a02b8193cc9d985dce3479eb1986a326f1e28253275b1c43491ac7923d6167e5
+02:25:01
+Pulling container image ghcr.io/openclaw/openclaw@sha256:a02b8193cc9d985dce3479eb1986a326f1e28253275b1c43491ac7923d6167e5
+02:25:01
+Pulling container image ghcr.io/openclaw/openclaw:latest
+02:25:01
+Successfully prepared image ghcr.io/openclaw/openclaw:latest (37.080847ms)
+02:25:01
+Setting up volume 'user_data'
+02:25:01
+Uninitialized volume 'user_data', initializing...
+02:25:01
+Encrypting volume
+02:25:02
+Opening encrypted volume
+02:25:02
+Formatting volume
+02:25:03
+Configuring firecracker
+02:25:03
+2026-02-05T02:25:03.794644722 [01KGNSVZS1RNH60RHGDV4JGEM8:main] Running Firecracker v1.12.1
+02:25:03
+2026-02-05T02:25:03.794763082 [01KGNSVZS1RNH60RHGDV4JGEM8:main] Listening on API socket ("/fc.sock").
+02:25:04
+ INFO Starting init (commit: 350f2667)...
+02:25:04
+ INFO Checking filesystem on /data
+02:25:04
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+02:25:04
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+02:25:04
+ INFO Resized /data to 1056964608 bytes
+02:25:04
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.local/bin && export PATH="/home/node/.local/bin:$PATH" && (which jq >/dev/null 2>&1 || (curl -sL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /home/node/.local/bin/jq && chmod +x /home/node/.local/bin/jq)) && jq --version || echo "jq not available, bankr skill may have limited functionality" && mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && node -e "require('fs').writeFileSync('/home/node/.openclaw/workspace/AGENTS.md', Buffer.from(process.env.AGENTS_MD_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== INSTALLING BANKR SKILL ===" && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/SKILL.md -o /home/node/.openclaw/workspace/skills/bankr/SKILL.md && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh && for f in /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh; do sed -i '2i export PATH="/home/node/.local/bin:$PATH"' "$f"; done && chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh && printf '{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json && echo "=== BANKR SKILL INSTALLED ===" && ls -la /home/node/.openclaw/workspace/skills/bankr/ && cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50 && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+02:25:04
+ INFO [fly api proxy] listening at /.fly/api
+02:25:04
+Machine created and started in 3.866s
+02:25:04
+2026/02/05 02:25:04 INFO SSH listening listen_address=[fdaa:44:9071:a7b:50f:852f:7433:2]:22
+02:25:05
+jq not available, bankr skill may have limited functionality
+02:25:06
+=== INSTALLING BANKR SKILL ===
+02:25:06
+ INFO Main child exited normally with code: 35
+02:25:06
+ INFO Starting clean up.
+02:25:06
+ INFO Umounting /dev/vdc from /data
+02:25:06
+[    2.833874] reboot: Restarting system
+02:25:10
+ INFO Main child exited normally with code: 35
+02:25:10
+ INFO Starting clean up.
+02:25:10
+ INFO Umounting /dev/vdc from /data
+02:25:10
+[    1.833882] reboot: Restarting system
