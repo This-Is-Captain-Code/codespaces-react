@@ -547,8 +547,7 @@ export const flyService = {
         channels: {
           telegram: {
             enabled: true,
-            botToken: telegramBotToken,
-            allowedUpdates: ['message', 'callback_query']
+            botToken: telegramBotToken
           }
         }
       } : {})

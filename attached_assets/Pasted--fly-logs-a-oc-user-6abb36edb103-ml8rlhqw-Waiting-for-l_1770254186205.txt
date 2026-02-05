@@ -1,0 +1,272 @@
+$ fly logs -a oc-user-6abb36edb103-ml8rlhqw 
+Waiting for logs...
+01:15:32
+4. **Configure** — Save the key (starts with `bk_`) to config:
+01:15:32
+```bash
+01:15:32
+=== STARTING GATEWAY ===
+01:15:33
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+01:15:40
+Invalid config at /home/node/.openclaw/openclaw.json:\n- channels.telegram: Unrecognized key: "allowedUpdates"
+01:15:40
+|
+01:15:40
+o  Config ---------------------------------------------------+
+01:15:40
+|                                                            |
+01:15:40
+|  Config invalid; doctor will run with best-effort config.  |
+01:15:40
+|                                                            |
+01:15:40
++------------------------------------------------------------+
+01:15:40
+|
+01:15:40
+o  Doctor changes ------------------------+
+01:15:40
+|                                         |
+01:15:40
+|  Telegram configured, not enabled yet.  |
+01:15:40
+|                                         |
+01:15:40
++-----------------------------------------+
+01:15:40
+|
+01:15:40
+o  Unknown config keys ----------------+
+01:15:40
+|                                      |
+01:15:40
+|  - channels.telegram.allowedUpdates  |
+01:15:40
+|                                      |
+01:15:40
++--------------------------------------+
+01:15:40
+|
+01:15:40
+o  Doctor ----------------------------------------------+
+01:15:40
+|                                                       |
+01:15:40
+|  Run "openclaw doctor --fix" to apply these changes.  |
+01:15:40
+|  Run "openclaw doctor --fix" to remove these keys.    |
+01:15:40
+|                                                       |
+01:15:40
++-------------------------------------------------------+
+01:15:40
+Config invalid
+01:15:40
+File: ~/.openclaw/openclaw.json
+01:15:40
+Problem:
+01:15:40
+  - channels.telegram: Unrecognized key: "allowedUpdates"
+01:15:40
+Run: openclaw doctor --fix
+01:15:41
+ INFO Main child exited normally with code: 1
+01:15:41
+ INFO Starting clean up.
+01:15:41
+ INFO Umounting /dev/vdc from /data
+01:15:41
+[   12.063432] reboot: Restarting system
+01:15:43
+2026-02-05T01:15:43.407233771 [01KGNNWKJ6VFM64Q0SJER0EWTW:main] Running Firecracker v1.12.1
+01:15:43
+2026-02-05T01:15:43.407391839 [01KGNNWKJ6VFM64Q0SJER0EWTW:main] Listening on API socket ("/fc.sock").
+01:15:44
+Starting machine
+01:15:44
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PM01] machines API returned an error: "machine still attempting to start"
+01:15:44
+ INFO Starting init (commit: 350f2667)...
+01:15:44
+ INFO Checking filesystem on /data
+01:15:44
+/dev/vdc: clean, 15/64512 files, 8789/258048 blocks
+01:15:44
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+01:15:44
+ INFO Resized /data to 1056964608 bytes
+01:15:44
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.local/bin && export PATH="/home/node/.local/bin:$PATH" && (which jq >/dev/null 2>&1 || (curl -sL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /home/node/.local/bin/jq && chmod +x /home/node/.local/bin/jq)) && jq --version || echo "jq not available, bankr skill may have limited functionality" && mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && node -e "require('fs').writeFileSync('/home/node/.openclaw/workspace/AGENTS.md', Buffer.from(process.env.AGENTS_MD_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== INSTALLING BANKR SKILL ===" && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/SKILL.md -o /home/node/.openclaw/workspace/skills/bankr/SKILL.md && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh && for f in /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh; do sed -i '2i export PATH="/home/node/.local/bin:$PATH"' "$f"; done && chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh && printf '{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json && echo "=== BANKR SKILL INSTALLED ===" && ls -la /home/node/.openclaw/workspace/skills/bankr/ && cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50 && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+01:15:44
+ INFO [fly api proxy] listening at /.fly/api
+01:15:44
+Machine started in 1.915s
+01:15:44
+2026/02/05 01:15:44 INFO SSH listening listen_address=[fdaa:44:9071:a7b:52d:dce5:d090:2]:22
+01:15:45
+jq-1.7.1
+01:15:45
+=== INSTALLING BANKR SKILL ===
+01:15:45
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+01:15:45
+=== BANKR SKILL INSTALLED ===
+01:15:45
+total 28
+01:15:45
+drwxr-xr-x 3 node node  4096 Feb  5 01:15 .
+01:15:45
+drwxr-xr-x 3 node node  4096 Feb  5 01:15 ..
+01:15:45
+-rw-r--r-- 1 node node 12205 Feb  5 01:15 SKILL.md
+01:15:45
+-rw-r--r-- 1 node node    81 Feb  5 01:15 config.json
+01:15:45
+drwxr-xr-x 2 node node  4096 Feb  5 01:15 scripts
+01:15:45
+---
+01:15:45
+name: bankr
+01:15:45
+description: AI-powered crypto trading agent via natural language. Use when the user wants to trade crypto (buy/sell/swap tokens), check portfolio balances, view token prices, transfer crypto, manage NFTs, use leverage, bet on Polymarket, deploy tokens, set up automated trading strategies, submit raw transactions, execute calldata, or send transaction JSON. Supports Base, Ethereum, Polygon, Solana, and Unichain. Comprehensive capabilities include trading, portfolio management, market research, NFT operations, prediction markets, leverage trading, DeFi operations, automation, and arbitrary transaction submission.
+01:15:45
+metadata:
+01:15:45
+  {
+01:15:45
+    "clawdbot":
+01:15:45
+      {
+01:15:45
+        "emoji": "📺",
+01:15:45
+        "homepage": "https://bankr.bot",
+01:15:45
+        "requires": { "bins": ["curl", "jq"] },
+01:15:45
+      },
+01:15:45
+  }
+01:15:45
+---
+01:15:45
+# Bankr
+01:15:45
+Execute crypto trading and DeFi operations using natural language through Bankr's AI agent API.
+01:15:45
+## Quick Start
+01:15:45
+### First-Time Setup
+01:15:45
+There are two ways to get started:
+01:15:45
+#### Option A: User provides an existing API key
+01:15:45
+If the user already has a Bankr API key, they can provide it directly:
+01:15:45
+```bash
+01:15:45
+mkdir -p ~/.clawdbot/skills/bankr
+01:15:45
+cat > ~/.clawdbot/skills/bankr/config.json << 'EOF'
+01:15:45
+{
+01:15:45
+  "apiKey": "bk_YOUR_KEY_HERE",
+01:15:45
+  "apiUrl": "https://api.bankr.bot"
+01:15:45
+}
+01:15:45
+EOF
+01:15:45
+```
+01:15:45
+API keys can be created and managed at [bankr.bot/api](https://bankr.bot/api). The key must have **Agent API** access enabled.
+01:15:45
+#### Option B: Create a new account (guided by Clawd)
+01:15:45
+Clawd can walk the user through the full signup flow:
+01:15:45
+1. **Sign up / Sign in** — User provides their email address. Bankr sends a one-time passcode (OTP) to that email. Creating a new account automatically provisions **EVM wallets** (Base, Ethereum, Polygon, Unichain) and a **Solana wallet** — no manual wallet setup needed.
+01:15:45
+2. **Enter OTP** — User checks their email and provides the OTP code.
+01:15:45
+3. **Generate API key** — Once authenticated, navigate to [bankr.bot/api](https://bankr.bot/api) to create an API key with **Agent API** access enabled.
+01:15:45
+4. **Configure** — Save the key (starts with `bk_`) to config:
+01:15:45
+```bash
+01:15:45
+=== STARTING GATEWAY ===
+01:15:54
+Invalid config at /home/node/.openclaw/openclaw.json:\n- channels.telegram: Unrecognized key: "allowedUpdates"
+01:15:54
+|
+01:15:54
+o  Config ---------------------------------------------------+
+01:15:54
+|                                                            |
+01:15:54
+|  Config invalid; doctor will run with best-effort config.  |
+01:15:54
+|                                                            |
+01:15:54
++------------------------------------------------------------+
+01:15:54
+|
+01:15:54
+o  Doctor changes ------------------------+
+01:15:54
+|                                         |
+01:15:54
+|  Telegram configured, not enabled yet.  |
+01:15:54
+|                                         |
+01:15:54
++-----------------------------------------+
+01:15:54
+|
+01:15:54
+o  Unknown config keys ----------------+
+01:15:54
+|                                      |
+01:15:54
+|  - channels.telegram.allowedUpdates  |
+01:15:54
+|                                      |
+01:15:54
++--------------------------------------+
+01:15:54
+|
+01:15:54
+o  Doctor ----------------------------------------------+
+01:15:54
+|                                                       |
+01:15:54
+|  Run "openclaw doctor --fix" to apply these changes.  |
+01:15:54
+|  Run "openclaw doctor --fix" to remove these keys.    |
+01:15:54
+|                                                       |
+01:15:54
++-------------------------------------------------------+
+01:15:54
+Config invalid
+01:15:54
+File: ~/.openclaw/openclaw.json
+01:15:54
+Problem:
+01:15:54
+  - channels.telegram: Unrecognized key: "allowedUpdates"
+01:15:54
+Run: openclaw doctor --fix
+01:15:54
+ INFO Main child exited normally with code: 1
+01:15:54
+ INFO Starting clean up.
+01:15:54
+ INFO Umounting /dev/vdc from /data
+01:15:54
+[   11.228753] reboot: Restarting system
