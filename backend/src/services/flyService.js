@@ -522,11 +522,11 @@ export const flyService = {
             primary: openrouterModel
           },
           sandbox: {
-            mode: 'all',
-            browser: {
-              enabled: true,
-              autoStart: true
-            }
+            mode: 'off'
+          },
+          browser: {
+            enabled: true,
+            autoStart: true
           }
         }
       },
