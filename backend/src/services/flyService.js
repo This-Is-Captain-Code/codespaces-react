@@ -32,44 +32,6 @@ async function flyRequest(method, path, body = null) {
   return response.json();
 }
 
-async function setupTelegramWebhook(botToken, appUrl) {
-  const webhookUrl = `${appUrl}/api/channels/telegram/webhook`;
-  console.log(`Setting up Telegram webhook: ${webhookUrl}`);
-  
-  try {
-    const setResponse = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: webhookUrl }),
-    });
-    
-    const setResult = await setResponse.json();
-    if (!setResult.ok) {
-      console.error('Failed to set Telegram webhook:', setResult.description);
-      return { success: false, error: setResult.description };
-    }
-    
-    const infoResponse = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
-    const infoResult = await infoResponse.json();
-    
-    if (infoResult.ok && infoResult.result.url === webhookUrl) {
-      console.log(`Telegram webhook verified: ${webhookUrl}`);
-      
-      const meResponse = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
-      const meResult = await meResponse.json();
-      const username = meResult.ok ? meResult.result.username : null;
-      
-      return { success: true, webhookUrl, username };
-    } else {
-      console.warn('Telegram webhook verification failed');
-      return { success: false, error: 'Webhook verification failed' };
-    }
-  } catch (error) {
-    console.error('Telegram webhook setup error:', error.message);
-    return { success: false, error: error.message };
-  }
-}
-
 export const flyService = {
   createApp: async (appName, orgSlug = 'personal') => {
     console.log(`Creating Fly app: ${appName}...`);
@@ -589,7 +551,6 @@ export const flyService = {
         channels: {
           telegram: {
             enabled: true,
-            mode: 'webhook',
             botToken: telegramBotToken
           }
         }
@@ -819,19 +780,18 @@ echo '{"error": "Timeout"}'; exit 1
 
     console.log(`Per-user gateway created: ${endpoint}`);
 
-    // Set up Telegram webhook if bot token provided
+    // Get Telegram bot username if token provided
     let telegramUsername = null;
-    let telegramWebhookSet = false;
     if (telegramBotToken) {
-      // Wait a bit for OpenClaw to fully initialize
-      await new Promise(resolve => setTimeout(resolve, 10000));
-      
-      const webhookResult = await setupTelegramWebhook(telegramBotToken, endpoint);
-      telegramWebhookSet = webhookResult.success;
-      telegramUsername = webhookResult.username || null;
-      
-      if (!webhookResult.success) {
-        console.warn(`Telegram webhook setup failed: ${webhookResult.error}`);
+      try {
+        const meResponse = await fetch(`https://api.telegram.org/bot${telegramBotToken}/getMe`);
+        const meResult = await meResponse.json();
+        if (meResult.ok) {
+          telegramUsername = meResult.result.username;
+          console.log(`Telegram bot username: @${telegramUsername}`);
+        }
+      } catch (error) {
+        console.warn(`Failed to get Telegram bot info: ${error.message}`);
       }
     }
 
@@ -845,7 +805,6 @@ echo '{"error": "Timeout"}'; exit 1
       region,
       model: openrouterModel,
       telegramConfigured: !!telegramBotToken,
-      telegramWebhookSet,
       telegramUsername,
     };
   },
