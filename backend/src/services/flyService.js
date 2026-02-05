@@ -722,6 +722,8 @@ echo '{"error": "Timeout"}'; exit 1
       'echo "=== BANKR SKILL INSTALLED ==="',
       'ls -la /home/node/.openclaw/workspace/skills/bankr/',
       'cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50',
+      // Delete any existing Telegram webhook before starting (OpenClaw uses polling mode)
+      '[ -n "$TELEGRAM_BOT_TOKEN" ] && curl -sf "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook" || true',
       'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
@@ -739,6 +741,7 @@ echo '{"error": "Timeout"}'; exit 1
           BANKR_API_KEY: process.env.BANKR_API_KEY || '',
           OPENCLAW_CONFIG_B64: configBase64,
           AGENTS_MD_B64: agentsBase64,
+          ...(telegramBotToken ? { TELEGRAM_BOT_TOKEN: telegramBotToken } : {}),
           PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser',
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true',
           CHROMIUM_PATH: '/usr/bin/chromium-browser',
@@ -788,32 +791,10 @@ echo '{"error": "Timeout"}'; exit 1
 
     console.log(`Per-user gateway created: ${endpoint}`);
 
-    // Set up Telegram webhook if token provided
+    // Get Telegram bot info if token provided (OpenClaw uses polling mode, no webhook needed)
     let telegramUsername = null;
-    let telegramWebhookSet = false;
     if (telegramBotToken) {
-      const webhookUrl = `${endpoint}/telegram/webhook`;
-      console.log(`Setting up Telegram webhook: ${webhookUrl}`);
-      
       try {
-        // Wait for OpenClaw to initialize
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        
-        // Set the webhook
-        const setResponse = await fetch(`https://api.telegram.org/bot${telegramBotToken}/setWebhook`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: webhookUrl }),
-        });
-        const setResult = await setResponse.json();
-        
-        if (setResult.ok) {
-          telegramWebhookSet = true;
-          console.log(`Telegram webhook set: ${webhookUrl}`);
-        } else {
-          console.warn(`Failed to set Telegram webhook: ${setResult.description}`);
-        }
-        
         // Get bot username
         const meResponse = await fetch(`https://api.telegram.org/bot${telegramBotToken}/getMe`);
         const meResult = await meResponse.json();
@@ -836,7 +817,6 @@ echo '{"error": "Timeout"}'; exit 1
       region,
       model: openrouterModel,
       telegramConfigured: !!telegramBotToken,
-      telegramWebhookSet,
       telegramUsername,
     };
   },
