@@ -550,10 +550,9 @@ export const flyService = {
       ...(telegramBotToken ? {
         channels: {
           telegram: {
-            token: telegramBotToken,
-            webhook: {
-              url: `https://${appName}.fly.dev/telegram/webhook`
-            }
+            enabled: true,
+            botToken: telegramBotToken,
+            dmPolicy: 'allow'
           }
         }
       } : {})
