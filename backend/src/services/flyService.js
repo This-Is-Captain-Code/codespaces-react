@@ -174,6 +174,9 @@ export const flyService = {
           OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
           OPENAI_API_KEY: openrouterApiKey || process.env.OPENROUTER_API_KEY,
           OPENCLAW_CONFIG_B64: configBase64,
+          PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser',
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true',
+          CHROMIUM_PATH: '/usr/bin/chromium-browser',
         },
         guest: {
           cpu_kind: 'shared',
@@ -201,7 +204,7 @@ export const flyService = {
           max_retries: 10,
         },
         init: {
-          cmd: ['sh', '-c', 'apk add --no-cache jq curl >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
+          cmd: ['sh', '-c', 'apk add --no-cache jq curl chromium >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
         }
       },
       region,
@@ -340,9 +343,12 @@ export const flyService = {
           OPENAI_BASE_URL: 'https://openrouter.ai/api/v1',
           OPENAI_API_KEY: openrouterApiKey,
           OPENCLAW_CONFIG_B64: configBase64,
+          PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser',
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true',
+          CHROMIUM_PATH: '/usr/bin/chromium-browser',
         },
         init: {
-          cmd: ['sh', '-c', 'apk add --no-cache jq curl >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
+          cmd: ['sh', '-c', 'apk add --no-cache jq curl chromium >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
         }
       },
     };
