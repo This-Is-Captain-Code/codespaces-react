@@ -550,8 +550,10 @@ export const flyService = {
       ...(telegramBotToken ? {
         channels: {
           telegram: {
-            enabled: true,
-            botToken: telegramBotToken
+            token: telegramBotToken,
+            webhook: {
+              url: `https://${appName}.fly.dev/telegram/webhook`
+            }
           }
         }
       } : {})
@@ -780,10 +782,33 @@ echo '{"error": "Timeout"}'; exit 1
 
     console.log(`Per-user gateway created: ${endpoint}`);
 
-    // Get Telegram bot username if token provided
+    // Set up Telegram webhook if token provided
     let telegramUsername = null;
+    let telegramWebhookSet = false;
     if (telegramBotToken) {
+      const webhookUrl = `${endpoint}/telegram/webhook`;
+      console.log(`Setting up Telegram webhook: ${webhookUrl}`);
+      
       try {
+        // Wait for OpenClaw to initialize
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        
+        // Set the webhook
+        const setResponse = await fetch(`https://api.telegram.org/bot${telegramBotToken}/setWebhook`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: webhookUrl }),
+        });
+        const setResult = await setResponse.json();
+        
+        if (setResult.ok) {
+          telegramWebhookSet = true;
+          console.log(`Telegram webhook set: ${webhookUrl}`);
+        } else {
+          console.warn(`Failed to set Telegram webhook: ${setResult.description}`);
+        }
+        
+        // Get bot username
         const meResponse = await fetch(`https://api.telegram.org/bot${telegramBotToken}/getMe`);
         const meResult = await meResponse.json();
         if (meResult.ok) {
@@ -791,7 +816,7 @@ echo '{"error": "Timeout"}'; exit 1
           console.log(`Telegram bot username: @${telegramUsername}`);
         }
       } catch (error) {
-        console.warn(`Failed to get Telegram bot info: ${error.message}`);
+        console.warn(`Telegram setup error: ${error.message}`);
       }
     }
 
@@ -805,6 +830,7 @@ echo '{"error": "Timeout"}'; exit 1
       region,
       model: openrouterModel,
       telegramConfigured: !!telegramBotToken,
+      telegramWebhookSet,
       telegramUsername,
     };
   },
