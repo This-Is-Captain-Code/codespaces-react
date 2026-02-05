@@ -26,6 +26,7 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
   const [tokenSymbol, setTokenSymbol] = useState('');
   const [selectedModel, setSelectedModel] = useState(AI_MODELS[0].id);
   const [telegramBotToken, setTelegramBotToken] = useState('');
+  const [telegramUserId, setTelegramUserId] = useState('');
   const [twitterToken, setTwitterToken] = useState('');
   const [launching, setLaunching] = useState(false);
   const [currentStep, setCurrentStep] = useState(null);
@@ -55,6 +56,7 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
           model: selectedModel,
           userWalletAddress,
           telegramBotToken: telegramBotToken.trim() || undefined,
+          telegramUserId: telegramUserId.trim() || undefined,
           twitterToken: twitterToken.trim() || undefined,
         },
         (progress) => {
@@ -246,6 +248,19 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
               />
               <span className="hint">
                 Get your bot token from <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer">@BotFather</a> on Telegram
+              </span>
+            </div>
+            <div className="form-group">
+              <label htmlFor="telegramUserId">Your Telegram User ID</label>
+              <input
+                id="telegramUserId"
+                type="text"
+                value={telegramUserId}
+                onChange={(e) => setTelegramUserId(e.target.value.replace(/\D/g, ''))}
+                placeholder="1730559297"
+              />
+              <span className="hint">
+                Pre-authorizes you to chat with your bot. Get your ID from <a href="https://t.me/userinfobot" target="_blank" rel="noopener noreferrer">@userinfobot</a>
               </span>
             </div>
           </div>

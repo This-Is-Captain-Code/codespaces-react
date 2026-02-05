@@ -469,6 +469,7 @@ export const flyService = {
       tokenName = null,
       agentWalletAddress = null,
       telegramBotToken = null,
+      telegramUserId = null,
     } = options;
 
     console.log(`Creating per-user gateway for ${userId}: ${appName}...`);
@@ -551,7 +552,13 @@ export const flyService = {
         channels: {
           telegram: {
             enabled: true,
-            botToken: telegramBotToken
+            botToken: telegramBotToken,
+            ...(telegramUserId ? {
+              dmPolicy: 'allowlist',
+              allowFrom: [parseInt(telegramUserId, 10)]
+            } : {
+              dmPolicy: 'pairing'
+            })
           }
         }
       } : {})
