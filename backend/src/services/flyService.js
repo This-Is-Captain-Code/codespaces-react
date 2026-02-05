@@ -518,7 +518,6 @@ export const flyService = {
       },
       browser: {
         enabled: true,
-        executablePath: '/usr/bin/chromium-browser',
         noSandbox: true,
         headless: true
       },
@@ -733,6 +732,9 @@ echo '{"error": "Timeout"}'; exit 1
       'cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50',
       // Delete any existing Telegram webhook before starting (OpenClaw uses polling mode)
       '[ -n "$TELEGRAM_BOT_TOKEN" ] && curl -sf "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook" || true',
+      // Install Chromium via Playwright for browser automation
+      'echo "=== INSTALLING CHROMIUM ==="',
+      'node /app/node_modules/playwright-core/cli.js install chromium 2>/dev/null || echo "Chromium install skipped"',
       'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
     ].join(' && ');
@@ -751,6 +753,7 @@ echo '{"error": "Timeout"}'; exit 1
           OPENCLAW_CONFIG_B64: configBase64,
           AGENTS_MD_B64: agentsBase64,
           ...(telegramBotToken ? { TELEGRAM_BOT_TOKEN: telegramBotToken } : {}),
+          PLAYWRIGHT_BROWSERS_PATH: '/home/node/.cache/ms-playwright',
           PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser',
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true',
           CHROMIUM_PATH: '/usr/bin/chromium-browser',
