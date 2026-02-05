@@ -201,7 +201,7 @@ export const flyService = {
           max_retries: 10,
         },
         init: {
-          cmd: ['sh', '-c', 'mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
+          cmd: ['sh', '-c', 'apk add --no-cache jq curl >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
         }
       },
       region,
@@ -342,7 +342,7 @@ export const flyService = {
           OPENCLAW_CONFIG_B64: configBase64,
         },
         init: {
-          cmd: ['sh', '-c', 'mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
+          cmd: ['sh', '-c', 'apk add --no-cache jq curl >/dev/null 2>&1 || true && mkdir -p /home/node/.openclaw /data/agents/main/agent && if [ ! -f /data/openclaw.json ]; then echo "$OPENCLAW_CONFIG_B64" | base64 -d > /data/openclaw.json; fi && echo "$OPENCLAW_CONFIG_B64" | base64 -d > /home/node/.openclaw/openclaw.json && echo "{\\"openrouter\\":{\\"mode\\":\\"apiKey\\",\\"apiKey\\":\\"$OPENAI_API_KEY\\"}}" > /data/agents/main/agent/auth-profiles.json && exec node dist/index.js gateway --bind lan']
         }
       },
     };
