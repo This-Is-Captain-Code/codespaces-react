@@ -1,0 +1,394 @@
+fly logs -a oc-user-18820d028f9c-ml8xpwtq 
+Waiting for logs...
+04:06:49
+Pulling container image ghcr.io/openclaw/openclaw@sha256:a02b8193cc9d985dce3479eb1986a326f1e28253275b1c43491ac7923d6167e5
+04:07:36
+Successfully prepared image ghcr.io/openclaw/openclaw@sha256:a02b8193cc9d985dce3479eb1986a326f1e28253275b1c43491ac7923d6167e5 (46.974230968s)
+04:07:36
+Setting up volume 'user_data'
+04:07:36
+Uninitialized volume 'user_data', initializing...
+04:07:36
+Encrypting volume
+04:07:37
+Opening encrypted volume
+04:07:37
+Formatting volume
+04:07:38
+Configuring firecracker
+04:07:38
+2026-02-05T04:07:38.620830334 [01KGNZPD94EXR3SZZ6PYS7FVH4:main] Running Firecracker v1.12.1
+04:07:38
+2026-02-05T04:07:38.620998852 [01KGNZPD94EXR3SZZ6PYS7FVH4:main] Listening on API socket ("/fc.sock").
+04:07:39
+ INFO Starting init (commit: 350f2667)...
+04:07:39
+ INFO Checking filesystem on /data
+04:07:39
+/dev/vdc: clean, 11/64512 files, 8785/258048 blocks
+04:07:39
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+04:07:39
+ INFO Resized /data to 1056964608 bytes
+04:07:39
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.local/bin && export PATH="/home/node/.local/bin:$PATH" && (which jq >/dev/null 2>&1 || node -e "const https=require('https'),fs=require('fs');const f=fs.createWriteStream('/home/node/.local/bin/jq');https.get('https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64',r=>{if(r.statusCode===302){https.get(r.headers.location,r2=>r2.pipe(f).on('finish',()=>{fs.chmodSync('/home/node/.local/bin/jq',0o755);process.exit(0)}))}else{r.pipe(f).on('finish',()=>{fs.chmodSync('/home/node/.local/bin/jq',0o755);process.exit(0)})}})") && jq --version || echo "jq not available, bankr skill may have limited functionality" && mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && node -e "require('fs').writeFileSync('/home/node/.openclaw/workspace/AGENTS.md', Buffer.from(process.env.AGENTS_MD_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== INSTALLING BANKR SKILL ===" && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/SKILL.md -o /home/node/.openclaw/workspace/skills/bankr/SKILL.md && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh && for f in /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh; do sed -i '1a export PATH="/home/node/.local/bin:$PATH"' "$f" 2>/dev/null || true; done && chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh && printf '{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json && echo "=== BANKR SKILL INSTALLED ===" && ls -la /home/node/.openclaw/workspace/skills/bankr/ && cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50 && [ -n "$TELEGRAM_BOT_TOKEN" ] && curl -sf "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook" || true && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+04:07:39
+ INFO [fly api proxy] listening at /.fly/api
+04:07:39
+Machine created and started in 50.117s
+04:07:39
+2026/02/05 04:07:39 INFO SSH listening listen_address=[fdaa:44:9071:a7b:52c:3a27:2c6c:2]:22
+04:07:41
+jq-1.7.1
+04:07:41
+=== INSTALLING BANKR SKILL ===
+04:07:41
+=== BANKR SKILL INSTALLED ===
+04:07:41
+total 28
+04:07:41
+drwxr-xr-x 3 node node  4096 Feb  5 04:07 .
+04:07:41
+drwxr-xr-x 3 node node  4096 Feb  5 04:07 ..
+04:07:41
+-rw-r--r-- 1 node node 12205 Feb  5 04:07 SKILL.md
+04:07:41
+-rw-r--r-- 1 node node    81 Feb  5 04:07 config.json
+04:07:41
+drwxr-xr-x 2 node node  4096 Feb  5 04:07 scripts
+04:07:41
+---
+04:07:41
+name: bankr
+04:07:41
+description: AI-powered crypto trading agent via natural language. Use when the user wants to trade crypto (buy/sell/swap tokens), check portfolio balances, view token prices, transfer crypto, manage NFTs, use leverage, bet on Polymarket, deploy tokens, set up automated trading strategies, submit raw transactions, execute calldata, or send transaction JSON. Supports Base, Ethereum, Polygon, Solana, and Unichain. Comprehensive capabilities include trading, portfolio management, market research, NFT operations, prediction markets, leverage trading, DeFi operations, automation, and arbitrary transaction submission.
+04:07:41
+metadata:
+04:07:41
+  {
+04:07:41
+    "clawdbot":
+04:07:41
+      {
+04:07:41
+        "emoji": "📺",
+04:07:41
+        "homepage": "https://bankr.bot",
+04:07:41
+        "requires": { "bins": ["curl", "jq"] },
+04:07:41
+      },
+04:07:41
+  }
+04:07:41
+---
+04:07:41
+# Bankr
+04:07:41
+Execute crypto trading and DeFi operations using natural language through Bankr's AI agent API.
+04:07:41
+## Quick Start
+04:07:41
+### First-Time Setup
+04:07:41
+There are two ways to get started:
+04:07:41
+#### Option A: User provides an existing API key
+04:07:41
+If the user already has a Bankr API key, they can provide it directly:
+04:07:41
+```bash
+04:07:41
+mkdir -p ~/.clawdbot/skills/bankr
+04:07:41
+cat > ~/.clawdbot/skills/bankr/config.json << 'EOF'
+04:07:41
+{
+04:07:41
+  "apiKey": "bk_YOUR_KEY_HERE",
+04:07:41
+  "apiUrl": "https://api.bankr.bot"
+04:07:41
+}
+04:07:41
+EOF
+04:07:41
+```
+04:07:41
+API keys can be created and managed at [bankr.bot/api](https://bankr.bot/api). The key must have **Agent API** access enabled.
+04:07:41
+#### Option B: Create a new account (guided by Clawd)
+04:07:41
+Clawd can walk the user through the full signup flow:
+04:07:41
+1. **Sign up / Sign in** — User provides their email address. Bankr sends a one-time passcode (OTP) to that email. Creating a new account automatically provisions **EVM wallets** (Base, Ethereum, Polygon, Unichain) and a **Solana wallet** — no manual wallet setup needed.
+04:07:41
+2. **Enter OTP** — User checks their email and provides the OTP code.
+04:07:41
+3. **Generate API key** — Once authenticated, navigate to [bankr.bot/api](https://bankr.bot/api) to create an API key with **Agent API** access enabled.
+04:07:41
+4. **Configure** — Save the key (starts with `bk_`) to config:
+04:07:41
+```bash
+04:07:41
+{"ok":true,"result":true,"description":"Webhook is already deleted"}=== STARTING GATEWAY ===
+04:07:43
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+04:07:49
+Invalid config at /home/node/.openclaw/openclaw.json:\n- agents.defaults.sandbox.browser: Unrecognized key: "launchArgs"
+04:07:49
+|
+04:07:49
+o  Config ---------------------------------------------------+
+04:07:49
+|                                                            |
+04:07:49
+|  Config invalid; doctor will run with best-effort config.  |
+04:07:49
+|                                                            |
+04:07:49
++------------------------------------------------------------+
+04:07:49
+|
+04:07:49
+o  Doctor changes ------------------------+
+04:07:49
+|                                         |
+04:07:49
+|  Telegram configured, not enabled yet.  |
+04:07:49
+|                                         |
+04:07:49
++-----------------------------------------+
+04:07:49
+|
+04:07:49
+o  Unknown config keys --------------------------+
+04:07:49
+|                                                |
+04:07:49
+|  - agents.defaults.sandbox.browser.launchArgs  |
+04:07:49
+|                                                |
+04:07:49
++------------------------------------------------+
+04:07:49
+|
+04:07:49
+o  Doctor ----------------------------------------------+
+04:07:49
+|                                                       |
+04:07:49
+|  Run "openclaw doctor --fix" to apply these changes.  |
+04:07:49
+|  Run "openclaw doctor --fix" to remove these keys.    |
+04:07:49
+|                                                       |
+04:07:49
++-------------------------------------------------------+
+04:07:49
+Config invalid
+04:07:49
+File: ~/.openclaw/openclaw.json
+04:07:49
+Problem:
+04:07:49
+  - agents.defaults.sandbox.browser: Unrecognized key: "launchArgs"
+04:07:49
+Run: openclaw doctor --fix
+04:07:50
+ INFO Main child exited normally with code: 1
+04:07:50
+ INFO Starting clean up.
+04:07:50
+ INFO Umounting /dev/vdc from /data
+04:07:50
+[   11.966071] reboot: Restarting system
+04:07:51
+2026-02-05T04:07:51.922582188 [01KGNZPD94EXR3SZZ6PYS7FVH4:main] Running Firecracker v1.12.1
+04:07:51
+2026-02-05T04:07:51.922722077 [01KGNZPD94EXR3SZZ6PYS7FVH4:main] Listening on API socket ("/fc.sock").
+04:07:52
+ INFO Starting init (commit: 350f2667)...
+04:07:52
+ INFO Checking filesystem on /data
+04:07:52
+/dev/vdc: clean, 15/64512 files, 8789/258048 blocks
+04:07:52
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+04:07:52
+ INFO Resized /data to 1056964608 bytes
+04:07:52
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.local/bin && export PATH="/home/node/.local/bin:$PATH" && (which jq >/dev/null 2>&1 || node -e "const https=require('https'),fs=require('fs');const f=fs.createWriteStream('/home/node/.local/bin/jq');https.get('https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64',r=>{if(r.statusCode===302){https.get(r.headers.location,r2=>r2.pipe(f).on('finish',()=>{fs.chmodSync('/home/node/.local/bin/jq',0o755);process.exit(0)}))}else{r.pipe(f).on('finish',()=>{fs.chmodSync('/home/node/.local/bin/jq',0o755);process.exit(0)})}})") && jq --version || echo "jq not available, bankr skill may have limited functionality" && mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && node -e "require('fs').writeFileSync('/home/node/.openclaw/workspace/AGENTS.md', Buffer.from(process.env.AGENTS_MD_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== INSTALLING BANKR SKILL ===" && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/SKILL.md -o /home/node/.openclaw/workspace/skills/bankr/SKILL.md && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh && for f in /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh; do sed -i '1a export PATH="/home/node/.local/bin:$PATH"' "$f" 2>/dev/null || true; done && chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh && printf '{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json && echo "=== BANKR SKILL INSTALLED ===" && ls -la /home/node/.openclaw/workspace/skills/bankr/ && cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50 && [ -n "$TELEGRAM_BOT_TOKEN" ] && curl -sf "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook" || true && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+04:07:52
+ INFO [fly api proxy] listening at /.fly/api
+04:07:52
+Machine started in 1.192s
+04:07:53
+2026/02/05 04:07:53 INFO SSH listening listen_address=[fdaa:44:9071:a7b:52c:3a27:2c6c:2]:22
+04:07:53
+jq-1.7.1
+04:07:53
+=== INSTALLING BANKR SKILL ===
+04:07:53
+=== BANKR SKILL INSTALLED ===
+04:07:53
+total 28
+04:07:53
+drwxr-xr-x 3 node node  4096 Feb  5 04:07 .
+04:07:53
+drwxr-xr-x 3 node node  4096 Feb  5 04:07 ..
+04:07:53
+-rw-r--r-- 1 node node 12205 Feb  5 04:07 SKILL.md
+04:07:53
+-rw-r--r-- 1 node node    81 Feb  5 04:07 config.json
+04:07:53
+drwxr-xr-x 2 node node  4096 Feb  5 04:07 scripts
+04:07:53
+---
+04:07:53
+name: bankr
+04:07:53
+description: AI-powered crypto trading agent via natural language. Use when the user wants to trade crypto (buy/sell/swap tokens), check portfolio balances, view token prices, transfer crypto, manage NFTs, use leverage, bet on Polymarket, deploy tokens, set up automated trading strategies, submit raw transactions, execute calldata, or send transaction JSON. Supports Base, Ethereum, Polygon, Solana, and Unichain. Comprehensive capabilities include trading, portfolio management, market research, NFT operations, prediction markets, leverage trading, DeFi operations, automation, and arbitrary transaction submission.
+04:07:53
+metadata:
+04:07:53
+  {
+04:07:53
+    "clawdbot":
+04:07:53
+      {
+04:07:53
+        "emoji": "📺",
+04:07:53
+        "homepage": "https://bankr.bot",
+04:07:53
+        "requires": { "bins": ["curl", "jq"] },
+04:07:53
+      },
+04:07:53
+  }
+04:07:53
+---
+04:07:53
+# Bankr
+04:07:53
+Execute crypto trading and DeFi operations using natural language through Bankr's AI agent API.
+04:07:53
+## Quick Start
+04:07:53
+### First-Time Setup
+04:07:53
+There are two ways to get started:
+04:07:53
+#### Option A: User provides an existing API key
+04:07:53
+If the user already has a Bankr API key, they can provide it directly:
+04:07:53
+```bash
+04:07:53
+mkdir -p ~/.clawdbot/skills/bankr
+04:07:53
+cat > ~/.clawdbot/skills/bankr/config.json << 'EOF'
+04:07:53
+{
+04:07:53
+  "apiKey": "bk_YOUR_KEY_HERE",
+04:07:53
+  "apiUrl": "https://api.bankr.bot"
+04:07:53
+}
+04:07:53
+EOF
+04:07:53
+```
+04:07:53
+API keys can be created and managed at [bankr.bot/api](https://bankr.bot/api). The key must have **Agent API** access enabled.
+04:07:53
+#### Option B: Create a new account (guided by Clawd)
+04:07:53
+Clawd can walk the user through the full signup flow:
+04:07:53
+1. **Sign up / Sign in** — User provides their email address. Bankr sends a one-time passcode (OTP) to that email. Creating a new account automatically provisions **EVM wallets** (Base, Ethereum, Polygon, Unichain) and a **Solana wallet** — no manual wallet setup needed.
+04:07:53
+2. **Enter OTP** — User checks their email and provides the OTP code.
+04:07:53
+3. **Generate API key** — Once authenticated, navigate to [bankr.bot/api](https://bankr.bot/api) to create an API key with **Agent API** access enabled.
+04:07:53
+4. **Configure** — Save the key (starts with `bk_`) to config:
+04:07:53
+```bash
+04:07:54
+{"ok":true,"result":true,"description":"Webhook is already deleted"}=== STARTING GATEWAY ===
+04:07:54
+[PR03] could not find a good candidate within 1 attempts at load balancing. last error: [PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+04:08:01
+Invalid config at /home/node/.openclaw/openclaw.json:\n- agents.defaults.sandbox.browser: Unrecognized key: "launchArgs"
+04:08:01
+|
+04:08:01
+o  Config ---------------------------------------------------+
+04:08:01
+|                                                            |
+04:08:01
+|  Config invalid; doctor will run with best-effort config.  |
+04:08:01
+|                                                            |
+04:08:01
++------------------------------------------------------------+
+04:08:01
+|
+04:08:01
+o  Doctor changes ------------------------+
+04:08:01
+|                                         |
+04:08:01
+|  Telegram configured, not enabled yet.  |
+04:08:01
+|                                         |
+04:08:01
++-----------------------------------------+
+04:08:02
+|
+04:08:02
+o  Unknown config keys --------------------------+
+04:08:02
+|                                                |
+04:08:02
+|  - agents.defaults.sandbox.browser.launchArgs  |
+04:08:02
+|                                                |
+04:08:02
++------------------------------------------------+
+04:08:02
+|
+04:08:02
+o  Doctor ----------------------------------------------+
+04:08:02
+|                                                       |
+04:08:02
+|  Run "openclaw doctor --fix" to apply these changes.  |
+04:08:02
+|  Run "openclaw doctor --fix" to remove these keys.    |
+04:08:02
+|                                                       |
+04:08:02
++-------------------------------------------------------+
+04:08:02
+Config invalid
+04:08:02
+File: ~/.openclaw/openclaw.json
+04:08:02
+Problem:
+04:08:02
+  - agents.defaults.sandbox.browser: Unrecognized key: "launchArgs"
+04:08:02
+Run: openclaw doctor --fix
+04:08:02
+ INFO Main child exited normally with code: 1
+04:08:02
+ INFO Starting clean up.
+04:08:02
+ INFO Umounting /dev/vdc from /data
+04:08:02
+[   10.967718] reboot: Restarting system

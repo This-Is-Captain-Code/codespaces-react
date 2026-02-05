@@ -524,10 +524,7 @@ export const flyService = {
           sandbox: {
             mode: 'off',
             browser: {
-              allowHostControl: true,
-              enabled: true,
-              autoStart: true,
-              launchArgs: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+              allowHostControl: true
             }
           }
         }
