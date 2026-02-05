@@ -1,0 +1,202 @@
+$ fly logs -a oc-user-d96f70571e97-ml8rdbkm 
+Waiting for logs...
+01:10:51
+2026-02-05T01:10:51.211122121 [01KGNNGYBG3SEH8GJPRQWCCYV8:main] Listening on API socket ("/fc.sock").
+01:10:51
+Starting machine
+01:10:51
+[PM01] machines API returned an error: "machine still attempting to start"
+01:10:52
+ INFO Starting init (commit: 350f2667)...
+01:10:52
+ INFO Checking filesystem on /data
+01:10:52
+/dev/vdc: clean, 15/64512 files, 8789/258048 blocks
+01:10:52
+ INFO Mounting /dev/vdc at /data w/ uid: 1000, gid: 1000 and chmod 0755
+01:10:52
+ INFO Resized /data to 1056964608 bytes
+01:10:52
+ INFO Preparing to run: `docker-entrypoint.sh sh -c mkdir -p /home/node/.local/bin && export PATH="/home/node/.local/bin:$PATH" && (which jq >/dev/null 2>&1 || (curl -sL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /home/node/.local/bin/jq && chmod +x /home/node/.local/bin/jq)) && jq --version || echo "jq not available, bankr skill may have limited functionality" && mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent && node -e "require('fs').writeFileSync('/home/node/.openclaw/openclaw.json', Buffer.from(process.env.OPENCLAW_CONFIG_B64, 'base64').toString())" && node -e "require('fs').writeFileSync('/home/node/.openclaw/workspace/AGENTS.md', Buffer.from(process.env.AGENTS_MD_B64, 'base64').toString())" && printf '{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json && cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json && echo "=== INSTALLING BANKR SKILL ===" && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/SKILL.md -o /home/node/.openclaw/workspace/skills/bankr/SKILL.md && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh && curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh && for f in /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh; do sed -i '2i export PATH="/home/node/.local/bin:$PATH"' "$f"; done && chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh && printf '{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json && echo "=== BANKR SKILL INSTALLED ===" && ls -la /home/node/.openclaw/workspace/skills/bankr/ && cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50 && echo "=== STARTING GATEWAY ===" && exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"` as node
+01:10:52
+ INFO [fly api proxy] listening at /.fly/api
+01:10:52
+Machine started in 1.283s
+01:10:52
+2026/02/05 01:10:52 INFO SSH listening listen_address=[fdaa:44:9071:a7b:592:e6da:8fd3:2]:22
+01:10:52
+[PC01] instance refused connection. is your app listening on 0.0.0.0:18789? make sure it is not only listening on 127.0.0.1 (hint: look at your startup logs, servers often print the address they are listening on)
+01:10:52
+jq-1.7.1
+01:10:52
+=== INSTALLING BANKR SKILL ===
+01:10:53
+=== BANKR SKILL INSTALLED ===
+01:10:53
+total 28
+01:10:53
+drwxr-xr-x 3 node node  4096 Feb  5 01:10 .
+01:10:53
+drwxr-xr-x 3 node node  4096 Feb  5 01:10 ..
+01:10:53
+-rw-r--r-- 1 node node 12205 Feb  5 01:10 SKILL.md
+01:10:53
+-rw-r--r-- 1 node node    81 Feb  5 01:10 config.json
+01:10:53
+drwxr-xr-x 2 node node  4096 Feb  5 01:10 scripts
+01:10:53
+---
+01:10:53
+name: bankr
+01:10:53
+description: AI-powered crypto trading agent via natural language. Use when the user wants to trade crypto (buy/sell/swap tokens), check portfolio balances, view token prices, transfer crypto, manage NFTs, use leverage, bet on Polymarket, deploy tokens, set up automated trading strategies, submit raw transactions, execute calldata, or send transaction JSON. Supports Base, Ethereum, Polygon, Solana, and Unichain. Comprehensive capabilities include trading, portfolio management, market research, NFT operations, prediction markets, leverage trading, DeFi operations, automation, and arbitrary transaction submission.
+01:10:53
+metadata:
+01:10:53
+  {
+01:10:53
+    "clawdbot":
+01:10:53
+      {
+01:10:53
+        "emoji": "📺",
+01:10:53
+        "homepage": "https://bankr.bot",
+01:10:53
+        "requires": { "bins": ["curl", "jq"] },
+01:10:53
+      },
+01:10:53
+  }
+01:10:53
+---
+01:10:53
+# Bankr
+01:10:53
+Execute crypto trading and DeFi operations using natural language through Bankr's AI agent API.
+01:10:53
+## Quick Start
+01:10:53
+### First-Time Setup
+01:10:53
+There are two ways to get started:
+01:10:53
+#### Option A: User provides an existing API key
+01:10:53
+If the user already has a Bankr API key, they can provide it directly:
+01:10:53
+```bash
+01:10:53
+mkdir -p ~/.clawdbot/skills/bankr
+01:10:53
+cat > ~/.clawdbot/skills/bankr/config.json << 'EOF'
+01:10:53
+{
+01:10:53
+  "apiKey": "bk_YOUR_KEY_HERE",
+01:10:53
+  "apiUrl": "https://api.bankr.bot"
+01:10:53
+}
+01:10:53
+EOF
+01:10:53
+```
+01:10:53
+API keys can be created and managed at [bankr.bot/api](https://bankr.bot/api). The key must have **Agent API** access enabled.
+01:10:53
+#### Option B: Create a new account (guided by Clawd)
+01:10:53
+Clawd can walk the user through the full signup flow:
+01:10:53
+1. **Sign up / Sign in** — User provides their email address. Bankr sends a one-time passcode (OTP) to that email. Creating a new account automatically provisions **EVM wallets** (Base, Ethereum, Polygon, Unichain) and a **Solana wallet** — no manual wallet setup needed.
+01:10:53
+2. **Enter OTP** — User checks their email and provides the OTP code.
+01:10:53
+3. **Generate API key** — Once authenticated, navigate to [bankr.bot/api](https://bankr.bot/api) to create an API key with **Agent API** access enabled.
+01:10:53
+4. **Configure** — Save the key (starts with `bk_`) to config:
+01:10:53
+```bash
+01:10:53
+=== STARTING GATEWAY ===
+01:11:01
+Invalid config at /home/node/.openclaw/openclaw.json:\n- telegram: telegram config moved to channels.telegram (auto-migrated on load).
+01:11:01
+|
+01:11:01
+o  Legacy config keys detected -------------------------------------------+
+01:11:01
+|                                                                         |
+01:11:01
+|  - telegram: telegram config moved to channels.telegram (auto-migrated  |
+01:11:01
+|    on load).                                                            |
+01:11:01
+|                                                                         |
+01:11:01
++-------------------------------------------------------------------------+
+01:11:01
+|
+01:11:01
+o  Doctor changes ----------------------------------------------------+
+01:11:01
+|                                                                     |
+01:11:01
+|  Moved telegram → channels.telegram.                                |
+01:11:01
+|  Migration applied, but config still invalid; fix remaining issues  |
+01:11:01
+|  manually.                                                          |
+01:11:01
+|                                                                     |
+01:11:01
++---------------------------------------------------------------------+
+01:11:01
+|
+01:11:01
+o  Unknown config keys -+
+01:11:01
+|                       |
+01:11:01
+|  - telegram           |
+01:11:01
+|                       |
+01:11:01
++-----------------------+
+01:11:01
+|
+01:11:01
+o  Doctor --------------------------------------------------+
+01:11:01
+|                                                           |
+01:11:01
+|  Run "openclaw doctor --fix" to apply legacy migrations.  |
+01:11:01
+|  Run "openclaw doctor --fix" to remove these keys.        |
+01:11:01
+|                                                           |
+01:11:01
++-----------------------------------------------------------+
+01:11:01
+Config invalid
+01:11:01
+File: ~/.openclaw/openclaw.json
+01:11:01
+Problem:
+01:11:01
+  - telegram: telegram config moved to channels.telegram (auto-migrated on load).
+01:11:01
+Legacy config keys detected:
+01:11:01
+  - telegram: telegram config moved to channels.telegram (auto-migrated on load).
+01:11:01
+Run: openclaw doctor --fix
+01:11:02
+ INFO Main child exited normally with code: 1
+01:11:02
+ INFO Starting clean up.
+01:11:02
+ INFO Umounting /dev/vdc from /data
+01:11:02
+[   11.020949] reboot: Restarting system

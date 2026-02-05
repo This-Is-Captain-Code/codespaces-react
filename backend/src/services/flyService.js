@@ -544,10 +544,12 @@ export const flyService = {
         }
       },
       ...(telegramBotToken ? {
-        telegram: {
-          enabled: true,
-          botToken: telegramBotToken,
-          allowedUpdates: ['message', 'callback_query']
+        channels: {
+          telegram: {
+            enabled: true,
+            botToken: telegramBotToken,
+            allowedUpdates: ['message', 'callback_query']
+          }
         }
       } : {})
     };
