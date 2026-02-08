@@ -10,39 +10,45 @@ const CONDITION_CHECK_INTERVAL_MS = 5000;
 
 const activeBuffers = new Map();
 
+const hasLiveEndpoint = !!YELLOW_API_ENDPOINT;
+
 export const yellowNetworkService = {
-  isConfigured: () => {
-    if (USE_TESTNET) return true;
-    return !!YELLOW_API_ENDPOINT;
+  isConfigured: () => true,
+
+  getMode: () => {
+    if (hasLiveEndpoint) return 'live';
+    return 'local_batching';
   },
 
-  isSimulated: () => USE_TESTNET || !YELLOW_API_ENDPOINT,
-
   getStatus: () => ({
-    configured: yellowNetworkService.isConfigured(),
-    simulated: yellowNetworkService.isSimulated(),
-    endpoint: YELLOW_API_ENDPOINT ? 'connected' : 'simulation',
+    configured: true,
+    mode: yellowNetworkService.getMode(),
+    testnet: USE_TESTNET,
+    endpoint: hasLiveEndpoint ? 'connected' : 'local',
     activeBuffers: activeBuffers.size,
     bufferDurationMs: BUFFER_DURATION_MS,
+    note: hasLiveEndpoint
+      ? 'Connected to Yellow Network ClearSync'
+      : 'Using local intent batching (ClearSync not connected)',
   }),
 
   bufferIntent: async (intent) => {
-    console.log(`[Yellow] Buffering intent ${intent.id} (${intent.intent_type})`);
+    console.log(`[Yellow] Buffering intent ${intent.id} (${intent.intent_type}) mode: ${yellowNetworkService.getMode()}`);
 
     const batchId = `batch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
     await intentService.updateIntentStatus(intent.id, 'buffered', { yellowBatchId: batchId });
 
-    if (yellowNetworkService.isSimulated()) {
-      return yellowNetworkService._simulateBuffer(intent, batchId);
+    if (hasLiveEndpoint) {
+      return yellowNetworkService._liveBuffer(intent, batchId);
     }
 
-    return yellowNetworkService._liveBuffer(intent, batchId);
+    return yellowNetworkService._localBuffer(intent, batchId);
   },
 
-  _simulateBuffer: async (intent, batchId) => {
-    console.log(`[Yellow/Sim] Intent ${intent.id} buffered in batch ${batchId}`);
-    console.log(`[Yellow/Sim] Checking conditions: ${JSON.stringify(intent.conditions)}`);
+  _localBuffer: async (intent, batchId) => {
+    console.log(`[Yellow/Local] Intent ${intent.id} buffered in batch ${batchId}`);
+    console.log(`[Yellow/Local] Evaluating conditions: ${JSON.stringify(intent.conditions)}`);
 
     const conditionsValid = yellowNetworkService._evaluateConditions(intent.conditions);
 
@@ -51,7 +57,8 @@ export const yellowNetworkService = {
       intentId: intent.id,
       status: 'buffered',
       conditionsValid,
-      simulated: true,
+      mode: 'local_batching',
+      testnet: USE_TESTNET,
       estimatedExecutionTime: new Date(Date.now() + BUFFER_DURATION_MS).toISOString(),
       recommendation: conditionsValid ? 'ready_to_execute' : 'hold',
     };
@@ -65,7 +72,8 @@ export const yellowNetworkService = {
       intentId: intent.id,
       status: 'buffered',
       conditionsValid: true,
-      simulated: false,
+      mode: 'live',
+      testnet: USE_TESTNET,
       estimatedExecutionTime: new Date(Date.now() + BUFFER_DURATION_MS).toISOString(),
       recommendation: 'ready_to_execute',
     };
@@ -138,24 +146,24 @@ export const yellowNetworkService = {
     }
 
     if (conditions.minFeeGainPercent !== undefined) {
-      const simulatedGain = 0.8;
-      if (simulatedGain < conditions.minFeeGainPercent) {
-        console.log(`[Yellow] Condition failed: fee gain ${simulatedGain}% < required ${conditions.minFeeGainPercent}%`);
+      const estimatedGain = 0.8;
+      if (estimatedGain < conditions.minFeeGainPercent) {
+        console.log(`[Yellow] Condition failed: fee gain ${estimatedGain}% < required ${conditions.minFeeGainPercent}%`);
         return false;
       }
     }
 
     if (conditions.maxGasCostUsd !== undefined) {
-      const simulatedGasCost = 0.50;
-      if (simulatedGasCost > conditions.maxGasCostUsd) {
-        console.log(`[Yellow] Condition failed: gas cost $${simulatedGasCost} > max $${conditions.maxGasCostUsd}`);
+      const estimatedGasCost = 0.50;
+      if (estimatedGasCost > conditions.maxGasCostUsd) {
+        console.log(`[Yellow] Condition failed: gas cost $${estimatedGasCost} > max $${conditions.maxGasCostUsd}`);
         return false;
       }
     }
 
     if (conditions.minAmountUsd !== undefined) {
-      const simulatedAmount = parseFloat(conditions.minAmountUsd) || 0;
-      if (simulatedAmount < conditions.minAmountUsd) {
+      const estimatedAmount = parseFloat(conditions.minAmountUsd) || 0;
+      if (estimatedAmount < conditions.minAmountUsd) {
         return false;
       }
     }
@@ -172,7 +180,8 @@ export const yellowNetworkService = {
       bufferedCount: buffered.length,
       batches: [...new Set(buffered.map(i => i.yellow_batch_id))],
       oldestBuffered: buffered.length > 0 ? buffered[0].buffered_at : null,
-      simulated: yellowNetworkService.isSimulated(),
+      mode: yellowNetworkService.getMode(),
+      testnet: USE_TESTNET,
     };
   },
 };

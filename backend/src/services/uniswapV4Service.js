@@ -49,8 +49,25 @@ try {
   MOLT_FEE_ROUTER_ABI = [];
 }
 
-function sortCurrencies(tokenAddress) {
-  const weth = getWETH();
+const POOL_MANAGER_ABI = [
+  {
+    inputs: [{ name: 'id', type: 'bytes32' }],
+    name: 'getLiquidity',
+    outputs: [{ name: '', type: 'uint128' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'id', type: 'bytes32' }, { name: 'tick', type: 'int24' }],
+    name: 'getTickLiquidity',
+    outputs: [{ name: '', type: 'uint128' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+];
+
+function sortCurrencies(tokenAddress, chainName = PRIMARY_CHAIN) {
+  const weth = getWETH(chainName);
   const token = getAddress(tokenAddress);
   const wethAddr = getAddress(weth);
 
@@ -60,15 +77,27 @@ function sortCurrencies(tokenAddress) {
   return { currency0: wethAddr, currency1: token };
 }
 
-function buildPoolKey(tokenAddress, hookAddress) {
-  const { currency0, currency1 } = sortCurrencies(tokenAddress);
+function buildPoolKey(tokenAddress, hookAddress, chainName = PRIMARY_CHAIN) {
+  const { currency0, currency1 } = sortCurrencies(tokenAddress, chainName);
   return {
     currency0,
     currency1,
     fee: 3000,
     tickSpacing: 60,
-    hooks: hookAddress || MOLT_FEE_ROUTER_ADDRESS,
+    hooks: hookAddress || MOLT_FEE_ROUTER_ADDRESS || '0x0000000000000000000000000000000000000000',
   };
+}
+
+function getPublicClient(chainName = PRIMARY_CHAIN) {
+  const chain = getChain(chainName);
+  return createPublicClient({ chain, transport: http() });
+}
+
+function getWalletClientIfConfigured(chainName = PRIMARY_CHAIN) {
+  if (!ADMIN_WALLET_PRIVATE_KEY) return null;
+  const chain = getChain(chainName);
+  const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
+  return createWalletClient({ account, chain, transport: http() });
 }
 
 export const uniswapV4Service = {
@@ -105,23 +134,12 @@ export const uniswapV4Service = {
       return {
         registered: false,
         reason: 'Hook contract not deployed',
+        testnet: USE_TESTNET,
       };
     }
 
     const chain = getChain();
     console.log(`Registering pool on MoltFeeRouter for token ${tokenAddress} on ${chain.name}...`);
-
-    if (USE_TESTNET) {
-      console.log('TESTNET MODE: Simulating hook pool registration...');
-      const poolKey = buildPoolKey(tokenAddress, MOLT_FEE_ROUTER_ADDRESS);
-      return {
-        registered: true,
-        simulated: true,
-        poolKey,
-        hookAddress: MOLT_FEE_ROUTER_ADDRESS,
-        tokenAddress,
-      };
-    }
 
     try {
       const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
@@ -150,11 +168,12 @@ export const uniswapV4Service = {
 
       return {
         registered: true,
-        simulated: false,
+        testnet: USE_TESTNET,
         txHash,
         poolKey,
         hookAddress: MOLT_FEE_ROUTER_ADDRESS,
         tokenAddress,
+        blockNumber: Number(receipt.blockNumber),
       };
     } catch (error) {
       console.error('Hook pool registration failed:', error);
@@ -169,22 +188,11 @@ export const uniswapV4Service = {
       throw new Error(`Invalid fee mode: ${feeMode}. Must be: conservative, balanced, aggressive`);
     }
 
-    if (USE_TESTNET) {
-      return {
-        success: true,
-        simulated: true,
-        feeMode,
-        modeValue,
-        tokenAddress,
-      };
-    }
-
     if (!MOLT_FEE_ROUTER_ADDRESS) {
       throw new Error('MOLT_FEE_ROUTER_ADDRESS not configured');
     }
 
     const chain = getChain();
-
     const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
     const walletClient = createWalletClient({ account, chain, transport: http() });
     const poolKey = buildPoolKey(tokenAddress, MOLT_FEE_ROUTER_ADDRESS);
@@ -196,7 +204,7 @@ export const uniswapV4Service = {
       args: [poolKey, modeValue],
     });
 
-    return { success: true, txHash, feeMode, modeValue };
+    return { success: true, testnet: USE_TESTNET, txHash, feeMode, modeValue };
   },
 
   setAgentShare: async ({ tokenAddress, shareBps }) => {
@@ -204,16 +212,11 @@ export const uniswapV4Service = {
       throw new Error('Agent share must be between 200 (2%) and 5000 (50%) BPS');
     }
 
-    if (USE_TESTNET) {
-      return { success: true, simulated: true, shareBps, tokenAddress };
-    }
-
     if (!MOLT_FEE_ROUTER_ADDRESS) {
       throw new Error('MOLT_FEE_ROUTER_ADDRESS not configured');
     }
 
     const chain = getChain();
-
     const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
     const walletClient = createWalletClient({ account, chain, transport: http() });
     const poolKey = buildPoolKey(tokenAddress, MOLT_FEE_ROUTER_ADDRESS);
@@ -225,44 +228,15 @@ export const uniswapV4Service = {
       args: [poolKey, shareBps],
     });
 
-    return { success: true, txHash, shareBps };
+    return { success: true, testnet: USE_TESTNET, txHash, shareBps };
   },
 
   getPoolAnalytics: async (tokenAddress) => {
-    if (USE_TESTNET) {
-      const poolAge = 3 * 86400;
-      return {
-        configured: true,
-        simulated: true,
-        tokenAddress,
-        hookAddress: MOLT_FEE_ROUTER_ADDRESS || '0x0000000000000000000000000000000000000000',
-        currentFee: 100,
-        currentSplit: {
-          agentBps: 833,
-          devBps: 3333,
-          platformBps: 4167,
-          adminBps: 1667,
-        },
-        volume: {
-          dailyVolume: '2.4518',
-          lastReset: new Date().toISOString(),
-        },
-        accruedFees: {
-          agentFees: '0.00204',
-          devFees: '0.00816',
-          platformFees: '0.01020',
-          adminFees: '0.00408',
-        },
-        feeMode: 'balanced',
-        poolAge,
-        poolPhase: 'early',
-      };
-    }
-
     if (!MOLT_FEE_ROUTER_ADDRESS) {
       return {
         configured: false,
-        reason: 'Hook contract not deployed',
+        testnet: USE_TESTNET,
+        reason: 'Hook contract not deployed. Set MOLT_FEE_ROUTER_ADDRESS to enable pool analytics.',
       };
     }
 
@@ -314,7 +288,7 @@ export const uniswapV4Service = {
 
       return {
         configured: true,
-        simulated: false,
+        testnet: USE_TESTNET,
         tokenAddress,
         hookAddress: MOLT_FEE_ROUTER_ADDRESS,
         currentFee: Number(currentFee),
@@ -345,39 +319,29 @@ export const uniswapV4Service = {
         },
       };
     } catch (error) {
-      console.error('Failed to get pool analytics:', error);
+      console.error('Failed to get pool analytics:', error.message);
       return {
         configured: true,
-        error: error.message,
+        testnet: USE_TESTNET,
+        error: `Contract call failed: ${error.message}`,
+        hookAddress: MOLT_FEE_ROUTER_ADDRESS,
+        tokenAddress,
       };
     }
   },
 
   addLiquidity: async ({ tokenAddress, amount, chainName = PRIMARY_CHAIN, hookAddress }) => {
-    console.log(`[Uniswap V4] Adding liquidity: ${amount} to pool for ${tokenAddress} on ${chainName}`);
+    console.log(`[Uniswap V4] Adding liquidity: ${amount} to pool for ${tokenAddress} on ${chainName} (testnet: ${USE_TESTNET})`);
 
     const chain = getChain(chainName);
     const hook = hookAddress || MOLT_FEE_ROUTER_ADDRESS;
 
-    if (USE_TESTNET) {
-      console.log('[Uniswap V4/Sim] Simulating liquidity deployment...');
-      const poolKey = buildPoolKey(tokenAddress, hook);
-      return {
-        success: true,
-        simulated: true,
-        chain: chain.name,
-        chainId: chain.id,
-        tokenAddress,
-        amount,
-        poolKey,
-        hookAddress: hook,
-        positionId: `pos_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-        txHash: `0x${'liq'.repeat(21).slice(0, 64)}`,
-      };
+    if (!hook) {
+      throw new Error('No hook address configured. Set MOLT_FEE_ROUTER_ADDRESS or pass hookAddress.');
     }
 
     if (!ADMIN_WALLET_PRIVATE_KEY) {
-      throw new Error('ADMIN_WALLET_PRIVATE_KEY not configured');
+      throw new Error('ADMIN_WALLET_PRIVATE_KEY not configured - cannot sign transactions');
     }
 
     try {
@@ -385,7 +349,7 @@ export const uniswapV4Service = {
       const publicClient = createPublicClient({ chain, transport: http() });
       const walletClient = createWalletClient({ account, chain, transport: http() });
 
-      const poolKey = buildPoolKey(tokenAddress, hook);
+      const poolKey = buildPoolKey(tokenAddress, hook, chainName);
 
       const txHash = await walletClient.writeContract({
         address: hook,
@@ -399,7 +363,7 @@ export const uniswapV4Service = {
 
       return {
         success: true,
-        simulated: false,
+        testnet: USE_TESTNET,
         chain: chain.name,
         chainId: chain.id,
         tokenAddress,
@@ -410,27 +374,19 @@ export const uniswapV4Service = {
         blockNumber: Number(receipt.blockNumber),
       };
     } catch (error) {
-      console.error('[Uniswap V4] Add liquidity failed:', error);
-      throw new Error(`Add liquidity failed: ${error.message}`);
+      console.error('[Uniswap V4] Add liquidity failed:', error.message);
+      throw new Error(`Add liquidity failed on ${chain.name}: ${error.message}`);
     }
   },
 
   removeLiquidity: async ({ tokenAddress, amount, chainName = PRIMARY_CHAIN, hookAddress }) => {
-    console.log(`[Uniswap V4] Removing liquidity: ${amount} from pool for ${tokenAddress} on ${chainName}`);
+    console.log(`[Uniswap V4] Removing liquidity: ${amount} from pool for ${tokenAddress} on ${chainName} (testnet: ${USE_TESTNET})`);
 
     const chain = getChain(chainName);
     const hook = hookAddress || MOLT_FEE_ROUTER_ADDRESS;
 
-    if (USE_TESTNET) {
-      console.log('[Uniswap V4/Sim] Simulating liquidity removal...');
-      return {
-        success: true,
-        simulated: true,
-        chain: chain.name,
-        tokenAddress,
-        amount,
-        txHash: `0x${'rem'.repeat(21).slice(0, 64)}`,
-      };
+    if (!hook) {
+      throw new Error('No hook address configured');
     }
 
     if (!ADMIN_WALLET_PRIVATE_KEY) {
@@ -442,7 +398,7 @@ export const uniswapV4Service = {
       const publicClient = createPublicClient({ chain, transport: http() });
       const walletClient = createWalletClient({ account, chain, transport: http() });
 
-      const poolKey = buildPoolKey(tokenAddress, hook);
+      const poolKey = buildPoolKey(tokenAddress, hook, chainName);
 
       const txHash = await walletClient.writeContract({
         address: hook,
@@ -456,7 +412,7 @@ export const uniswapV4Service = {
 
       return {
         success: true,
-        simulated: false,
+        testnet: USE_TESTNET,
         chain: chain.name,
         tokenAddress,
         amount,
@@ -471,28 +427,65 @@ export const uniswapV4Service = {
 
   observePoolState: async ({ tokenAddress, chainName = PRIMARY_CHAIN }) => {
     const chain = getChain(chainName);
+    const poolManager = getPoolManager(chainName);
 
-    if (USE_TESTNET) {
+    if (!tokenAddress || tokenAddress === '0x0000000000000000000000000000000000000000') {
       return {
-        simulated: true,
+        testnet: USE_TESTNET,
         chain: chain.name,
-        tokenAddress,
-        liquidity: '15000.00',
-        volume24h: '2451.80',
-        feeRate: '0.30',
-        feeMode: 'balanced',
-        tvl: '45000.00',
-        apy: '12.5',
+        chainId: chain.id,
+        poolManager,
+        tokenAddress: null,
+        message: 'No token address configured. Deploy a token first to observe pool state.',
         hookActive: !!MOLT_FEE_ROUTER_ADDRESS,
       };
     }
 
-    const analytics = await uniswapV4Service.getPoolAnalytics(tokenAddress);
-    return {
-      simulated: false,
-      chain: chain.name,
-      tokenAddress,
-      ...analytics,
-    };
+    if (MOLT_FEE_ROUTER_ADDRESS) {
+      try {
+        const analytics = await uniswapV4Service.getPoolAnalytics(tokenAddress);
+        return {
+          testnet: USE_TESTNET,
+          chain: chain.name,
+          chainId: chain.id,
+          poolManager,
+          tokenAddress,
+          hookActive: true,
+          ...analytics,
+        };
+      } catch (error) {
+        console.warn(`[Uniswap V4] Pool analytics failed: ${error.message}`);
+      }
+    }
+
+    try {
+      const publicClient = getPublicClient(chainName);
+      const blockNumber = await publicClient.getBlockNumber();
+
+      return {
+        testnet: USE_TESTNET,
+        chain: chain.name,
+        chainId: chain.id,
+        poolManager,
+        tokenAddress,
+        hookActive: !!MOLT_FEE_ROUTER_ADDRESS,
+        hookAddress: MOLT_FEE_ROUTER_ADDRESS,
+        latestBlock: Number(blockNumber),
+        message: MOLT_FEE_ROUTER_ADDRESS
+          ? 'Pool analytics query failed - hook may not be registered for this token'
+          : 'No MoltFeeRouter deployed. Set MOLT_FEE_ROUTER_ADDRESS to enable full pool analytics.',
+      };
+    } catch (error) {
+      console.error('[Uniswap V4] observePoolState RPC failed:', error.message);
+      return {
+        testnet: USE_TESTNET,
+        chain: chain.name,
+        chainId: chain.id,
+        poolManager,
+        tokenAddress,
+        hookActive: false,
+        error: `RPC call failed: ${error.message}`,
+      };
+    }
   },
 };

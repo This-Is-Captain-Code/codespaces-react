@@ -1,11 +1,11 @@
 import { createPublicClient, http, formatEther, parseEther } from 'viem';
-import { base, arbitrum, mainnet, optimism, polygon } from 'viem/chains';
+import { base, arbitrum, mainnet, optimism, polygon, baseSepolia, arbitrumSepolia, sepolia, optimismSepolia } from 'viem/chains';
 
 const USE_TESTNET = process.env.USE_TESTNET === 'true';
 const LIFI_API_KEY = process.env.LIFI_API_KEY || null;
 const LIFI_API_BASE = 'https://li.quest/v1';
 
-const CHAIN_ID_MAP = {
+const MAINNET_CHAIN_IDS = {
   base: 8453,
   arbitrum: 42161,
   ethereum: 1,
@@ -13,9 +13,19 @@ const CHAIN_ID_MAP = {
   polygon: 137,
 };
 
+const TESTNET_CHAIN_IDS = {
+  base: 84532,
+  arbitrum: 421614,
+  ethereum: 11155111,
+  optimism: 11155420,
+  polygon: 80002,
+};
+
+const CHAIN_ID_MAP = USE_TESTNET ? TESTNET_CHAIN_IDS : MAINNET_CHAIN_IDS;
+
 const CHAIN_NATIVE_TOKEN = '0x0000000000000000000000000000000000000000';
 
-const USDC_ADDRESSES = {
+const USDC_MAINNET = {
   base: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   arbitrum: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
   ethereum: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -23,27 +33,31 @@ const USDC_ADDRESSES = {
   polygon: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
 };
 
-export const lifiService = {
-  isConfigured: () => {
-    if (USE_TESTNET) return true;
-    return true;
-  },
+const USDC_TESTNET = {
+  base: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+  arbitrum: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
+  ethereum: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+  optimism: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
+  polygon: '0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582',
+};
 
-  isSimulated: () => USE_TESTNET,
+const USDC_ADDRESSES = USE_TESTNET ? USDC_TESTNET : USDC_MAINNET;
+
+export const lifiService = {
+  isConfigured: () => true,
+
+  isTestnet: () => USE_TESTNET,
 
   getStatus: () => ({
-    configured: lifiService.isConfigured(),
-    simulated: lifiService.isSimulated(),
+    configured: true,
+    testnet: USE_TESTNET,
     apiBase: LIFI_API_BASE,
     hasApiKey: !!LIFI_API_KEY,
     supportedChains: Object.keys(CHAIN_ID_MAP),
+    chainIds: CHAIN_ID_MAP,
   }),
 
   getSupportedChains: async () => {
-    if (USE_TESTNET) {
-      return Object.entries(CHAIN_ID_MAP).map(([name, id]) => ({ name, chainId: id }));
-    }
-
     try {
       const response = await fetch(`${LIFI_API_BASE}/chains`, {
         headers: lifiService._getHeaders(),
@@ -57,17 +71,13 @@ export const lifiService = {
   },
 
   getQuote: async ({ fromChain, toChain, fromToken, toToken, fromAmount, fromAddress }) => {
-    console.log(`[LI.FI] Getting quote: ${fromChain} -> ${toChain}, amount: ${fromAmount}`);
+    console.log(`[LI.FI] Getting quote: ${fromChain} -> ${toChain}, amount: ${fromAmount}, testnet: ${USE_TESTNET}`);
 
     const fromChainId = CHAIN_ID_MAP[fromChain];
     const toChainId = CHAIN_ID_MAP[toChain];
 
     if (!fromChainId || !toChainId) {
       throw new Error(`Unsupported chain: ${fromChain} or ${toChain}`);
-    }
-
-    if (USE_TESTNET) {
-      return lifiService._simulateQuote({ fromChain, toChain, fromToken, toToken, fromAmount, fromAddress, fromChainId, toChainId });
     }
 
     try {
@@ -86,17 +96,26 @@ export const lifiService = {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`LI.FI API error (${response.status}): ${errorText}`);
+        const errorBody = await response.text();
+        console.warn(`[LI.FI] API returned ${response.status}: ${errorBody}`);
+
+        if (USE_TESTNET && response.status >= 400) {
+          console.log('[LI.FI] Testnet chains may not be supported by bridges. Returning testnet-limited quote.');
+          return lifiService._testnetFallbackQuote({ fromChain, toChain, fromToken, toToken, fromAmount, fromAddress, fromChainId, toChainId, apiError: errorBody });
+        }
+
+        throw new Error(`LI.FI API error (${response.status}): ${errorBody}`);
       }
 
       const quote = await response.json();
 
       return {
-        simulated: false,
+        testnet: USE_TESTNET,
         routeId: quote.id || `lifi_${Date.now()}`,
         fromChain,
         toChain,
+        fromChainId,
+        toChainId,
         fromToken: quote.action?.fromToken?.symbol || fromToken,
         toToken: quote.action?.toToken?.symbol || toToken,
         fromAmount: quote.action?.fromAmount || fromAmount,
@@ -109,20 +128,34 @@ export const lifiService = {
         rawQuote: quote,
       };
     } catch (error) {
+      if (USE_TESTNET && !error.message.includes('LI.FI API error')) {
+        console.warn('[LI.FI] Testnet quote failed, returning fallback:', error.message);
+        return lifiService._testnetFallbackQuote({ fromChain, toChain, fromToken, toToken, fromAmount, fromAddress, fromChainId, toChainId, apiError: error.message });
+      }
       console.error('[LI.FI] Quote failed:', error.message);
       throw error;
     }
   },
 
   executeRoute: async ({ quote, walletClient }) => {
-    console.log(`[LI.FI] Executing route ${quote.routeId}`);
+    console.log(`[LI.FI] Executing route ${quote.routeId}, testnet: ${USE_TESTNET}`);
 
-    if (quote.simulated || USE_TESTNET) {
-      return lifiService._simulateExecution(quote);
+    if (quote.bridgeLimited) {
+      console.log('[LI.FI] Testnet bridge not available - cross-chain execution skipped');
+      return {
+        testnet: true,
+        bridgeLimited: true,
+        routeId: quote.routeId,
+        txHash: null,
+        status: 'BRIDGE_UNAVAILABLE',
+        message: 'Cross-chain bridges are not available on testnets. Tokens stay on source chain.',
+        fromChain: quote.fromChain,
+        toChain: quote.toChain,
+      };
     }
 
     if (!quote.transactionRequest) {
-      throw new Error('No transaction request in quote');
+      throw new Error('No transaction request in quote - cannot execute route');
     }
 
     try {
@@ -136,7 +169,7 @@ export const lifiService = {
       console.log(`[LI.FI] Transaction sent: ${txHash}`);
 
       return {
-        simulated: false,
+        testnet: USE_TESTNET,
         routeId: quote.routeId,
         txHash,
         status: 'pending',
@@ -152,16 +185,8 @@ export const lifiService = {
   trackStatus: async ({ txHash, fromChain, toChain }) => {
     console.log(`[LI.FI] Tracking: ${txHash}`);
 
-    if (USE_TESTNET) {
-      return {
-        simulated: true,
-        status: 'DONE',
-        substatus: 'COMPLETED',
-        fromChain,
-        toChain,
-        txHash,
-        receivingTxHash: `0x${'done'.repeat(16)}`,
-      };
+    if (!txHash) {
+      return { status: 'BRIDGE_UNAVAILABLE', message: 'No transaction to track (testnet bridge limitation)' };
     }
 
     const fromChainId = CHAIN_ID_MAP[fromChain];
@@ -184,7 +209,7 @@ export const lifiService = {
       const data = await response.json();
 
       return {
-        simulated: false,
+        testnet: USE_TESTNET,
         status: data.status || 'UNKNOWN',
         substatus: data.substatus || '',
         fromChain,
@@ -199,14 +224,13 @@ export const lifiService = {
     }
   },
 
-  _simulateQuote: ({ fromChain, toChain, fromToken, toToken, fromAmount, fromAddress, fromChainId, toChainId }) => {
-    const slippage = 0.003;
-    const gasCost = '0.50';
-    const estimatedOutput = (parseFloat(fromAmount) * (1 - slippage)).toString();
+  _testnetFallbackQuote: ({ fromChain, toChain, fromToken, toToken, fromAmount, fromAddress, fromChainId, toChainId, apiError }) => {
+    console.log(`[LI.FI] Generating testnet-limited quote (bridges unavailable between testnets)`);
 
     return {
-      simulated: true,
-      routeId: `sim_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      testnet: true,
+      bridgeLimited: true,
+      routeId: `testnet_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       fromChain,
       toChain,
       fromChainId,
@@ -214,26 +238,14 @@ export const lifiService = {
       fromToken: fromToken || 'ETH',
       toToken: toToken || 'ETH',
       fromAmount,
-      toAmount: estimatedOutput,
-      toAmountMin: (parseFloat(estimatedOutput) * 0.995).toString(),
-      gasCostUsd: gasCost,
-      bridgeUsed: 'stargate (simulated)',
-      estimatedTime: 120,
+      toAmount: fromAmount,
+      toAmountMin: fromAmount,
+      gasCostUsd: '0',
+      bridgeUsed: 'none (testnet - bridges unavailable)',
+      estimatedTime: 0,
       transactionRequest: null,
-    };
-  },
-
-  _simulateExecution: (quote) => {
-    const mockTxHash = `0x${Date.now().toString(16).padStart(64, '0')}`;
-
-    return {
-      simulated: true,
-      routeId: quote.routeId,
-      txHash: mockTxHash,
-      status: 'DONE',
-      fromChain: quote.fromChain,
-      toChain: quote.toChain,
-      amountReceived: quote.toAmount,
+      message: `Cross-chain bridges typically don't support testnets. Quote is for reference only.`,
+      apiError,
     };
   },
 

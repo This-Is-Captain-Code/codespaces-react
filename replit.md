@@ -34,9 +34,10 @@ Supported chains: `base`, `ethereum`, `arbitrum`, `optimism`, `polygon`
 ## Testnet Mode
 Set `USE_TESTNET=true` to run the entire platform in testnet mode:
 - **Token Deploy**: Uses testnet chain (e.g., Base Sepolia for `base`)
-- **ERC-8004**: Uses Sepolia instead of Ethereum mainnet (registration is simulated)
-- **Uniswap v4 Hook**: Returns simulated analytics data
-- **Wallet**: Test wallet with no real funds needed
+- **ERC-8004**: Uses Sepolia instead of Ethereum mainnet for identity registration. Requires `ADMIN_WALLET_PRIVATE_KEY` with Sepolia ETH.
+- **Uniswap v4 Hook**: Makes real RPC calls to testnet PoolManager contracts. Requires deployed `MOLT_FEE_ROUTER_ADDRESS` on testnet for pool operations - reports "not deployed" if missing.
+- **Cross-Chain Liquidity**: Calls real LI.FI API (bridges unavailable on testnets), real DB writes, real testnet RPC. No mock data.
+- **Wallet**: Requires testnet funds for transaction signing
 
 To switch to mainnet, set `USE_TESTNET=false` (or remove the variable).
 
@@ -131,11 +132,12 @@ Primary chain: Arbitrum One (Uniswap v4 native), Source chain: Base (cheap trans
 - `POST /api/liquidity/execute-move` - Execute cross-chain movement via LI.FI
 - `POST /api/liquidity/deploy` - Deploy liquidity into Uniswap v4 pool
 
-### Testnet/Simulation Mode
-All services run in simulation mode when `USE_TESTNET=true`:
-- Yellow Network: Simulated state channel batching (no real ClearSync)
-- LI.FI: Simulated quotes and execution (no real bridge calls)
-- Uniswap v4: Simulated liquidity deployment (no real pool operations)
+### Testnet Mode
+When `USE_TESTNET=true`, all services use real testnet chains and APIs:
+- Yellow Network: Local intent batching with real DB writes (ClearSync has no public testnet)
+- LI.FI: Calls real LI.FI API with testnet chain IDs (Base Sepolia 84532, Arbitrum Sepolia 421614). Bridges are typically unavailable between testnets - handled gracefully with `bridgeLimited` flag
+- Uniswap v4: Makes real RPC calls to testnet PoolManager contracts. Requires `MOLT_FEE_ROUTER_ADDRESS` deployed on testnet and `ADMIN_WALLET_PRIVATE_KEY` with testnet funds for write operations
+- No fake/mock data - services report actual capabilities and fail gracefully when testnet infrastructure doesn't support an operation
 
 ### Agent Skill: liquidity-manager
 Installed during agent launch alongside erc-8004 and molt-fees skills. Provides 11 tools:

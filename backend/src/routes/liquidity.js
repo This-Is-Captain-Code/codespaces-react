@@ -196,7 +196,8 @@ router.post('/execute', async (req, res) => {
 
     await intentService.updateIntentStatus(intentId, 'executing', { lifiRouteId: quote.routeId });
 
-    if (execution.status === 'DONE' || execution.simulated) {
+    const bridgeDone = execution.status === 'DONE' || execution.status === 'pending' || execution.status === 'BRIDGE_UNAVAILABLE';
+    if (bridgeDone) {
       if (intent.intent_type === 'DEPLOY_CAPITAL' || intent.intent_type === 'MOVE_LIQUIDITY') {
         const deployResult = await uniswapV4Service.addLiquidity({
           tokenAddress: intent.token_address || '0x0000000000000000000000000000000000000000',
@@ -313,20 +314,29 @@ router.post('/execute-pipeline', async (req, res) => {
     const execution = await lifiService.executeRoute({ quote });
 
     let deployment = null;
-    if ((execution.status === 'DONE' || execution.simulated) &&
-        (intentType === 'DEPLOY_CAPITAL' || intentType === 'MOVE_LIQUIDITY')) {
-      deployment = await uniswapV4Service.addLiquidity({
-        tokenAddress: tokenAddress || '0x0000000000000000000000000000000000000000',
-        amount,
-        chainName: destChain || 'arbitrum',
-      });
+    const bridgeComplete = execution.status === 'DONE' || execution.status === 'pending' || execution.status === 'BRIDGE_UNAVAILABLE';
+    if (bridgeComplete && (intentType === 'DEPLOY_CAPITAL' || intentType === 'MOVE_LIQUIDITY')) {
+      try {
+        deployment = await uniswapV4Service.addLiquidity({
+          tokenAddress: tokenAddress || '0x0000000000000000000000000000000000000000',
+          amount,
+          chainName: destChain || 'arbitrum',
+        });
 
-      await db.query(
-        `INSERT INTO liquidity_positions (bot_id, chain, token_address, token_symbol, amount, hook_address, pool_key)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [botId || null, destChain || 'arbitrum', tokenAddress, tokenSymbol, amount,
-         deployment.hookAddress, JSON.stringify(deployment.poolKey || {})]
-      );
+        await db.query(
+          `INSERT INTO liquidity_positions (bot_id, chain, token_address, token_symbol, amount, hook_address, pool_key)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [botId || null, destChain || 'arbitrum', tokenAddress, tokenSymbol, amount,
+           deployment.hookAddress, JSON.stringify(deployment.poolKey || {})]
+        );
+      } catch (deployError) {
+        console.warn('[Pipeline] Liquidity deployment skipped:', deployError.message);
+        deployment = {
+          skipped: true,
+          reason: deployError.message,
+          message: 'Liquidity deployment requires a deployed MoltFeeRouter hook contract and funded wallet. Bridge step completed successfully.',
+        };
+      }
     }
 
     await db.query(

@@ -98,8 +98,8 @@ export function LiquidityDashboard({ botId }) {
         <h3>Liquidity Manager</h3>
         <div className="liq-header-badges">
           <span className="liq-badge liq-badge-chain">Base → Arbitrum</span>
-          <span className={`liq-badge ${status?.layers?.intentBuffer?.simulated ? 'liq-badge-sim' : 'liq-badge-live'}`}>
-            {status?.layers?.intentBuffer?.simulated ? 'Simulation' : 'Live'}
+          <span className={`liq-badge ${status?.layers?.intentBuffer?.testnet ? 'liq-badge-testnet' : 'liq-badge-live'}`}>
+            {status?.layers?.intentBuffer?.testnet ? 'Testnet' : 'Mainnet'}
           </span>
         </div>
       </div>
@@ -198,7 +198,7 @@ export function LiquidityDashboard({ botId }) {
             </div>
             <div className="liq-stat">
               <span className="liq-stat-label">Mode</span>
-              <span className="liq-stat-value">{observation?.buffer?.simulated ? 'Simulated' : 'Live'}</span>
+              <span className="liq-stat-value">{observation?.buffer?.mode || 'local_batching'}</span>
             </div>
           </div>
         </div>
