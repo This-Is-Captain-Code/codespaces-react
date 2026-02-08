@@ -504,10 +504,19 @@ export const flyService = {
           mode: 'token',
           token: gatewayToken
         },
+        remote: {
+          token: gatewayToken
+        },
         trustedProxies: ['0.0.0.0/0', '::/0'],
         controlUi: {
           enabled: true,
-          allowInsecureAuth: true
+          allowInsecureAuth: true,
+          dangerouslyDisableDeviceAuth: true
+        },
+        http: {
+          endpoints: {
+            chatCompletions: { enabled: true }
+          }
         }
       },
       agents: {
@@ -720,15 +729,20 @@ export const flyService = {
       
       const openclawConfig = {
         gateway: {
-          mode: 'local',
+          bind: 'lan',
+          port: 18789,
           auth: {
             mode: 'token',
+            token: gatewayToken
+          },
+          remote: {
             token: gatewayToken
           },
           trustedProxies: ['0.0.0.0/0', '::/0'],
           controlUi: {
             enabled: true,
-            allowInsecureAuth: true
+            allowInsecureAuth: true,
+            dangerouslyDisableDeviceAuth: true
           },
           http: {
             endpoints: {
