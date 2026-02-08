@@ -1,0 +1,92 @@
+How the three protocols work together
+1.⁠ ⁠Decision layer — OpenClaw agent
+The agent is initialized with context like:
+“Move liquidity only when expected fee improvement exceeds execution cost. Avoid frequent rebalancing. Explain every action.”
+It produces intents such as:
+Copy code
+
+Move 10,000 USDC from Base to Arbitrum
+if net fee gain > 0.5%
+No keys. No contracts. No chain logic.
+2.⁠ ⁠Intent buffering — Yellow Network
+Yellow Network sits between decision and execution.
+Its role:
+receive agent intents
+delay, batch, or net them
+prevent thrashing from short-term noise
+trigger execution only when conditions remain valid
+Yellow does not move funds and does not deploy liquidity.
+It optimizes when execution happens.
+This makes the agent appear patient and intentional rather than reactive.
+3.⁠ ⁠Movement layer — LI.FI
+When Yellow releases an intent for execution, the skill calls LI.FI.
+LI.FI:
+selects the best bridge + swap route
+optimizes for gas and slippage
+executes the cross-chain transfer
+stops once funds arrive
+LI.FI answers exactly one question:
+“What’s the safest and cheapest way to move capital from Chain A to Chain B?”
+4.⁠ ⁠Deployment layer — Uniswap v4
+Once funds arrive on the destination chain (Arbitrum):
+liquidity is deployed into a Uniswap v4 pool
+optional hooks encode behavior such as:
+dynamic fees
+treasury fee routing
+exit constraints
+Uniswap v4 never moves funds across chains.
+It defines how capital behaves once it’s there.
+Chain strategy
+Primary execution chain: Arbitrum One
+Uniswap v4-native
+Deep DeFi liquidity
+Strong LI.FI support
+Ideal for hooks and real execution
+Secondary / source chain: Base
+High retail liquidity
+Cheap transactions
+Natural source of capital
+Clean LI.FI routing into Arbitrum
+This creates a simple, intuitive story:
+Capital starts on Base → moves to Arbitrum → earns fees intelligently.
+Why Yellow fits (and why it’s optional)
+Yellow is not required for correctness — it improves quality.
+Without Yellow:
+Agent decides → execute immediately
+With Yellow:
+Agent decides → intent buffered → execution optimized
+This:
+reduces gas
+reduces churn
+aligns with Yellow’s focus on intent-based execution
+strengthens the agentic narrative
+Yellow is an execution optimizer, not a core dependency.
+Why this is not forced
+Each protocol is used for what it is best at:
+Layer
+Protocol
+Responsibility
+Decision
+OpenClaw
+What should happen
+Intent control
+Yellow
+When to execute
+Cross-chain
+LI.FI
+How funds move
+On-chain logic
+Uniswap v4
+How funds behave
+No overlap. No redundancy. No fake abstraction.
+If any one of these were removed, the system would either:
+become chain-locked
+churn excessively
+or lose programmable behavior
+What the demo shows
+Agent observes state and stays idle
+Conditions change meaningfully
+Agent emits a rebalance intent
+Yellow delays and confirms stability
+LI.FI executes cross-chain transfer
+Uniswap v4 deploys liquidity
