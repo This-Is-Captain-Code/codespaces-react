@@ -121,10 +121,6 @@ export async function initializeDatabase() {
   `).catch(() => {});
 
   await db.query(`
-    ALTER TABLE bots ADD COLUMN IF NOT EXISTS erc8004_id INTEGER
-  `).catch(() => {});
-
-  await db.query(`
     ALTER TABLE bots ADD COLUMN IF NOT EXISTS user_wallet_address VARCHAR(255)
   `).catch(() => {});
 
@@ -133,19 +129,11 @@ export async function initializeDatabase() {
   `).catch(() => {});
 
   await db.query(`
-    ALTER TABLE bots ADD COLUMN IF NOT EXISTS erc8004_tx VARCHAR(255)
-  `).catch(() => {});
-
-  await db.query(`
     ALTER TABLE bots ADD COLUMN IF NOT EXISTS hook_tx VARCHAR(255)
   `).catch(() => {});
 
   await db.query(`
     ALTER TABLE bots ADD COLUMN IF NOT EXISTS token_deploy_chain VARCHAR(50)
-  `).catch(() => {});
-
-  await db.query(`
-    ALTER TABLE bots ADD COLUMN IF NOT EXISTS erc8004_chain VARCHAR(50)
   `).catch(() => {});
 
   await db.query(`

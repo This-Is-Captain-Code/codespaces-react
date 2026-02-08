@@ -53,7 +53,6 @@ const LAUNCH_STEPS = [
   { key: 'deploying_agent', label: 'Deploying agent server' },
   { key: 'configuring_telegram', label: 'Configuring Telegram bot' },
   { key: 'installing_skills', label: 'Installing skills' },
-  { key: 'registering_identity', label: 'Registering on-chain identity' },
   { key: 'deploying_token', label: 'Deploying token' },
   { key: 'registering_fee_hook', label: 'Registering Uniswap v4 fee hook' },
   { key: 'finalizing', label: 'Finalizing' },
@@ -170,12 +169,6 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
               </div>
             </>
           )}
-          {result.erc8004 && (
-            <div className="detail-item">
-              <span className="label">ERC-8004 ID</span>
-              <span className="value">#{result.erc8004.agentId}</span>
-            </div>
-          )}
           {result.telegram && result.telegram.configured && (
             <div className="detail-item">
               <span className="label">Telegram</span>
@@ -191,12 +184,11 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
           )}
         </div>
 
-        {(result.token?.txHash || result.erc8004?.txHash || result.feeHook?.txHash) && (
+        {(result.token?.txHash || result.feeHook?.txHash) && (
           <div className="tx-hashes-section">
             <h3>On-Chain Transactions</h3>
             <div className="tx-hashes-list">
               <TxHashLink txHash={result.token?.txHash} chain={result.token?.chain} label="Token Deploy" />
-              <TxHashLink txHash={result.erc8004?.txHash} chain={result.erc8004?.chain} label="ERC-8004 Identity" />
               <TxHashLink txHash={result.feeHook?.txHash} chain={result.feeHook?.chain} label="Fee Hook Registration" />
             </div>
           </div>

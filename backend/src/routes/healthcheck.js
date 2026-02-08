@@ -44,7 +44,6 @@ router.get('/integrations', async (req, res) => {
     { name: 'privy', test: testPrivy },
     { name: 'openrouter', test: testOpenRouter },
     { name: 'token_deploy', test: testTokenDeploy },
-    { name: 'erc8004_contracts', test: testERC8004Contracts },
   ];
 
   for (const { name, test } of tests) {
@@ -197,41 +196,6 @@ async function testTokenDeploy() {
   } catch (error) {
     throw new Error(`Token deploy error: ${error.message}`);
   }
-}
-
-async function testERC8004Contracts() {
-  const identityRegistry = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
-  const reputationRegistry = '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
-
-  if (USE_TESTNET) {
-    return { 
-      message: 'ERC-8004 ready (TESTNET mode - registration will be simulated)',
-      network: 'Sepolia',
-      note: 'No real on-chain registration in testnet mode',
-    };
-  }
-
-  const response = await fetch(`https://eth.llamarpc.com`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'eth_getCode',
-      params: [identityRegistry, 'latest']
-    })
-  });
-
-  const data = await response.json();
-  if (!data.result || data.result === '0x') {
-    throw new Error('Identity Registry contract not found on mainnet');
-  }
-
-  return { 
-    message: 'ERC-8004 contracts verified on Ethereum mainnet',
-    identityRegistry,
-    reputationRegistry
-  };
 }
 
 const HOOK_CONSTANTS = {
@@ -414,7 +378,6 @@ function getHint(name) {
     privy: 'Set VITE_PRIVY_APP_ID and PRIVY_APP_SECRET from privy.io dashboard',
     openrouter: 'Get API key from openrouter.ai and add as OPENROUTER_API_KEY secret',
     token_deploy: 'Set ADMIN_WALLET_PRIVATE_KEY (for signing). Set DEPLOY_CHAIN to target chain (base, ethereum, arbitrum, optimism, polygon).',
-    erc8004_contracts: 'Contracts should be deployed on Ethereum mainnet'
   };
   return hints[name] || 'Check configuration';
 }

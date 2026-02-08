@@ -2,7 +2,6 @@ import { db } from '../db/index.js';
 import { flyService } from './flyService.js';
 import { privyWalletService } from './privyWalletService.js';
 import { tokenDeployService } from './tokenDeployService.js';
-import { erc8004Service } from './erc8004Service.js';
 import { skillInstallerService } from './skillInstallerService.js';
 import { openrouterProvisioningService } from './openrouterProvisioningService.js';
 import { uniswapV4Service } from './uniswapV4Service.js';
@@ -17,7 +16,6 @@ const LAUNCH_STEPS = [
   'deploying_agent',
   'configuring_telegram',
   'installing_skills',
-  'registering_identity',
   'deploying_token',
   'registering_fee_hook',
   'finalizing',
@@ -47,7 +45,6 @@ export const agentLaunchService = {
       flyAppName: null,
       agentWalletId: null,
       tokenAddress: null,
-      erc8004Id: null,
     };
 
     const sendProgress = (step, status, data = {}) => {
@@ -167,7 +164,7 @@ export const agentLaunchService = {
 
       sendProgress('installing_skills', 'in_progress', {
         source: 'openclaw-skills',
-        targetSkills: ['erc-8004', 'molt-fees'],
+        targetSkills: ['molt-fees', 'liquidity-manager'],
       });
       let skillsResult = { installedSkills: [], errors: [] };
       try {
@@ -185,35 +182,6 @@ export const agentLaunchService = {
         source: 'openclaw-skills',
         skills: skillsResult.installedSkills,
         errors: skillsResult.errors?.length || 0,
-      });
-
-      sendProgress('registering_identity', 'in_progress', {
-        protocol: 'ERC-8004',
-        chain: USE_TESTNET ? 'Sepolia' : 'Ethereum Mainnet',
-        simulated: USE_TESTNET,
-      });
-      let erc8004Result = { registered: false, agentId: null };
-      if (erc8004Service.isConfigured()) {
-        try {
-          erc8004Result = await erc8004Service.registerAgent({
-            name: agentName,
-            description: `${agentName} - AI Agent on Molt.town`,
-            agentEndpoint: userGateway.endpoint,
-            tokenAddress: null,
-            agentWalletAddress: agentWallet?.address,
-          });
-          launchState.erc8004Id = erc8004Result.agentId;
-        } catch (identityError) {
-          console.warn('ERC-8004 registration failed:', identityError.message);
-        }
-      }
-      sendProgress('registering_identity', 'completed', { 
-        protocol: 'ERC-8004',
-        chain: USE_TESTNET ? 'Sepolia' : 'Ethereum Mainnet',
-        simulated: USE_TESTNET,
-        agentId: erc8004Result.agentId,
-        registered: erc8004Result.registered,
-        txHash: erc8004Result.txHash || null,
       });
 
       const networkInfo = tokenDeployService.getNetworkInfo();
@@ -287,11 +255,10 @@ export const agentLaunchService = {
           user_id, bot_name, endpoint, model, system_prompt, status,
           gateway_id, agent_id, fly_gateway_token, openrouter_key_hash, openrouter_limit_usd,
           agent_wallet_address, agent_wallet_id, token_address, token_symbol, token_name,
-          erc8004_id, user_wallet_address, token_hash,
+          user_wallet_address, token_hash,
           token_deploy_tx, token_deploy_chain,
-          erc8004_tx, erc8004_chain,
           hook_tx, hook_chain
-        ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+        ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
         RETURNING id, bot_name, model, system_prompt, status, created_at`,
         [
           userId,
@@ -309,13 +276,10 @@ export const agentLaunchService = {
           tokenResult?.tokenAddress || null,
           tokenSymbol || null,
           tokenName || agentName,
-          erc8004Result.agentId || null,
           userWalletAddress || null,
           tokenHash,
           tokenResult?.txHash || null,
           tokenResult ? networkInfo2.chain : null,
-          erc8004Result.txHash || null,
-          erc8004Result.registered ? (USE_TESTNET ? 'Sepolia' : 'Ethereum') : null,
           hookResult.txHash || null,
           hookResult.registered ? (USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum') : null,
         ]
@@ -348,12 +312,6 @@ export const agentLaunchService = {
           chain: tokenResult.chain,
           explorerUrl: tokenResult.explorerUrl,
           txHash: tokenResult.txHash || null,
-        } : null,
-        erc8004: erc8004Result.registered ? {
-          agentId: erc8004Result.agentId,
-          registryAddress: erc8004Result.registryAddress,
-          txHash: erc8004Result.txHash || null,
-          chain: USE_TESTNET ? 'Sepolia' : 'Ethereum',
         } : null,
         feeHook: hookResult.registered ? {
           hookAddress: hookResult.hookAddress,
@@ -413,10 +371,9 @@ export const agentLaunchService = {
         b.id, b.bot_name, b.endpoint, b.status, b.model,
         b.agent_wallet_address, b.agent_wallet_id,
         b.token_address, b.token_symbol, b.token_name,
-        b.erc8004_id, b.user_wallet_address,
+        b.user_wallet_address,
         b.gateway_id, b.fly_gateway_token, b.created_at,
         b.token_deploy_tx, b.token_deploy_chain,
-        b.erc8004_tx, b.erc8004_chain,
         b.hook_tx, b.hook_chain
       FROM bots b
       WHERE b.user_id = $1`,
@@ -448,12 +405,8 @@ export const agentLaunchService = {
         symbol: bot.token_symbol,
         name: bot.token_name,
       } : null,
-      erc8004: bot.erc8004_id ? {
-        agentId: bot.erc8004_id,
-      } : null,
       transactions: {
         tokenDeploy: bot.token_deploy_tx ? { txHash: bot.token_deploy_tx, chain: bot.token_deploy_chain } : null,
-        erc8004: bot.erc8004_tx ? { txHash: bot.erc8004_tx, chain: bot.erc8004_chain } : null,
         hookRegistration: bot.hook_tx ? { txHash: bot.hook_tx, chain: bot.hook_chain } : null,
       },
       userWallet: bot.user_wallet_address,

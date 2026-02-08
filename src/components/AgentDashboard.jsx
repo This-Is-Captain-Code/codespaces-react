@@ -185,17 +185,6 @@ export function AgentDashboard({ userWalletAddress, onLogout }) {
 
         <LiquidityDashboard botId={agent.botId} />
 
-        {agent.erc8004 && (
-          <div className="info-section">
-            <h3>On-Chain Identity (ERC-8004)</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <span className="label">Agent ID</span>
-                <span className="value">#{agent.erc8004.agentId}</span>
-              </div>
-            </div>
-          </div>
-        )}
 
         {agent.userWallet && (
           <div className="info-section">

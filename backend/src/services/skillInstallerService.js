@@ -1,11 +1,6 @@
 const SKILLS_REPO = 'https://github.com/BankrBot/openclaw-skills';
 
 const AVAILABLE_SKILLS = {
-  'erc-8004': {
-    name: 'erc-8004',
-    path: 'erc-8004',
-    description: 'Register AI agents on Ethereum mainnet using ERC-8004',
-  },
   'molt-fees': {
     name: 'molt-fees',
     path: 'molt-fees',
@@ -31,7 +26,7 @@ export const skillInstallerService = {
   installSkills: async (gatewayEndpoint, gatewayToken, options = {}) => {
     const {
       agentWalletAddress,
-      skillsToInstall = ['erc-8004', 'molt-fees', 'liquidity-manager'],
+      skillsToInstall = ['molt-fees', 'liquidity-manager'],
     } = options;
 
     console.log(`Installing skills to gateway ${gatewayEndpoint}...`);
@@ -39,39 +34,6 @@ export const skillInstallerService = {
 
     const installedSkills = [];
     const errors = [];
-
-    if (skillsToInstall.includes('erc-8004')) {
-      try {
-        const erc8004SkillConfig = {
-          name: 'erc-8004',
-          source: `${SKILLS_REPO}/tree/main/erc-8004`,
-          enabled: true,
-          config: {
-            chain: 'ethereum',
-            chainId: 1,
-            identityRegistry: '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
-            reputationRegistry: '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63',
-          },
-        };
-
-        const erc8004Result = await installSkillToGateway(
-          gatewayEndpoint,
-          gatewayToken,
-          erc8004SkillConfig
-        );
-
-        if (erc8004Result.success) {
-          installedSkills.push('erc-8004');
-          console.log('Installed erc-8004 skill');
-        } else {
-          errors.push({ skill: 'erc-8004', error: erc8004Result.error });
-          console.warn('Failed to install erc-8004 skill:', erc8004Result.error);
-        }
-      } catch (error) {
-        errors.push({ skill: 'erc-8004', error: error.message });
-        console.warn('ERC-8004 skill installation error:', error.message);
-      }
-    }
 
     if (skillsToInstall.includes('molt-fees')) {
       try {

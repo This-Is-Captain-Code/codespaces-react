@@ -251,7 +251,7 @@ export function BotDashboard({ userId }) {
           </div>
         </div>
 
-        {(bot.tokenAddress || bot.agentWalletAddress || bot.erc8004Id) && (
+        {(bot.tokenAddress || bot.agentWalletAddress) && (
           <div className="onchain-section">
             <h3>On-Chain</h3>
             <div className="onchain-details">
@@ -275,17 +275,11 @@ export function BotDashboard({ userId }) {
                   </div>
                 </div>
               )}
-              {bot.erc8004Id && (
-                <div className="detail-row">
-                  <span className="label">ERC-8004 ID:</span>
-                  <span className="value">#{bot.erc8004Id}</span>
-                </div>
-              )}
             </div>
           </div>
         )}
 
-        {bot.transactions && (bot.transactions.tokenDeploy || bot.transactions.erc8004 || bot.transactions.hookRegistration) && (
+        {bot.transactions && (bot.transactions.tokenDeploy || bot.transactions.hookRegistration) && (
           <div className="tx-section">
             <h3>Transaction Hashes</h3>
             <div className="tx-list">
@@ -300,20 +294,6 @@ export function BotDashboard({ userId }) {
                   >
                     {bot.transactions.tokenDeploy.txHash.slice(0, 10)}...{bot.transactions.tokenDeploy.txHash.slice(-8)}
                     <span className="chain-tag">{bot.transactions.tokenDeploy.chain || 'Base'}</span>
-                  </a>
-                </div>
-              )}
-              {bot.transactions.erc8004 && (
-                <div className="tx-row">
-                  <span className="tx-label">ERC-8004 Registration</span>
-                  <a
-                    href={getTxExplorerUrl(bot.transactions.erc8004.chain, bot.transactions.erc8004.txHash)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="tx-link"
-                  >
-                    {bot.transactions.erc8004.txHash.slice(0, 10)}...{bot.transactions.erc8004.txHash.slice(-8)}
-                    <span className="chain-tag">{bot.transactions.erc8004.chain || 'Ethereum'}</span>
                   </a>
                 </div>
               )}

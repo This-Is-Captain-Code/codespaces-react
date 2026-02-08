@@ -6,7 +6,8 @@ Molt.town is an automated AI agent launch platform designed to quickly deploy AI
 ## Recent Changes
 - **2026-02-08**: Switched to mainnet mode (`USE_TESTNET=false`), cleaned all test data from DB
 - **2026-02-08**: Added transaction hash tracking for all on-chain operations (token deploy, ERC-8004, hook registration)
-- **2026-02-08**: New DB columns: `token_deploy_tx`, `erc8004_tx`, `hook_tx` + chain columns on `bots` table
+- **2026-02-08**: Removed ERC-8004 on-chain identity registration from agent launch (saves Ethereum mainnet gas)
+- **2026-02-08**: New DB columns: `token_deploy_tx`, `hook_tx` + chain columns on `bots` table
 - **2026-02-08**: Frontend shows tx hashes with explorer links in both launch success screen and bot dashboard
 - **2026-02-08**: Fixed gateway token authentication (belt-and-suspenders: config JSON + CLI flag)
 - **2026-02-08**: Added "Fix Gateway Connection" reprovision button to bot dashboard
