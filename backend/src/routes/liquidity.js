@@ -4,9 +4,21 @@ import { yellowNetworkService } from '../services/yellowNetworkService.js';
 import { lifiService } from '../services/lifiService.js';
 import { uniswapV4Service } from '../services/uniswapV4Service.js';
 import { db } from '../db/index.js';
+import { createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { base, arbitrum, mainnet, optimism, polygon } from 'viem/chains';
+import { privyWalletService } from '../services/privyWalletService.js';
 
 const router = Router();
+
+const CHAIN_MAP = { base, arbitrum, ethereum: mainnet, optimism, polygon };
+const CHAIN_RPC = {
+  base: 'https://mainnet.base.org',
+  arbitrum: 'https://arb1.arbitrum.io/rpc',
+  ethereum: 'https://eth.llamarpc.com',
+  optimism: 'https://mainnet.optimism.io',
+  polygon: 'https://polygon-rpc.com',
+};
 
 function getAdminWalletAddress() {
   const key = process.env.ADMIN_WALLET_PRIVATE_KEY;
@@ -15,6 +27,40 @@ function getAdminWalletAddress() {
     const account = privateKeyToAccount(key);
     return account.address;
   } catch { return null; }
+}
+
+function createAdminWalletClient(chainName) {
+  const key = process.env.ADMIN_WALLET_PRIVATE_KEY;
+  if (!key) return null;
+  const account = privateKeyToAccount(key);
+  const chain = CHAIN_MAP[chainName] || base;
+  return createWalletClient({
+    account,
+    chain,
+    transport: http(CHAIN_RPC[chainName] || CHAIN_RPC.base),
+  });
+}
+
+async function getWalletClientForBot(botId, chainName) {
+  if (botId) {
+    const botResult = await db.query('SELECT agent_wallet_id, agent_wallet_address FROM bots WHERE id = $1', [botId]);
+    const bot = botResult.rows[0];
+    if (bot?.agent_wallet_id) {
+      const chainId = CHAIN_MAP[chainName]?.id || 8453;
+      return {
+        address: bot.agent_wallet_address,
+        sendTransaction: async (tx) => {
+          const result = await privyWalletService.sendTransaction(bot.agent_wallet_id, {
+            to: tx.to,
+            value: tx.value ? `0x${tx.value.toString(16)}` : '0x0',
+            data: tx.data || '0x',
+          }, chainId);
+          return result.hash;
+        },
+      };
+    }
+  }
+  return createAdminWalletClient(chainName);
 }
 
 router.get('/status', (req, res) => {
@@ -139,7 +185,7 @@ router.post('/batch/:batchId/release', async (req, res) => {
 
 router.post('/quote', async (req, res) => {
   try {
-    const { fromChain, toChain, fromToken, toToken, fromAmount, fromAddress } = req.body;
+    const { fromChain, toChain, fromToken, toToken, fromAmount, fromAddress, tokenSymbol } = req.body;
 
     if (!fromChain || !toChain || !fromAmount || !fromAddress) {
       return res.status(400).json({ error: 'fromChain, toChain, fromAmount, and fromAddress are required' });
@@ -152,6 +198,7 @@ router.post('/quote', async (req, res) => {
       toToken,
       fromAmount,
       fromAddress,
+      tokenSymbol,
     });
 
     res.json({ success: true, quote });
@@ -203,6 +250,7 @@ router.post('/execute', async (req, res) => {
       toToken: intent.token_address || undefined,
       fromAmount: intent.amount,
       fromAddress,
+      tokenSymbol: intent.token_symbol || undefined,
     });
 
     await db.query(
@@ -211,7 +259,8 @@ router.post('/execute', async (req, res) => {
       [intentId, intent.source_chain, intent.dest_chain, quote.fromToken, quote.toToken, intent.amount, JSON.stringify(quote), quote.bridgeUsed]
     );
 
-    const execution = await lifiService.executeRoute({ quote });
+    const walletClient = await getWalletClientForBot(intent.bot_id, intent.source_chain);
+    const execution = await lifiService.executeRoute({ quote, walletClient });
 
     await db.query(
       `UPDATE cross_chain_movements SET status = $1, tx_hash_source = $2 WHERE intent_id = $3`,
@@ -339,6 +388,7 @@ router.post('/execute-pipeline', async (req, res) => {
       toToken: tokenAddress,
       fromAmount: amount,
       fromAddress,
+      tokenSymbol: tokenSymbol || undefined,
     });
 
     await db.query(
@@ -347,7 +397,8 @@ router.post('/execute-pipeline', async (req, res) => {
       [intent.id, sourceChain || 'base', destChain || 'arbitrum', quote.fromToken, quote.toToken, amount, JSON.stringify(quote), quote.bridgeUsed]
     );
 
-    const execution = await lifiService.executeRoute({ quote });
+    const walletClient = await getWalletClientForBot(botId, sourceChain || 'base');
+    const execution = await lifiService.executeRoute({ quote, walletClient });
 
     let deployment = null;
     const bridgeComplete = execution.status === 'DONE' || execution.status === 'pending' || execution.status === 'BRIDGE_UNAVAILABLE';

@@ -71,8 +71,29 @@ export const lifiService = {
     }
   },
 
-  getQuote: async ({ fromChain, toChain, fromToken, toToken, fromAmount, fromAddress }) => {
-    console.log(`[LI.FI] Getting quote: ${fromChain} -> ${toChain}, amount: ${fromAmount}, testnet: ${USE_TESTNET}`);
+  convertToSmallestUnit: (amount, tokenSymbol) => {
+    const amountStr = String(amount);
+    if (/^\d+$/.test(amountStr) && amountStr.length > 10) {
+      return amountStr;
+    }
+    const num = parseFloat(amountStr);
+    if (isNaN(num)) {
+      throw new Error(`Invalid amount: ${amount}`);
+    }
+    const symbol = (tokenSymbol || '').toUpperCase();
+    if (symbol === 'USDC' || symbol === 'USDT') {
+      return BigInt(Math.round(num * 1e6)).toString();
+    }
+    return parseEther(amountStr).toString();
+  },
+
+  getQuote: async ({ fromChain, toChain, fromToken, toToken, fromAmount, fromAddress, tokenSymbol }) => {
+    const resolvedToken = fromToken || CHAIN_NATIVE_TOKEN;
+    const isNativeToken = resolvedToken === CHAIN_NATIVE_TOKEN;
+    const symbol = tokenSymbol || (isNativeToken ? 'ETH' : '');
+    const weiAmount = lifiService.convertToSmallestUnit(fromAmount, symbol);
+
+    console.log(`[LI.FI] Getting quote: ${fromChain} -> ${toChain}, amount: ${fromAmount} (${weiAmount} smallest unit), token: ${symbol}, testnet: ${USE_TESTNET}`);
 
     const fromChainId = CHAIN_ID_MAP[fromChain];
     const toChainId = CHAIN_ID_MAP[toChain];
@@ -85,9 +106,9 @@ export const lifiService = {
       const params = new URLSearchParams({
         fromChain: fromChainId.toString(),
         toChain: toChainId.toString(),
-        fromToken: fromToken || CHAIN_NATIVE_TOKEN,
+        fromToken: resolvedToken,
         toToken: toToken || CHAIN_NATIVE_TOKEN,
-        fromAmount,
+        fromAmount: weiAmount,
         fromAddress,
         integrator: 'molt-town',
       });
@@ -157,6 +178,10 @@ export const lifiService = {
 
     if (!quote.transactionRequest) {
       throw new Error('No transaction request in quote - cannot execute route');
+    }
+
+    if (!walletClient) {
+      throw new Error('No wallet client available for signing. Set ADMIN_WALLET_PRIVATE_KEY or provide a bot with a Privy wallet.');
     }
 
     try {
