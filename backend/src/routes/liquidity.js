@@ -636,4 +636,59 @@ router.get('/analytics', async (req, res) => {
   }
 });
 
+router.post('/yellow/create-channel', async (req, res) => {
+  try {
+    const { chainId = 42161, tokenAddress } = req.body;
+
+    const { clearNodeClient } = await import('../services/clearNodeClient.js');
+
+    const status = clearNodeClient.getStatus();
+    if (!status.connected) {
+      console.log('[Yellow] ClearNode not connected, attempting connection...');
+      await clearNodeClient.connect();
+    }
+
+    if (!clearNodeClient.isAuthenticated) {
+      return res.status(400).json({
+        error: 'ClearNode authentication failed. Cannot create channel without successful auth.',
+        status: clearNodeClient.getStatus(),
+      });
+    }
+
+    const assets = await clearNodeClient.getAssets();
+    console.log(`[Yellow] Available assets: ${JSON.stringify(assets?.length || 0)} assets`);
+
+    const channelResult = await clearNodeClient.createChannel(chainId, tokenAddress);
+
+    res.json({
+      success: true,
+      channel: channelResult,
+      message: `Channel created on chain ${chainId}`,
+    });
+  } catch (error) {
+    console.error('[Yellow] Channel creation error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/yellow/channels', async (req, res) => {
+  try {
+    const { clearNodeClient } = await import('../services/clearNodeClient.js');
+    const channels = await clearNodeClient.getChannels();
+    res.json({ channels });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/yellow/assets', async (req, res) => {
+  try {
+    const { clearNodeClient } = await import('../services/clearNodeClient.js');
+    const assets = await clearNodeClient.getAssets();
+    res.json({ assets });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

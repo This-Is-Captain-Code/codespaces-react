@@ -11,10 +11,18 @@ import {
   createCloseAppSessionMessage,
   createGetConfigMessage,
   createGetLedgerBalancesMessage,
+  createGetChannelsMessage,
+  createCreateChannelMessage,
+  createGetAssetsMessage,
   createPingMessage,
   parseAnyRPCResponse,
+  parseCreateChannelResponse,
+  parseGetChannelsResponse,
+  parseGetAssetsResponse,
   RPCMethod,
   createECDSAMessageSigner,
+  NitroliteClient,
+  CustodyAbi,
 } from '@erc7824/nitrolite';
 
 const USE_TESTNET = process.env.USE_TESTNET === 'true';
@@ -189,7 +197,7 @@ class ClearNodeClient {
 
     console.log('[ClearNode] Starting EIP-712 authentication...');
 
-    const expiresAt = (Math.floor(Date.now() / 1000) + 3600).toString();
+    const expiresAt = Date.now() + 3600000;
 
     const errorPromise = new Promise((resolve) => {
       const errorHandler = (msg) => {
@@ -238,13 +246,14 @@ class ClearNodeClient {
     }
 
     console.log('[ClearNode] Received auth challenge, signing...');
+    console.log(`[ClearNode] walletClient.account: ${this.walletClient?.account?.address || 'MISSING'}`);
 
     const eip712Signer = createEIP712AuthMessageSigner(
       this.walletClient,
       {
         scope: 'console',
         application: 'molt.town',
-        participant: this.account.address,
+        session_key: this.account.address,
         expires_at: expiresAt,
         allowances: [],
       },
@@ -510,6 +519,86 @@ class ClearNodeClient {
       results[chainName] = await this.getGasPrice(chainName);
     }
     return results;
+  }
+
+  async createChannel(chainId, tokenAddress) {
+    if (!this.isConnected) {
+      throw new Error('Not connected to ClearNode');
+    }
+    if (!this.isAuthenticated) {
+      throw new Error('Not authenticated with ClearNode. Authentication must succeed before channel creation.');
+    }
+
+    console.log(`[ClearNode] Creating channel on chain ${chainId} with token ${tokenAddress}...`);
+
+    const signer = createECDSAMessageSigner(this.walletClient, this.account.address);
+
+    const createMsg = await createCreateChannelMessage(signer, {
+      chain_id: chainId,
+      token: tokenAddress,
+    });
+
+    this._send(createMsg);
+
+    const response = await this._waitForMethod('create_channel', 30000);
+
+    if (!response) {
+      throw new Error('Channel creation timed out');
+    }
+
+    if (response.params?.error) {
+      throw new Error(`Channel creation failed: ${JSON.stringify(response.params.error)}`);
+    }
+
+    console.log('[ClearNode] Channel creation response received');
+
+    let channelData;
+    try {
+      channelData = parseCreateChannelResponse(
+        typeof response === 'string' ? response : JSON.stringify(response.raw || response)
+      );
+    } catch (e) {
+      channelData = response.params || response;
+    }
+
+    console.log('[ClearNode] Channel data:', JSON.stringify(channelData, null, 2));
+
+    return channelData;
+  }
+
+  async getChannels() {
+    if (!this.isConnected || !this.isAuthenticated) {
+      return [];
+    }
+
+    const signer = createECDSAMessageSigner(this.walletClient, this.account.address);
+    const msg = await createGetChannelsMessage(signer);
+    this._send(msg);
+
+    const response = await this._waitForMethod('get_channels', 10000);
+    if (!response) return [];
+
+    try {
+      return parseGetChannelsResponse(
+        typeof response === 'string' ? response : JSON.stringify(response.raw || response)
+      );
+    } catch (e) {
+      return response.params?.channels || response.params || [];
+    }
+  }
+
+  async getAssets() {
+    if (!this.isConnected) return [];
+
+    try {
+      const msg = await createGetAssetsMessage();
+      this._send(msg);
+      const response = await this._waitForMethod('assets', 10000);
+      if (!response) return [];
+      return response.params?.assets || response.params || [];
+    } catch (e) {
+      return [];
+    }
   }
 
   getStatus() {
