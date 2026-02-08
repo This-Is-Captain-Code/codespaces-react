@@ -15,7 +15,7 @@ router.get('/status', (req, res) => {
       movement: lifiService.getStatus(),
       deployment: {
         configured: uniswapV4Service.isConfigured(),
-        network: uniswapV4Service.getNetworkInfo(),
+        ...uniswapV4Service.getNetworkInfo(),
         primaryChain: uniswapV4Service.getPrimaryChain(),
         supportedChains: uniswapV4Service.getSupportedChains(),
       },

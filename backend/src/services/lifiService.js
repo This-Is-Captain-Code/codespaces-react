@@ -53,6 +53,7 @@ export const lifiService = {
     testnet: USE_TESTNET,
     apiBase: LIFI_API_BASE,
     hasApiKey: !!LIFI_API_KEY,
+    sourceChain: 'base',
     supportedChains: Object.keys(CHAIN_ID_MAP),
     chainIds: CHAIN_ID_MAP,
   }),

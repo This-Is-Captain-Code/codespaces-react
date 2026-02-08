@@ -247,6 +247,88 @@
   opacity: 0.5;
 }
 
+.fee-contract-info {
+  margin-bottom: 20px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color, #222);
+  border-radius: 8px;
+}
+
+.contract-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.contract-detail:last-child {
+  border-bottom: none;
+}
+
+.contract-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.contract-value {
+  font-size: 0.75rem;
+  color: var(--text-primary, #ccc);
+  text-align: right;
+  word-break: break-all;
+}
+
+.contract-value.mono {
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.7rem;
+  color: var(--accent-primary, #ff4d00);
+  opacity: 0.8;
+}
+
+.fee-no-token {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary, #888);
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--border-color, #333);
+  border-radius: 8px;
+}
+
+.fee-no-token p {
+  margin: 0;
+}
+
+.fee-error-state {
+  padding: 16px;
+  background: rgba(255, 200, 0, 0.05);
+  border: 1px solid rgba(255, 200, 0, 0.15);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.fee-error-state p {
+  margin: 0 0 6px 0;
+  font-size: 0.85rem;
+  color: #ffc800;
+}
+
+.fee-error-state p:last-child {
+  margin-bottom: 0;
+}
+
+.fee-error-detail {
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.75rem !important;
+  color: var(--text-secondary, #888) !important;
+  word-break: break-all;
+}
+
 .fee-testnet-badge {
   margin-top: 16px;
   padding: 8px 12px;

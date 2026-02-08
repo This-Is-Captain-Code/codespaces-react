@@ -7,6 +7,7 @@ export function LiquidityDashboard({ botId }) {
   const [status, setStatus] = useState(null);
   const [observation, setObservation] = useState(null);
   const [analytics, setAnalytics] = useState(null);
+  const [yellowStatus, setYellowStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [executing, setExecuting] = useState(false);
   const [intentForm, setIntentForm] = useState({
@@ -22,21 +23,24 @@ export function LiquidityDashboard({ botId }) {
 
   const fetchData = useCallback(async () => {
     try {
-      const [statusRes, observeRes, analyticsRes] = await Promise.all([
+      const [statusRes, observeRes, analyticsRes, yellowRes] = await Promise.all([
         fetch(`${API_BASE}/api/liquidity/status`),
         fetch(`${API_BASE}/api/liquidity/observe`),
         fetch(`${API_BASE}/api/liquidity/analytics`),
+        fetch(`${API_BASE}/api/liquidity/yellow/status`),
       ]);
 
-      const [statusData, observeData, analyticsData] = await Promise.all([
+      const [statusData, observeData, analyticsData, yellowData] = await Promise.all([
         statusRes.json(),
         observeRes.json(),
         analyticsRes.json(),
+        yellowRes.json(),
       ]);
 
       setStatus(statusData);
       setObservation(observeData);
       setAnalytics(analyticsData);
+      setYellowStatus(yellowData);
     } catch (err) {
       console.error('Failed to fetch liquidity data:', err);
     } finally {
@@ -92,14 +96,34 @@ export function LiquidityDashboard({ botId }) {
     );
   }
 
+  const isTestnet = status?.layers?.intentBuffer?.testnet;
+  const yellowMode = yellowStatus?.mode || observation?.buffer?.mode || 'local_batching';
+  const yellowConnected = yellowStatus?.connected || false;
+  const yellowAuthenticated = yellowStatus?.authenticated || false;
+  const clearNodeEndpoint = yellowStatus?.endpoint || status?.layers?.intentBuffer?.endpoint;
+
+  const getYellowStatusLabel = () => {
+    if (yellowAuthenticated) return { text: 'Live', cls: 'active' };
+    if (yellowConnected) return { text: 'Connected (Not Auth)', cls: 'warning' };
+    return { text: 'Local Batching', cls: 'inactive' };
+  };
+
+  const yellowLabel = getYellowStatusLabel();
+
+  const hasIntents = analytics?.intents?.some(r => parseInt(r.count) > 0);
+  const hasPositions = analytics?.positions?.some(r => parseInt(r.count) > 0);
+  const hasMovements = analytics?.movements?.some(r => parseInt(r.count) > 0);
+
   return (
     <div className="liquidity-dashboard">
       <div className="liq-header">
         <h3>Liquidity Manager</h3>
         <div className="liq-header-badges">
-          <span className="liq-badge liq-badge-chain">Base → Arbitrum</span>
-          <span className={`liq-badge ${status?.layers?.intentBuffer?.testnet ? 'liq-badge-testnet' : 'liq-badge-live'}`}>
-            {status?.layers?.intentBuffer?.testnet ? 'Testnet' : 'Mainnet'}
+          <span className="liq-badge liq-badge-chain">
+            {(status?.layers?.movement?.sourceChain || 'Base').charAt(0).toUpperCase() + (status?.layers?.movement?.sourceChain || 'base').slice(1)} &rarr; {(status?.layers?.deployment?.primaryChain || 'Arbitrum').charAt(0).toUpperCase() + (status?.layers?.deployment?.primaryChain || 'arbitrum').slice(1)}
+          </span>
+          <span className={`liq-badge ${isTestnet ? 'liq-badge-testnet' : 'liq-badge-live'}`}>
+            {isTestnet ? 'Testnet' : 'Mainnet'}
           </span>
         </div>
       </div>
@@ -113,18 +137,18 @@ export function LiquidityDashboard({ botId }) {
           </div>
           <span className="liq-layer-status active">Active</span>
         </div>
-        <div className="liq-layer-arrow">→</div>
+        <div className="liq-layer-arrow">&rarr;</div>
         <div className="liq-layer">
           <div className="liq-layer-icon">2</div>
           <div className="liq-layer-info">
             <span className="liq-layer-name">Yellow Network</span>
             <span className="liq-layer-role">Buffer</span>
           </div>
-          <span className={`liq-layer-status ${status?.layers?.intentBuffer?.configured ? 'active' : 'inactive'}`}>
-            {status?.layers?.intentBuffer?.configured ? 'Ready' : 'Off'}
+          <span className={`liq-layer-status ${yellowLabel.cls}`}>
+            {yellowLabel.text}
           </span>
         </div>
-        <div className="liq-layer-arrow">→</div>
+        <div className="liq-layer-arrow">&rarr;</div>
         <div className="liq-layer">
           <div className="liq-layer-icon">3</div>
           <div className="liq-layer-info">
@@ -135,7 +159,7 @@ export function LiquidityDashboard({ botId }) {
             {status?.layers?.movement?.configured ? 'Ready' : 'Off'}
           </span>
         </div>
-        <div className="liq-layer-arrow">→</div>
+        <div className="liq-layer-arrow">&rarr;</div>
         <div className="liq-layer">
           <div className="liq-layer-icon">4</div>
           <div className="liq-layer-info">
@@ -157,33 +181,57 @@ export function LiquidityDashboard({ botId }) {
                 <span className="liq-stat-label">Chain</span>
                 <span className="liq-stat-value">{observation.poolState.chain}</span>
               </div>
-              <div className="liq-stat">
-                <span className="liq-stat-label">TVL</span>
-                <span className="liq-stat-value">${observation.poolState.tvl || '0'}</span>
-              </div>
-              <div className="liq-stat">
-                <span className="liq-stat-label">24h Volume</span>
-                <span className="liq-stat-value">${observation.poolState.volume24h || '0'}</span>
-              </div>
-              <div className="liq-stat">
-                <span className="liq-stat-label">Fee Rate</span>
-                <span className="liq-stat-value">{observation.poolState.feeRate || '0'}%</span>
-              </div>
-              <div className="liq-stat">
-                <span className="liq-stat-label">APY</span>
-                <span className="liq-stat-value highlight">{observation.poolState.apy || '0'}%</span>
-              </div>
-              <div className="liq-stat">
-                <span className="liq-stat-label">Fee Mode</span>
-                <span className="liq-stat-value">{observation.poolState.feeMode || 'N/A'}</span>
-              </div>
+              {observation.poolState.message ? (
+                <div className="liq-stat-message">{observation.poolState.message}</div>
+              ) : (
+                <>
+                  <div className="liq-stat">
+                    <span className="liq-stat-label">TVL</span>
+                    <span className="liq-stat-value">${observation.poolState.tvl || '0'}</span>
+                  </div>
+                  <div className="liq-stat">
+                    <span className="liq-stat-label">24h Volume</span>
+                    <span className="liq-stat-value">${observation.poolState.volume24h || '0'}</span>
+                  </div>
+                  <div className="liq-stat">
+                    <span className="liq-stat-label">Fee Rate</span>
+                    <span className="liq-stat-value">{observation.poolState.feeRate || '0'}%</span>
+                  </div>
+                  <div className="liq-stat">
+                    <span className="liq-stat-label">APY</span>
+                    <span className="liq-stat-value highlight">{observation.poolState.apy || '0'}%</span>
+                  </div>
+                  <div className="liq-stat">
+                    <span className="liq-stat-label">Fee Mode</span>
+                    <span className="liq-stat-value">{observation.poolState.feeMode || 'N/A'}</span>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
 
         <div className="liq-card">
-          <h4>Yellow Network Buffer</h4>
+          <h4>Yellow Network</h4>
           <div className="liq-stats">
+            <div className="liq-stat">
+              <span className="liq-stat-label">Mode</span>
+              <span className={`liq-stat-value ${yellowMode === 'clearsync' ? 'highlight' : ''}`}>
+                {yellowMode === 'clearsync' ? 'ClearSync Live' : 'Local Batching'}
+              </span>
+            </div>
+            <div className="liq-stat">
+              <span className="liq-stat-label">ClearNode</span>
+              <span className={`liq-stat-value ${yellowConnected ? 'highlight' : ''}`}>
+                {yellowConnected ? 'Connected' : 'Disconnected'}
+              </span>
+            </div>
+            <div className="liq-stat">
+              <span className="liq-stat-label">Authenticated</span>
+              <span className={`liq-stat-value ${yellowAuthenticated ? 'highlight' : ''}`}>
+                {yellowAuthenticated ? 'Yes' : 'No'}
+              </span>
+            </div>
             <div className="liq-stat">
               <span className="liq-stat-label">Pending</span>
               <span className="liq-stat-value">{observation?.buffer?.pendingCount || 0}</span>
@@ -196,35 +244,82 @@ export function LiquidityDashboard({ botId }) {
               <span className="liq-stat-label">Active Batches</span>
               <span className="liq-stat-value">{observation?.buffer?.batches?.length || 0}</span>
             </div>
-            <div className="liq-stat">
-              <span className="liq-stat-label">Mode</span>
-              <span className="liq-stat-value">{observation?.buffer?.mode || 'local_batching'}</span>
-            </div>
           </div>
+          {!yellowAuthenticated && (
+            <div className="liq-yellow-notice">
+              {yellowConnected
+                ? 'Connected to ClearNode but not authenticated. Create a channel at apps.yellow.com with your admin wallet to enable ClearSync.'
+                : 'ClearNode not connected. Using local DB-backed intent batching with real on-chain gas price evaluation.'}
+            </div>
+          )}
         </div>
 
-        <div className="liq-card">
-          <h4>Analytics</h4>
-          <div className="liq-stats">
-            {analytics?.intents?.map((row) => (
-              <div className="liq-stat" key={row.status}>
-                <span className="liq-stat-label">Intents ({row.status})</span>
-                <span className="liq-stat-value">{row.count}</span>
-              </div>
-            ))}
-            {analytics?.positions?.map((row) => (
-              <div className="liq-stat" key={row.chain}>
-                <span className="liq-stat-label">Positions ({row.chain})</span>
-                <span className="liq-stat-value">{row.count} ({row.total_amount})</span>
-              </div>
-            ))}
-            {analytics?.movements?.map((row) => (
-              <div className="liq-stat" key={`mov-${row.status}`}>
-                <span className="liq-stat-label">Movements ({row.status})</span>
-                <span className="liq-stat-value">{row.count}</span>
-              </div>
-            ))}
+        {(hasIntents || hasPositions || hasMovements) && (
+          <div className="liq-card">
+            <h4>Analytics</h4>
+            <div className="liq-stats">
+              {analytics?.intents?.filter(r => parseInt(r.count) > 0).map((row) => (
+                <div className="liq-stat" key={row.status}>
+                  <span className="liq-stat-label">Intents ({row.status})</span>
+                  <span className="liq-stat-value">{row.count}</span>
+                </div>
+              ))}
+              {analytics?.positions?.filter(r => parseInt(r.count) > 0).map((row) => (
+                <div className="liq-stat" key={row.chain}>
+                  <span className="liq-stat-label">Positions ({row.chain})</span>
+                  <span className="liq-stat-value">{row.count} ({row.total_amount})</span>
+                </div>
+              ))}
+              {analytics?.movements?.filter(r => parseInt(r.count) > 0).map((row) => (
+                <div className="liq-stat" key={`mov-${row.status}`}>
+                  <span className="liq-stat-label">Movements ({row.status})</span>
+                  <span className="liq-stat-value">{row.count}</span>
+                </div>
+              ))}
+            </div>
           </div>
+        )}
+      </div>
+
+      <div className="liq-card liq-contracts-card">
+        <h4>Contract Addresses</h4>
+        <div className="liq-contract-grid">
+          {status?.layers?.deployment?.poolManager && (
+            <div className="liq-contract-row">
+              <span className="liq-contract-label">Pool Manager</span>
+              <span className="liq-contract-addr">{status.layers.deployment.poolManager}</span>
+            </div>
+          )}
+          {status?.layers?.deployment?.positionManager && (
+            <div className="liq-contract-row">
+              <span className="liq-contract-label">Position Manager</span>
+              <span className="liq-contract-addr">{status.layers.deployment.positionManager}</span>
+            </div>
+          )}
+          {status?.layers?.deployment?.hookAddress && (
+            <div className="liq-contract-row">
+              <span className="liq-contract-label">MoltFeeRouter Hook</span>
+              <span className="liq-contract-addr">{status.layers.deployment.hookAddress}</span>
+            </div>
+          )}
+          {status?.layers?.deployment?.permit2 && (
+            <div className="liq-contract-row">
+              <span className="liq-contract-label">Permit2</span>
+              <span className="liq-contract-addr">{status.layers.deployment.permit2}</span>
+            </div>
+          )}
+          {clearNodeEndpoint && (
+            <div className="liq-contract-row">
+              <span className="liq-contract-label">ClearNode</span>
+              <span className="liq-contract-addr">{clearNodeEndpoint}</span>
+            </div>
+          )}
+          {yellowStatus?.address && (
+            <div className="liq-contract-row">
+              <span className="liq-contract-label">Admin Wallet</span>
+              <span className="liq-contract-addr">{yellowStatus.address}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -238,7 +333,7 @@ export function LiquidityDashboard({ botId }) {
                   {intent.intent_type}
                 </span>
                 <span className="liq-intent-route">
-                  {intent.source_chain} → {intent.dest_chain}
+                  {intent.source_chain} &rarr; {intent.dest_chain}
                 </span>
                 <span className="liq-intent-amount">
                   {intent.amount} {intent.token_symbol}
@@ -271,7 +366,7 @@ export function LiquidityDashboard({ botId }) {
       <div className="liq-card liq-execute-card">
         <h4>Execute Pipeline</h4>
         <p className="liq-execute-desc">
-          Create an intent and run the full pipeline: Buffer → Move → Deploy
+          Create an intent and run the full pipeline: Buffer &rarr; Move &rarr; Deploy
         </p>
         <form onSubmit={handleExecutePipeline} className="liq-execute-form">
           <div className="liq-form-row">
@@ -294,7 +389,7 @@ export function LiquidityDashboard({ botId }) {
               <option value="optimism">Optimism</option>
               <option value="polygon">Polygon</option>
             </select>
-            <span className="liq-arrow">→</span>
+            <span className="liq-arrow">&rarr;</span>
             <select
               value={intentForm.destChain}
               onChange={(e) => setIntentForm({ ...intentForm, destChain: e.target.value })}
@@ -352,10 +447,10 @@ export function LiquidityDashboard({ botId }) {
                   <p><strong>Route:</strong> {pipelineResult.quote.bridgeUsed} | Gas: ${pipelineResult.quote.gasCostUsd}</p>
                 )}
                 {pipelineResult.execution && (
-                  <p><strong>Execution:</strong> {pipelineResult.execution.status} | Tx: {pipelineResult.execution.txHash?.slice(0, 14)}...</p>
+                  <p><strong>Execution:</strong> {pipelineResult.execution.status}{pipelineResult.execution.txHash ? ` | Tx: ${pipelineResult.execution.txHash.slice(0, 14)}...` : ''}</p>
                 )}
                 {pipelineResult.deployment && (
-                  <p><strong>Deployed:</strong> {pipelineResult.deployment.chain} | Hook: {pipelineResult.deployment.hookAddress ? 'Active' : 'None'}</p>
+                  <p><strong>Deploy:</strong> {pipelineResult.deployment.skipped ? pipelineResult.deployment.reason : `${pipelineResult.deployment.chain} | Hook: Active`}</p>
                 )}
               </>
             )}

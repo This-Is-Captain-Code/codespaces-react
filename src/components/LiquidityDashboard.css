@@ -149,6 +149,11 @@
   color: #666;
 }
 
+.liq-layer-status.warning {
+  background: rgba(255, 200, 0, 0.15);
+  color: #ffc800;
+}
+
 .liq-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -364,4 +369,60 @@
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.2);
   color: #f87171;
+}
+
+.liq-stat-message {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #888);
+  padding: 8px 0;
+  font-style: italic;
+}
+
+.liq-yellow-notice {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 200, 0, 0.05);
+  border: 1px solid rgba(255, 200, 0, 0.15);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #ffc800;
+  line-height: 1.4;
+}
+
+.liq-contracts-card {
+  margin-bottom: 16px;
+}
+
+.liq-contract-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.liq-contract-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.liq-contract-row:last-child {
+  border-bottom: none;
+}
+
+.liq-contract-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #888);
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.liq-contract-addr {
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.7rem;
+  color: var(--accent-primary, #ff4d00);
+  opacity: 0.8;
+  text-align: right;
+  word-break: break-all;
 }
