@@ -2,6 +2,43 @@ import React, { useState } from 'react';
 import { launchAPI } from '../api/client';
 import './AgentLaunchForm.css';
 
+const TX_EXPLORER_URLS = {
+  'Base': 'https://basescan.org/tx/',
+  'Ethereum': 'https://etherscan.io/tx/',
+  'Arbitrum': 'https://arbiscan.io/tx/',
+  'Arbitrum One': 'https://arbiscan.io/tx/',
+  'OP Mainnet': 'https://optimistic.etherscan.io/tx/',
+  'Polygon': 'https://polygonscan.com/tx/',
+  'Base Sepolia': 'https://sepolia.basescan.org/tx/',
+  'Sepolia': 'https://sepolia.etherscan.io/tx/',
+  'Arbitrum Sepolia': 'https://sepolia.arbiscan.io/tx/',
+};
+
+function getExplorerTxUrl(chain, txHash) {
+  const base = TX_EXPLORER_URLS[chain];
+  if (base) return `${base}${txHash}`;
+  return `https://etherscan.io/tx/${txHash}`;
+}
+
+function TxHashLink({ txHash, chain, label }) {
+  if (!txHash) return null;
+  const displayChain = chain || 'Unknown';
+  return (
+    <div className="detail-item">
+      <span className="label">{label}</span>
+      <a
+        href={getExplorerTxUrl(displayChain, txHash)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="value mono link tx-hash-link"
+      >
+        {txHash.slice(0, 10)}...{txHash.slice(-8)}
+        <span className="chain-badge">{displayChain}</span>
+      </a>
+    </div>
+  );
+}
+
 const AI_MODELS = [
   { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', provider: 'Anthropic' },
   { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'Anthropic' },
@@ -153,6 +190,17 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
             </div>
           )}
         </div>
+
+        {(result.token?.txHash || result.erc8004?.txHash || result.feeHook?.txHash) && (
+          <div className="tx-hashes-section">
+            <h3>On-Chain Transactions</h3>
+            <div className="tx-hashes-list">
+              <TxHashLink txHash={result.token?.txHash} chain={result.token?.chain} label="Token Deploy" />
+              <TxHashLink txHash={result.erc8004?.txHash} chain={result.erc8004?.chain} label="ERC-8004 Identity" />
+              <TxHashLink txHash={result.feeHook?.txHash} chain={result.feeHook?.chain} label="Fee Hook Registration" />
+            </div>
+          </div>
+        )}
         
         {result.token && result.token.explorerUrl && (
           <a 

@@ -3,6 +3,14 @@
 ## Overview
 Molt.town is an automated AI agent launch platform designed to quickly deploy AI agents with integrated wallets and tradeable tokens. It enables users to create a dedicated AI agent in approximately 30 seconds, complete with its own Fly.io instance, server-side Privy wallet, and a custom ERC-20 token on any EVM chain with dynamic fee management via a Uniswap v4 Hook. The platform also registers the agent's identity on-chain via ERC-8004 and installs autonomous skills (erc-8004 + molt-fees). The vision is to provide a dedicated, isolated AI agent environment for each user, fostering autonomous trading and on-chain identity for AI.
 
+## Recent Changes
+- **2026-02-08**: Switched to mainnet mode (`USE_TESTNET=false`), cleaned all test data from DB
+- **2026-02-08**: Added transaction hash tracking for all on-chain operations (token deploy, ERC-8004, hook registration)
+- **2026-02-08**: New DB columns: `token_deploy_tx`, `erc8004_tx`, `hook_tx` + chain columns on `bots` table
+- **2026-02-08**: Frontend shows tx hashes with explorer links in both launch success screen and bot dashboard
+- **2026-02-08**: Fixed gateway token authentication (belt-and-suspenders: config JSON + CLI flag)
+- **2026-02-08**: Added "Fix Gateway Connection" reprovision button to bot dashboard
+
 ## User Preferences
 - Clean dark crypto-native design (near-black background #09090b)
 - Subtle dot grid pattern background (no starfield or animations)
@@ -14,6 +22,7 @@ Molt.town is an automated AI agent launch platform designed to quickly deploy AI
 - Telegram integration should be configured upfront during agent launch
 - Twitter integration planned for future (currently disabled with "Coming Soon" badge)
 - Multi-chain token deployment (not locked to Base/Clanker)
+- All on-chain transaction hashes must be visible in the frontend with explorer links
 
 ## System Architecture
 Molt.town utilizes a per-user dedicated instance model. Each user's AI agent is deployed on its own OpenClaw gateway hosted on Fly.io, ensuring complete isolation. A server-side Privy wallet is provisioned for each agent, alongside a custom ERC-20 token deployable on any supported EVM chain (Base, Ethereum, Arbitrum, Optimism, Polygon). The frontend is built with React 18 and Vite, communicating with an Express.js backend. PostgreSQL is used for data persistence. Deployment of OpenClaw gateways is managed via the Fly.io Machines API. AI model access is handled through the OpenRouter API, with a provisioning system that assigns per-user API keys and spending limits. The system supports dual-mode authentication via Privy (for X/Twitter, Google, email login) or a fallback username-based system. Agents are equipped with skills including `erc-8004` for on-chain identity registration and `molt-fees` for dynamic fee management. OpenClaw gateways are configured to run with specific Docker images and commands, injecting configuration via base64-encoded environment variables and persisting agent data on Fly.io volumes.

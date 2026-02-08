@@ -383,3 +383,41 @@
   background: rgba(255, 77, 0, 0.15);
   color: var(--accent-primary);
 }
+
+.tx-hashes-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.tx-hashes-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+}
+
+.tx-hashes-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.tx-hash-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chain-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  background: rgba(255, 77, 0, 0.12);
+  border: 1px solid rgba(255, 77, 0, 0.25);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--accent-primary, #ff4d00);
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}

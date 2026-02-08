@@ -138,7 +138,9 @@ export const botService = {
 
   getBot: async (userId) => {
     const result = await db.query(
-      `SELECT b.id, b.bot_name, b.gateway_id, b.agent_id, b.endpoint, b.model, b.system_prompt, b.status, b.created_at, b.token_hash, b.fly_gateway_token, b.openrouter_key_hash, b.openrouter_limit_usd
+      `SELECT b.id, b.bot_name, b.gateway_id, b.agent_id, b.endpoint, b.model, b.system_prompt, b.status, b.created_at, b.token_hash, b.fly_gateway_token, b.openrouter_key_hash, b.openrouter_limit_usd,
+              b.token_address, b.token_symbol, b.token_name, b.erc8004_id, b.agent_wallet_address,
+              b.token_deploy_tx, b.token_deploy_chain, b.erc8004_tx, b.erc8004_chain, b.hook_tx, b.hook_chain
        FROM bots b
        WHERE b.user_id = $1`,
       [userId]
@@ -150,7 +152,6 @@ export const botService = {
     
     const bot = result.rows[0];
     
-    // For per-user gateways, gateway token is stored in fly_gateway_token column
     const gatewayToken = bot.fly_gateway_token;
     const controlUrl = bot.endpoint && gatewayToken
       ? `${bot.endpoint}/?token=${gatewayToken}`
@@ -172,6 +173,16 @@ export const botService = {
       appName: bot.gateway_id,
       openrouterKeyHash: bot.openrouter_key_hash,
       openrouterLimitUsd: bot.openrouter_limit_usd ? parseFloat(bot.openrouter_limit_usd) : null,
+      tokenAddress: bot.token_address,
+      tokenSymbol: bot.token_symbol,
+      tokenName: bot.token_name,
+      erc8004Id: bot.erc8004_id,
+      agentWalletAddress: bot.agent_wallet_address,
+      transactions: {
+        tokenDeploy: bot.token_deploy_tx ? { txHash: bot.token_deploy_tx, chain: bot.token_deploy_chain } : null,
+        erc8004: bot.erc8004_tx ? { txHash: bot.erc8004_tx, chain: bot.erc8004_chain } : null,
+        hookRegistration: bot.hook_tx ? { txHash: bot.hook_tx, chain: bot.hook_chain } : null,
+      },
     };
   },
 

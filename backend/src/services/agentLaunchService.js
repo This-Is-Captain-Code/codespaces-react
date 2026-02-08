@@ -281,13 +281,17 @@ export const agentLaunchService = {
       const token = crypto.randomBytes(32).toString('hex');
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
+      const networkInfo2 = tokenDeployService.getNetworkInfo();
       const botResult = await db.query(
         `INSERT INTO bots (
           user_id, bot_name, endpoint, model, system_prompt, status,
           gateway_id, agent_id, fly_gateway_token, openrouter_key_hash, openrouter_limit_usd,
           agent_wallet_address, agent_wallet_id, token_address, token_symbol, token_name,
-          erc8004_id, user_wallet_address, token_hash
-        ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+          erc8004_id, user_wallet_address, token_hash,
+          token_deploy_tx, token_deploy_chain,
+          erc8004_tx, erc8004_chain,
+          hook_tx, hook_chain
+        ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
         RETURNING id, bot_name, model, system_prompt, status, created_at`,
         [
           userId,
@@ -308,6 +312,12 @@ export const agentLaunchService = {
           erc8004Result.agentId || null,
           userWalletAddress || null,
           tokenHash,
+          tokenResult?.txHash || null,
+          tokenResult ? networkInfo2.chain : null,
+          erc8004Result.txHash || null,
+          erc8004Result.registered ? (USE_TESTNET ? 'Sepolia' : 'Ethereum') : null,
+          hookResult.txHash || null,
+          hookResult.registered ? (USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum') : null,
         ]
       );
 
@@ -337,15 +347,20 @@ export const agentLaunchService = {
           name: tokenName || agentName,
           chain: tokenResult.chain,
           explorerUrl: tokenResult.explorerUrl,
+          txHash: tokenResult.txHash || null,
         } : null,
         erc8004: erc8004Result.registered ? {
           agentId: erc8004Result.agentId,
           registryAddress: erc8004Result.registryAddress,
+          txHash: erc8004Result.txHash || null,
+          chain: USE_TESTNET ? 'Sepolia' : 'Ethereum',
         } : null,
         feeHook: hookResult.registered ? {
           hookAddress: hookResult.hookAddress,
           registered: true,
           simulated: hookResult.simulated || false,
+          txHash: hookResult.txHash || null,
+          chain: USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum',
         } : null,
         telegram: telegramResult.configured ? {
           configured: true,
@@ -399,7 +414,10 @@ export const agentLaunchService = {
         b.agent_wallet_address, b.agent_wallet_id,
         b.token_address, b.token_symbol, b.token_name,
         b.erc8004_id, b.user_wallet_address,
-        b.gateway_id, b.fly_gateway_token, b.created_at
+        b.gateway_id, b.fly_gateway_token, b.created_at,
+        b.token_deploy_tx, b.token_deploy_chain,
+        b.erc8004_tx, b.erc8004_chain,
+        b.hook_tx, b.hook_chain
       FROM bots b
       WHERE b.user_id = $1`,
       [userId]
@@ -433,6 +451,11 @@ export const agentLaunchService = {
       erc8004: bot.erc8004_id ? {
         agentId: bot.erc8004_id,
       } : null,
+      transactions: {
+        tokenDeploy: bot.token_deploy_tx ? { txHash: bot.token_deploy_tx, chain: bot.token_deploy_chain } : null,
+        erc8004: bot.erc8004_tx ? { txHash: bot.erc8004_tx, chain: bot.erc8004_chain } : null,
+        hookRegistration: bot.hook_tx ? { txHash: bot.hook_tx, chain: bot.hook_chain } : null,
+      },
       userWallet: bot.user_wallet_address,
       flyAppName: bot.gateway_id,
       createdAt: bot.created_at,
