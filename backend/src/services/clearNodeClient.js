@@ -34,7 +34,7 @@ const WS_ENDPOINTS = {
 };
 
 const RECONNECT_CONFIG = {
-  maxAttempts: 10,
+  maxAttempts: 0,
   initialDelayMs: 1000,
   maxDelayMs: 30000,
   backoffMultiplier: 2,
