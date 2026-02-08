@@ -1,0 +1,17 @@
+[profile.default]
+src = "src"
+out = "out"
+test = "test"
+script = "script"
+solc_version = "0.8.26"
+evm_version = "cancun"
+libs = ["node_modules"]
+
+remappings = [
+    "v4-core/=node_modules/@uniswap/v4-core/",
+    "v4-periphery/=node_modules/@uniswap/v4-periphery/",
+    "@uniswap/v4-core/=node_modules/@uniswap/v4-core/",
+    "@uniswap/v4-periphery/=node_modules/@uniswap/v4-periphery/",
+    "permit2/=node_modules/@uniswap/v4-periphery/lib/permit2/",
+    "forge-std/=node_modules/@uniswap/v4-core/lib/forge-std/",
+]

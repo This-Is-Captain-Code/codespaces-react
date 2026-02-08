@@ -35,6 +35,9 @@ export const botAPI = {
 
   delete: (confirm) =>
     apiClient.delete('/bots/delete', { data: { confirm } }),
+
+  reprovision: () =>
+    apiClient.post('/bots/reprovision'),
 };
 
 export const agentAPI = {

@@ -1,0 +1,450 @@
+.liquidity-dashboard {
+  background: var(--bg-card, #111);
+  border: 1px solid var(--border-color, #222);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 16px;
+}
+
+.liquidity-dashboard.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary, #888);
+  font-size: 0.9rem;
+}
+
+.liq-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color, #333);
+  border-top-color: var(--accent-primary, #ff4d00);
+  border-radius: 50%;
+  animation: liq-spin 0.8s linear infinite;
+}
+
+@keyframes liq-spin {
+  to { transform: rotate(360deg); }
+}
+
+.liq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.liq-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary, #fff);
+  font-weight: 600;
+}
+
+.liq-header-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.liq-badge {
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.liq-badge-chain {
+  background: rgba(255, 77, 0, 0.15);
+  color: #ff4d00;
+  border: 1px solid rgba(255, 77, 0, 0.3);
+}
+
+.liq-badge-testnet {
+  background: rgba(255, 200, 0, 0.15);
+  color: #ffc800;
+  border: 1px solid rgba(255, 200, 0, 0.3);
+}
+
+.liq-badge-live {
+  background: rgba(0, 255, 106, 0.15);
+  color: #00ff6a;
+  border: 1px solid rgba(0, 255, 106, 0.3);
+}
+
+.liq-layers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color, #222);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.liq-layer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.liq-layer-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 77, 0, 0.15);
+  color: #ff4d00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.liq-layer-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.liq-layer-name {
+  font-size: 0.8rem;
+  color: var(--text-primary, #fff);
+  font-weight: 600;
+}
+
+.liq-layer-role {
+  font-size: 0.65rem;
+  color: var(--text-secondary, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.liq-layer-arrow {
+  color: var(--text-secondary, #555);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.liq-layer-status {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.liq-layer-status.active {
+  background: rgba(0, 255, 106, 0.15);
+  color: #00ff6a;
+}
+
+.liq-layer-status.inactive {
+  background: rgba(255, 255, 255, 0.05);
+  color: #666;
+}
+
+.liq-layer-status.warning {
+  background: rgba(255, 200, 0, 0.15);
+  color: #ffc800;
+}
+
+.liq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.liq-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color, #222);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.liq-card h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: var(--text-primary, #fff);
+  font-weight: 600;
+}
+
+.liq-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.liq-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.liq-stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #888);
+}
+
+.liq-stat-value {
+  font-size: 0.85rem;
+  color: var(--text-primary, #fff);
+  font-weight: 500;
+  font-family: 'Space Grotesk', monospace;
+}
+
+.liq-stat-value.highlight {
+  color: #00ff6a;
+}
+
+.liq-intents-card,
+.liq-positions-card {
+  margin-bottom: 16px;
+}
+
+.liq-intents-list,
+.liq-positions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.liq-intent-row,
+.liq-position-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color, #1a1a1a);
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.liq-intent-type {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.type-move_liquidity { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+.type-deploy_capital { background: rgba(0, 255, 106, 0.15); color: #00ff6a; }
+.type-rebalance { background: rgba(255, 200, 0, 0.15); color: #ffc800; }
+.type-withdraw { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+.liq-intent-route {
+  color: var(--text-secondary, #888);
+  font-family: 'Space Grotesk', monospace;
+}
+
+.liq-intent-amount {
+  color: var(--text-primary, #fff);
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.liq-intent-status {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pending { background: rgba(255, 255, 255, 0.05); color: #888; }
+.status-buffered { background: rgba(255, 200, 0, 0.15); color: #ffc800; }
+.status-executing { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+.status-completed { background: rgba(0, 255, 106, 0.15); color: #00ff6a; }
+.status-failed { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+.status-active { background: rgba(0, 255, 106, 0.15); color: #00ff6a; }
+
+.liq-intent-tx-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(255, 77, 0, 0.15);
+  color: #ff4d00;
+  text-decoration: none;
+  border: 1px solid rgba(255, 77, 0, 0.25);
+  transition: background 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+
+.liq-intent-tx-link:hover {
+  background: rgba(255, 77, 0, 0.3);
+  border-color: rgba(255, 77, 0, 0.5);
+}
+
+.liq-pos-chain {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(255, 77, 0, 0.15);
+  color: #ff4d00;
+}
+
+.liq-pos-token { color: var(--text-primary, #fff); font-weight: 500; }
+.liq-pos-amount { color: var(--text-primary, #fff); margin-left: auto; font-family: 'Space Grotesk', monospace; }
+
+.liq-execute-card {
+  margin-top: 16px;
+}
+
+.liq-execute-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #888);
+  margin: 0 0 16px 0;
+}
+
+.liq-execute-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.liq-form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.liq-form-row select,
+.liq-form-row input {
+  flex: 1;
+  min-width: 100px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 8px;
+  color: var(--text-primary, #fff);
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+.liq-form-row select:focus,
+.liq-form-row input:focus {
+  outline: none;
+  border-color: #ff4d00;
+}
+
+.liq-arrow {
+  color: var(--text-secondary, #555);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.liq-execute-btn {
+  padding: 10px 20px;
+  background: #ff4d00;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.liq-execute-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.liq-execute-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.liq-result {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.liq-result p {
+  margin: 4px 0;
+}
+
+.liq-result-success {
+  background: rgba(0, 255, 106, 0.08);
+  border: 1px solid rgba(0, 255, 106, 0.2);
+  color: #00ff6a;
+}
+
+.liq-result-error {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.liq-stat-message {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #888);
+  padding: 8px 0;
+  font-style: italic;
+}
+
+.liq-yellow-notice {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 200, 0, 0.05);
+  border: 1px solid rgba(255, 200, 0, 0.15);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #ffc800;
+  line-height: 1.4;
+}
+
+.liq-contracts-card {
+  margin-bottom: 16px;
+}
+
+.liq-contract-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.liq-contract-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.liq-contract-row:last-child {
+  border-bottom: none;
+}
+
+.liq-contract-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #888);
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.liq-contract-addr {
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.7rem;
+  color: var(--accent-primary, #ff4d00);
+  opacity: 0.8;
+  text-align: right;
+  word-break: break-all;
+}

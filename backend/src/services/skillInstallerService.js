@@ -1,24 +1,15 @@
-// Skills are installed from the BankrBot/openclaw-skills GitHub repository
-// Bankr uses a SHARED PLATFORM API KEY (BANKR_API_KEY env var) for all agents
-// Each agent trades using their own Privy wallet - the API key just authenticates the platform
 const SKILLS_REPO = 'https://github.com/BankrBot/openclaw-skills';
 
 const AVAILABLE_SKILLS = {
-  bankr: {
-    name: 'bankr',
-    path: 'bankr',
-    description: 'AI-powered crypto trading agent via natural language',
-    requires: ['curl', 'jq'],
+  'molt-fees': {
+    name: 'molt-fees',
+    path: 'molt-fees',
+    description: 'Manage dynamic trading fees via Uniswap v4 MoltFeeRouter Hook',
   },
-  'erc-8004': {
-    name: 'erc-8004',
-    path: 'erc-8004',
-    description: 'Register AI agents on Ethereum mainnet using ERC-8004',
-  },
-  clanker: {
-    name: 'clanker',
-    path: 'clanker',
-    description: 'Clanker SDK skill for token deployment on Base',
+  'liquidity-manager': {
+    name: 'liquidity-manager',
+    path: 'liquidity-manager',
+    description: 'Cross-chain liquidity management: OpenClaw → Yellow Network → LI.FI → Uniswap v4',
   },
   botchan: {
     name: 'botchan',
@@ -34,9 +25,8 @@ export const skillInstallerService = {
 
   installSkills: async (gatewayEndpoint, gatewayToken, options = {}) => {
     const {
-      bankrApiKey,
       agentWalletAddress,
-      skillsToInstall = ['bankr', 'erc-8004'],
+      skillsToInstall = ['molt-fees', 'liquidity-manager'],
     } = options;
 
     console.log(`Installing skills to gateway ${gatewayEndpoint}...`);
@@ -45,68 +35,64 @@ export const skillInstallerService = {
     const installedSkills = [];
     const errors = [];
 
-    if (skillsToInstall.includes('bankr')) {
+    if (skillsToInstall.includes('molt-fees')) {
       try {
-        const bankrSkillConfig = {
-          name: 'bankr',
-          source: `${SKILLS_REPO}/tree/main/bankr`,
+        const moltFeesConfig = {
+          name: 'molt-fees',
           enabled: true,
           config: {
-            apiKey: bankrApiKey || process.env.BANKR_API_KEY || '',
-            apiUrl: 'https://api.bankr.bot',
             walletAddress: agentWalletAddress,
           },
         };
 
-        const bankrResult = await installSkillToGateway(
+        const moltFeesResult = await installSkillToGateway(
           gatewayEndpoint,
           gatewayToken,
-          bankrSkillConfig
+          moltFeesConfig
         );
 
-        if (bankrResult.success) {
-          installedSkills.push('bankr');
-          console.log('Installed bankr skill');
+        if (moltFeesResult.success) {
+          installedSkills.push('molt-fees');
+          console.log('Installed molt-fees skill');
         } else {
-          errors.push({ skill: 'bankr', error: bankrResult.error });
-          console.warn('Failed to install bankr skill:', bankrResult.error);
+          errors.push({ skill: 'molt-fees', error: moltFeesResult.error });
+          console.warn('Failed to install molt-fees skill:', moltFeesResult.error);
         }
       } catch (error) {
-        errors.push({ skill: 'bankr', error: error.message });
-        console.warn('Bankr skill installation error:', error.message);
+        errors.push({ skill: 'molt-fees', error: error.message });
+        console.warn('molt-fees skill installation error:', error.message);
       }
     }
 
-    if (skillsToInstall.includes('erc-8004')) {
+    if (skillsToInstall.includes('liquidity-manager')) {
       try {
-        const erc8004SkillConfig = {
-          name: 'erc-8004',
-          source: `${SKILLS_REPO}/tree/main/erc-8004`,
+        const liquidityManagerConfig = {
+          name: 'liquidity-manager',
           enabled: true,
           config: {
-            chain: 'ethereum',
-            chainId: 1,
-            identityRegistry: '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
-            reputationRegistry: '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63',
+            walletAddress: agentWalletAddress,
+            sourceChain: 'base',
+            destChain: 'arbitrum',
+            layers: ['openclaw', 'yellow-network', 'lifi', 'uniswap-v4'],
           },
         };
 
-        const erc8004Result = await installSkillToGateway(
+        const lmResult = await installSkillToGateway(
           gatewayEndpoint,
           gatewayToken,
-          erc8004SkillConfig
+          liquidityManagerConfig
         );
 
-        if (erc8004Result.success) {
-          installedSkills.push('erc-8004');
-          console.log('Installed erc-8004 skill');
+        if (lmResult.success) {
+          installedSkills.push('liquidity-manager');
+          console.log('Installed liquidity-manager skill');
         } else {
-          errors.push({ skill: 'erc-8004', error: erc8004Result.error });
-          console.warn('Failed to install erc-8004 skill:', erc8004Result.error);
+          errors.push({ skill: 'liquidity-manager', error: lmResult.error });
+          console.warn('Failed to install liquidity-manager skill:', lmResult.error);
         }
       } catch (error) {
-        errors.push({ skill: 'erc-8004', error: error.message });
-        console.warn('ERC-8004 skill installation error:', error.message);
+        errors.push({ skill: 'liquidity-manager', error: error.message });
+        console.warn('liquidity-manager skill installation error:', error.message);
       }
     }
 

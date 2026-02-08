@@ -126,6 +126,27 @@ router.post('/regenerate-token', async (req, res, next) => {
 });
 
 /**
+ * Reprovision gateway - fixes token/config issues on running gateways
+ */
+router.post('/reprovision', async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const result = await botService.reprovisionGateway(userId);
+    res.json({
+      success: true,
+      message: 'Gateway reprovisioned with auth token',
+      ...result,
+    });
+  } catch (error) {
+    console.error(`Error reprovisioning gateway: ${error.message}`);
+    if (error.message.includes('not found')) {
+      return res.status(404).json({ error: error.message });
+    }
+    next(error);
+  }
+});
+
+/**
  * Delete bot (careful!)
  */
 router.delete('/delete', async (req, res, next) => {

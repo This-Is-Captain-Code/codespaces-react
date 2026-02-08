@@ -6,6 +6,7 @@ import { setAuthToken } from './api/client';
 
 const PRIVY_ENABLED = !!import.meta.env.VITE_PRIVY_APP_ID;
 const isAdminRoute = window.location.pathname === '/admin';
+const isTestRoute = window.location.pathname === '/test';
 
 function FallbackAuthApp() {
   const [user, setUser] = useState(null);
@@ -111,6 +112,22 @@ function FallbackAuthApp() {
 }
 
 function App() {
+  if (isTestRoute) {
+    const TestConsole = React.lazy(() => import('./components/TestConsole'));
+    return (
+      <React.Suspense fallback={
+        <div className="App loading-screen">
+          <div className="loading-content">
+            <h1>Test Console</h1>
+            <p>Loading...</p>
+          </div>
+        </div>
+      }>
+        <TestConsole />
+      </React.Suspense>
+    );
+  }
+
   if (isAdminRoute) {
     return <AdminDashboard />;
   }
