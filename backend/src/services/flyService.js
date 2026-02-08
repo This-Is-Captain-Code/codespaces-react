@@ -500,6 +500,10 @@ export const flyService = {
       gateway: {
         bind: 'lan',
         port: 18789,
+        auth: {
+          mode: 'token',
+          token: gatewayToken
+        },
         trustedProxies: ['0.0.0.0/0', '::/0'],
         controlUi: {
           enabled: true,
@@ -759,11 +763,42 @@ export const flyService = {
         },
       };
 
+      // Stop machine before updating config
+      if (machine.state === 'started') {
+        try {
+          await flyService.stopMachine(appName, machine.id);
+          await flyService.waitForMachine(appName, machine.id, 'stopped', 30);
+        } catch (stopErr) {
+          console.warn(`Stop before update failed: ${stopErr.message}`);
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+      }
+
       await flyService.updateMachine(appName, machine.id, { config: updatedConfig });
-      
-      // Restart machine to apply changes
-      await flyService.restartMachine(appName, machine.id);
-      await flyService.waitForMachine(appName, machine.id, 'started', 30);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Re-check machine state and start appropriately
+      const updatedMachines = await flyService.listMachines(appName);
+      const updatedMachine = updatedMachines.find(m => m.id === machine.id);
+      const currentState = updatedMachine?.state || 'unknown';
+      console.log(`Machine state after update: ${currentState}`);
+
+      if (currentState === 'started') {
+        console.log('Machine already started, skipping start');
+      } else {
+        try {
+          await flyRequest('POST', `/v1/apps/${appName}/machines/${machine.id}/start`);
+        } catch (startErr) {
+          if (startErr.message.includes('412') || startErr.message.includes('409')) {
+            console.warn(`Start precondition issue, retrying: ${startErr.message}`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            await flyRequest('POST', `/v1/apps/${appName}/machines/${machine.id}/start`);
+          } else {
+            throw startErr;
+          }
+        }
+      }
+      await flyService.waitForMachine(appName, machine.id, 'started', 60);
 
       console.log(`User gateway ${appName} updated and restarted`);
       return { success: true, updated: true };

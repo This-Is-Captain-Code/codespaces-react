@@ -19,6 +19,7 @@ export function BotDashboard({ userId }) {
   const [gatewayToken, setGatewayToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [reprovisioning, setReprovisioning] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     botName: '',
@@ -61,6 +62,19 @@ export function BotDashboard({ userId }) {
       setError(err.response?.data?.error || 'Failed to create bot');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleReprovision = async () => {
+    setReprovisioning(true);
+    setError('');
+    try {
+      await botAPI.reprovision();
+      await loadBot();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to reprovision gateway');
+    } finally {
+      setReprovisioning(false);
     }
   };
 
@@ -219,6 +233,21 @@ export function BotDashboard({ userId }) {
         {bot.status === 'running' && (
           <div className="success-notice">
             Your bot is live! Access the OpenClaw control panel for advanced integrations.
+          </div>
+        )}
+
+        {error && <div className="error-notice">{error}</div>}
+
+        {bot.endpoint && bot.status === 'running' && (
+          <div className="reprovision-section">
+            <button
+              onClick={handleReprovision}
+              disabled={reprovisioning}
+              className="reprovision-button"
+            >
+              {reprovisioning ? 'Fixing Connection...' : 'Fix Gateway Connection'}
+            </button>
+            <span className="reprovision-hint">Use this if the agent shows "gateway token missing" error</span>
           </div>
         )}
       </div>

@@ -233,6 +233,37 @@ export const botService = {
     return botService.getBot(userId);
   },
 
+  reprovisionGateway: async (userId) => {
+    const botResult = await db.query(
+      `SELECT id, gateway_id, fly_gateway_token, model, system_prompt FROM bots WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (botResult.rows.length === 0) {
+      throw new Error('Bot not found for user');
+    }
+
+    const bot = botResult.rows[0];
+    if (!bot.gateway_id || !bot.gateway_id.startsWith('oc-user-')) {
+      throw new Error('Bot does not have a per-user gateway');
+    }
+
+    if (!bot.fly_gateway_token) {
+      throw new Error('No gateway token found in database');
+    }
+
+    console.log(`Reprovisioning gateway ${bot.gateway_id} with token...`);
+
+    await flyService.updateUserGateway(bot.gateway_id, {
+      model: bot.model,
+      systemPrompt: bot.system_prompt,
+      gatewayToken: bot.fly_gateway_token,
+    });
+
+    console.log(`Gateway ${bot.gateway_id} reprovisioned successfully`);
+    return { success: true, gatewayId: bot.gateway_id };
+  },
+
   deleteBot: async (userId) => {
     const botResult = await db.query(
       `SELECT id, gateway_id, agent_id, openrouter_key_hash FROM bots WHERE user_id = $1`,

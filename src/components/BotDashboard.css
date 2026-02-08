@@ -323,3 +323,40 @@
   background: var(--bg-elevated);
   color: var(--text-secondary);
 }
+
+.reprovision-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.reprovision-button {
+  background: transparent;
+  color: var(--accent-orange, #ff4d00);
+  border: 1px solid var(--accent-orange, #ff4d00);
+  padding: 8px 16px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.reprovision-button:hover {
+  background: var(--accent-orange, #ff4d00);
+  color: white;
+}
+
+.reprovision-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reprovision-hint {
+  font-size: 12px;
+  color: var(--text-muted, #666);
+}
