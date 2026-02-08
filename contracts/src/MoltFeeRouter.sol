@@ -10,6 +10,7 @@ import {BalanceDelta} from "v4-core/src/types/BalanceDelta.sol";
 import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "v4-core/src/types/BeforeSwapDelta.sol";
 import {Currency, CurrencyLibrary} from "v4-core/src/types/Currency.sol";
 import {SafeCast} from "v4-core/src/libraries/SafeCast.sol";
+import {SwapParams} from "v4-core/src/types/PoolOperation.sol";
 
 contract MoltFeeRouter is BaseHook {
     using PoolIdLibrary for PoolKey;
@@ -238,21 +239,21 @@ contract MoltFeeRouter is BaseHook {
         }
     }
 
-    function afterInitialize(
+    function _afterInitialize(
         address,
         PoolKey calldata,
         uint160,
         int24
-    ) external override returns (bytes4) {
+    ) internal override returns (bytes4) {
         return BaseHook.afterInitialize.selector;
     }
 
-    function beforeSwap(
+    function _beforeSwap(
         address,
         PoolKey calldata key,
-        IPoolManager.SwapParams calldata,
+        SwapParams calldata,
         bytes calldata
-    ) external override returns (bytes4, BeforeSwapDelta, uint24) {
+    ) internal override returns (bytes4, BeforeSwapDelta, uint24) {
         PoolId poolId = key.toId();
         PoolConfig storage config = poolConfigs[poolId];
 
@@ -265,13 +266,13 @@ contract MoltFeeRouter is BaseHook {
         return (BaseHook.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, dynamicFee | uint24(0x400000));
     }
 
-    function afterSwap(
+    function _afterSwap(
         address,
         PoolKey calldata key,
-        IPoolManager.SwapParams calldata params,
+        SwapParams calldata params,
         BalanceDelta delta,
         bytes calldata
-    ) external override returns (bytes4, int128) {
+    ) internal override returns (bytes4, int128) {
         PoolId poolId = key.toId();
         PoolConfig storage config = poolConfigs[poolId];
 
