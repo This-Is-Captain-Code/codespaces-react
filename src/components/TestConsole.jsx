@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import './TestConsole.css';
 
 const API_BASE = '/api';
@@ -6,35 +6,76 @@ const API_BASE = '/api';
 function TestConsole() {
   const [results, setResults] = useState({});
   const [loading, setLoading] = useState({});
+  const [logs, setLogs] = useState([]);
+  const logRef = useRef(null);
+
+  const addLog = useCallback((level, testLabel, message) => {
+    const entry = {
+      time: new Date().toLocaleTimeString('en-US', { hour12: false, fractionalSecondDigits: 3 }),
+      level,
+      testLabel,
+      message,
+    };
+    setLogs(prev => [...prev, entry]);
+  }, []);
+
+  useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [logs]);
 
   const runTest = useCallback(async (testId, label, fetchFn) => {
     setLoading(prev => ({ ...prev, [testId]: true }));
     setResults(prev => ({ ...prev, [testId]: { status: 'running', label } }));
+    addLog('info', label, 'Starting...');
     const startTime = Date.now();
 
     try {
       const data = await fetchFn();
       const duration = Date.now() - startTime;
+
+      const hasWarning = data.bridgeLimited || data.quote?.bridgeLimited ||
+        data.execution?.bridgeLimited || data.deployment?.skipped ||
+        data.summary?.failed > 0;
+
+      const status = hasWarning ? 'warning' : 'success';
+
       setResults(prev => ({
         ...prev,
-        [testId]: { status: 'success', label, data, duration },
+        [testId]: { status, label, data, duration },
       }));
+
+      if (hasWarning) {
+        addLog('warn', label, `Completed with warnings (${duration}ms)`);
+        if (data.bridgeLimited || data.quote?.bridgeLimited) {
+          addLog('warn', label, 'Testnet bridges unavailable - expected on testnets');
+        }
+        if (data.deployment?.skipped) {
+          addLog('warn', label, `Deployment skipped: ${data.deployment.reason}`);
+        }
+        if (data.summary?.failed > 0) {
+          const failedNames = Object.entries(data.integrations || {})
+            .filter(([, v]) => v.status === 'fail')
+            .map(([k]) => k);
+          addLog('warn', label, `Failed integrations: ${failedNames.join(', ')}`);
+        }
+      } else {
+        addLog('ok', label, `Passed (${duration}ms)`);
+      }
     } catch (err) {
       const duration = Date.now() - startTime;
-      let errorData;
-      try {
-        errorData = err.responseJson || err.message;
-      } catch {
-        errorData = err.message;
-      }
+      let errorData = err.responseJson || err.message;
       setResults(prev => ({
         ...prev,
         [testId]: { status: 'error', label, error: errorData, duration },
       }));
+      const msg = typeof errorData === 'string' ? errorData : (errorData?.error || err.message);
+      addLog('error', label, `Failed (${duration}ms): ${msg}`);
     } finally {
       setLoading(prev => ({ ...prev, [testId]: false }));
     }
-  }, []);
+  }, [addLog]);
 
   const fetchJson = async (url, options = {}) => {
     const res = await fetch(url, {
@@ -42,7 +83,7 @@ function TestConsole() {
       ...options,
     });
     const data = await res.json();
-    if (!res.ok && !data.success) {
+    if (!res.ok && !data.success && !data.testnet && !data.bridgeLimited && !data.layers) {
       const err = new Error(data.error || `HTTP ${res.status}`);
       err.responseJson = data;
       throw err;
@@ -107,7 +148,7 @@ function TestConsole() {
     {
       id: 'lifi_quote',
       label: 'LI.FI Cross-Chain Quote',
-      description: 'Gets a real quote from LI.FI API (Base Sepolia → Arbitrum Sepolia)',
+      description: 'Gets a real quote from LI.FI API (Base Sepolia → Arbitrum Sepolia). Expected to show bridge limitations on testnet.',
       category: 'liquidity',
       run: () =>
         fetchJson(`${API_BASE}/liquidity/quote`, {
@@ -118,6 +159,7 @@ function TestConsole() {
             fromToken: 'ETH',
             toToken: 'ETH',
             fromAmount: '1000000000000000',
+            fromAddress: '0x0000000000000000000000000000000000000001',
           }),
         }),
     },
@@ -156,14 +198,22 @@ function TestConsole() {
   ];
 
   const runAll = async () => {
+    addLog('info', 'Runner', 'Starting all tests...');
     for (const test of tests) {
       await runTest(test.id, test.label, test.run);
     }
+    addLog('info', 'Runner', 'All tests complete.');
   };
 
   const clearResults = () => {
     setResults({});
+    setLogs([]);
   };
+
+  const passCount = Object.values(results).filter(r => r.status === 'success').length;
+  const warnCount = Object.values(results).filter(r => r.status === 'warning').length;
+  const failCount = Object.values(results).filter(r => r.status === 'error').length;
+  const total = Object.values(results).filter(r => r.status !== 'running').length;
 
   return (
     <div className="test-console">
@@ -174,6 +224,13 @@ function TestConsole() {
           <span className="test-badge">Testnet</span>
         </div>
         <div className="test-header-actions">
+          {total > 0 && (
+            <div className="test-summary">
+              <span className="test-summary-pass">{passCount} passed</span>
+              {warnCount > 0 && <span className="test-summary-warn">{warnCount} warning</span>}
+              {failCount > 0 && <span className="test-summary-fail">{failCount} failed</span>}
+            </div>
+          )}
           <button className="test-btn-secondary" onClick={clearResults}>Clear</button>
           <button className="test-btn-primary" onClick={runAll} disabled={Object.values(loading).some(Boolean)}>
             Run All Tests
@@ -181,36 +238,60 @@ function TestConsole() {
         </div>
       </header>
 
-      <div className="test-grid">
-        {categories.map(cat => (
-          <div key={cat.key} className="test-category">
-            <h2 className="test-category-label">{cat.label}</h2>
-            <div className="test-cards">
-              {tests
-                .filter(t => t.category === cat.key)
-                .map(test => (
-                  <div key={test.id} className={`test-card ${results[test.id]?.status || ''}`}>
-                    <div className="test-card-header">
-                      <div>
-                        <h3>{test.label}</h3>
-                        <p className="test-description">{test.description}</p>
+      <div className="test-layout">
+        <div className="test-grid">
+          {categories.map(cat => (
+            <div key={cat.key} className="test-category">
+              <h2 className="test-category-label">{cat.label}</h2>
+              <div className="test-cards">
+                {tests
+                  .filter(t => t.category === cat.key)
+                  .map(test => (
+                    <div key={test.id} className={`test-card ${results[test.id]?.status || ''}`}>
+                      <div className="test-card-header">
+                        <div>
+                          <h3>{test.label}</h3>
+                          <p className="test-description">{test.description}</p>
+                        </div>
+                        <button
+                          className="test-run-btn"
+                          onClick={() => runTest(test.id, test.label, test.run)}
+                          disabled={loading[test.id]}
+                        >
+                          {loading[test.id] ? '...' : 'Run'}
+                        </button>
                       </div>
-                      <button
-                        className="test-run-btn"
-                        onClick={() => runTest(test.id, test.label, test.run)}
-                        disabled={loading[test.id]}
-                      >
-                        {loading[test.id] ? '...' : 'Run'}
-                      </button>
+                      {results[test.id] && (
+                        <TestResult result={results[test.id]} />
+                      )}
                     </div>
-                    {results[test.id] && (
-                      <TestResult result={results[test.id]} />
-                    )}
-                  </div>
-                ))}
+                  ))}
+              </div>
             </div>
+          ))}
+        </div>
+
+        <div className="test-log-panel">
+          <div className="test-log-header">
+            <h2 className="test-log-title">Logs</h2>
+            <span className="test-log-count">{logs.length}</span>
           </div>
-        ))}
+          <div className="test-log-body" ref={logRef}>
+            {logs.length === 0 && (
+              <div className="test-log-empty">Run a test to see logs here</div>
+            )}
+            {logs.map((entry, i) => (
+              <div key={i} className={`test-log-entry test-log-${entry.level}`}>
+                <span className="test-log-time">{entry.time}</span>
+                <span className={`test-log-level test-log-level-${entry.level}`}>
+                  {entry.level === 'ok' ? 'PASS' : entry.level.toUpperCase()}
+                </span>
+                <span className="test-log-label">[{entry.testLabel}]</span>
+                <span className="test-log-msg">{entry.message}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -219,17 +300,17 @@ function TestConsole() {
 function TestResult({ result }) {
   const [expanded, setExpanded] = useState(false);
 
-  const statusIcon = result.status === 'success' ? '●' : result.status === 'error' ? '●' : '◌';
-  const statusLabel = result.status === 'success' ? 'Pass' : result.status === 'error' ? 'Fail' : 'Running';
+  const icons = { success: '●', warning: '●', error: '●', running: '◌' };
+  const labels = { success: 'Pass', warning: 'Warning', error: 'Fail', running: 'Running' };
 
-  const rawData = result.status === 'success' ? result.data : result.error;
+  const rawData = result.data || result.error;
   const jsonStr = typeof rawData === 'string' ? rawData : JSON.stringify(rawData, null, 2);
 
   return (
     <div className="test-result">
       <div className="test-result-header" onClick={() => setExpanded(!expanded)}>
-        <span className={`test-status-icon ${result.status}`}>{statusIcon}</span>
-        <span className="test-status-label">{statusLabel}</span>
+        <span className={`test-status-icon ${result.status}`}>{icons[result.status]}</span>
+        <span className={`test-status-label ${result.status}`}>{labels[result.status]}</span>
         {result.duration && <span className="test-duration">{result.duration}ms</span>}
         <span className="test-expand">{expanded ? '▾' : '▸'}</span>
       </div>
