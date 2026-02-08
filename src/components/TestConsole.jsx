@@ -182,11 +182,29 @@ function TestConsole() {
         }),
     },
     {
+      id: 'hook_status',
+      label: 'Hook Deploy Status',
+      description: 'Checks MoltFeeRouter contract deployment status and admin wallet balance',
+      category: 'fees',
+      run: () => fetchJson(`${API_BASE}/healthcheck/hook-status`),
+    },
+    {
       id: 'fee_info',
       label: 'Fee Hook Info',
       description: 'Checks MoltFeeRouter Hook contract configuration',
       category: 'fees',
       run: () => fetchJson(`${API_BASE}/fees/info`),
+    },
+    {
+      id: 'deploy_hook',
+      label: 'Deploy MoltFeeRouter',
+      description: 'Deploys the MoltFeeRouter Hook contract to Base Sepolia via CREATE2 with address mining',
+      category: 'fees',
+      run: () =>
+        fetchJson(`${API_BASE}/healthcheck/deploy-hook`, {
+          method: 'POST',
+          body: JSON.stringify({ chain: 'base' }),
+        }),
     },
   ];
 

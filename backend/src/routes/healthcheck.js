@@ -1,5 +1,13 @@
 import express from 'express';
 import { tokenDeployService } from '../services/tokenDeployService.js';
+import { createPublicClient, createWalletClient, http, keccak256, encodeAbiParameters, parseAbiParameters, concat, formatEther } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { baseSepolia, arbitrumSepolia } from 'viem/chains';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const router = express.Router();
 
@@ -225,6 +233,180 @@ async function testERC8004Contracts() {
     reputationRegistry
   };
 }
+
+const HOOK_CONSTANTS = {
+  CREATE2_DEPLOYER: '0x4e59b44847b379578588920cA78FbF26c0B4956C',
+  POOL_MANAGER_BASE_SEPOLIA: '0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408',
+  POOL_MANAGER_ARBITRUM_SEPOLIA: '0xFB3e0C6F74eB1a21CC1Da29aeC80D2Dfe6C9a317',
+  AFTER_INITIALIZE_FLAG: 1n << 12n,
+  BEFORE_SWAP_FLAG: 1n << 7n,
+  AFTER_SWAP_FLAG: 1n << 6n,
+  AFTER_SWAP_RETURNS_DELTA_FLAG: 1n << 2n,
+  ALL_FLAGS_MASK: (1n << 14n) - 1n,
+};
+
+HOOK_CONSTANTS.REQUIRED_FLAGS = HOOK_CONSTANTS.AFTER_INITIALIZE_FLAG | HOOK_CONSTANTS.BEFORE_SWAP_FLAG | HOOK_CONSTANTS.AFTER_SWAP_FLAG | HOOK_CONSTANTS.AFTER_SWAP_RETURNS_DELTA_FLAG;
+
+function mineCreate2Salt(deployerAddress, initCodeHash, maxAttempts = 5000000) {
+  const deployerBytes = Buffer.from(deployerAddress.slice(2), 'hex');
+  const initCodeHashBytes = Buffer.from(initCodeHash.slice(2), 'hex');
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const saltHex = i.toString(16).padStart(64, '0');
+    const saltBytes = Buffer.from(saltHex, 'hex');
+    const data = Buffer.concat([Buffer.from([0xff]), deployerBytes, saltBytes, initCodeHashBytes]);
+    const hash = keccak256(`0x${data.toString('hex')}`);
+    const address = `0x${hash.slice(26)}`;
+    const addrFlags = BigInt(address) & HOOK_CONSTANTS.ALL_FLAGS_MASK;
+    if (addrFlags === HOOK_CONSTANTS.REQUIRED_FLAGS) {
+      return { salt: `0x${saltHex}`, address };
+    }
+  }
+  throw new Error(`Could not find valid salt after ${maxAttempts} attempts`);
+}
+
+router.get('/hook-status', async (req, res) => {
+  try {
+    const existingAddress = process.env.MOLT_FEE_ROUTER_ADDRESS;
+    const adminKey = process.env.ADMIN_WALLET_PRIVATE_KEY;
+    const chain = req.query.chain === 'arbitrum' ? arbitrumSepolia : baseSepolia;
+    const poolManager = req.query.chain === 'arbitrum'
+      ? HOOK_CONSTANTS.POOL_MANAGER_ARBITRUM_SEPOLIA
+      : HOOK_CONSTANTS.POOL_MANAGER_BASE_SEPOLIA;
+
+    const result = {
+      deployed: false,
+      address: existingAddress || null,
+      chain: chain.name,
+      poolManager,
+      walletAddress: null,
+      walletBalance: null,
+      canDeploy: false,
+    };
+
+    if (adminKey) {
+      const formattedKey = adminKey.startsWith('0x') ? adminKey : `0x${adminKey}`;
+      const account = privateKeyToAccount(formattedKey);
+      result.walletAddress = account.address;
+
+      const publicClient = createPublicClient({ chain, transport: http() });
+      const balance = await publicClient.getBalance({ address: account.address });
+      result.walletBalance = formatEther(balance);
+      result.canDeploy = balance >= 1000000000000000n;
+    }
+
+    if (existingAddress) {
+      const publicClient = createPublicClient({ chain, transport: http() });
+      const code = await publicClient.getCode({ address: existingAddress });
+      result.deployed = code && code !== '0x';
+      result.codeSize = code ? (code.length / 2 - 1) : 0;
+    }
+
+    res.json({ success: true, ...result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/deploy-hook', async (req, res) => {
+  try {
+    const adminKey = process.env.ADMIN_WALLET_PRIVATE_KEY;
+    if (!adminKey) {
+      return res.status(400).json({ success: false, error: 'ADMIN_WALLET_PRIVATE_KEY not set' });
+    }
+
+    const targetChain = req.body?.chain || 'base';
+    const chain = targetChain === 'arbitrum' ? arbitrumSepolia : baseSepolia;
+    const poolManager = targetChain === 'arbitrum'
+      ? HOOK_CONSTANTS.POOL_MANAGER_ARBITRUM_SEPOLIA
+      : HOOK_CONSTANTS.POOL_MANAGER_BASE_SEPOLIA;
+
+    const formattedKey = adminKey.startsWith('0x') ? adminKey : `0x${adminKey}`;
+    const account = privateKeyToAccount(formattedKey);
+
+    const publicClient = createPublicClient({ chain, transport: http() });
+    const walletClient = createWalletClient({ account, chain, transport: http() });
+
+    const balance = await publicClient.getBalance({ address: account.address });
+    if (balance < 1000000000000000n) {
+      return res.status(400).json({
+        success: false,
+        error: 'Insufficient balance',
+        walletAddress: account.address,
+        balance: formatEther(balance),
+        needed: '0.001 ETH minimum',
+        faucet: targetChain === 'arbitrum'
+          ? 'https://faucet.quicknode.com/arbitrum/sepolia'
+          : 'https://www.alchemy.com/faucets/base-sepolia',
+      });
+    }
+
+    const artifactPath = path.join(__dirname, '../../../contracts/out/MoltFeeRouter.sol/MoltFeeRouter.json');
+    if (!fs.existsSync(artifactPath)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Contract not compiled. Run: cd contracts && forge build',
+      });
+    }
+
+    const artifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+    const bytecode = artifact.bytecode.object;
+
+    const constructorArgs = encodeAbiParameters(
+      parseAbiParameters('address, address'),
+      [poolManager, account.address]
+    );
+
+    const initCode = concat([bytecode, constructorArgs]);
+    const initCodeHash = keccak256(initCode);
+
+    const { salt, address: expectedAddress } = mineCreate2Salt(HOOK_CONSTANTS.CREATE2_DEPLOYER, initCodeHash);
+
+    const existingCode = await publicClient.getCode({ address: expectedAddress });
+    if (existingCode && existingCode !== '0x') {
+      return res.json({
+        success: true,
+        alreadyDeployed: true,
+        address: expectedAddress,
+        chain: chain.name,
+        message: 'Hook already deployed at this address',
+      });
+    }
+
+    const deployData = concat([salt, initCode]);
+    const hash = await walletClient.sendTransaction({
+      to: HOOK_CONSTANTS.CREATE2_DEPLOYER,
+      data: deployData,
+      gas: 5000000n,
+    });
+
+    const receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: 120_000 });
+
+    if (receipt.status === 'success') {
+      const code = await publicClient.getCode({ address: expectedAddress });
+      const verified = code && code !== '0x';
+
+      res.json({
+        success: true,
+        address: expectedAddress,
+        chain: chain.name,
+        txHash: hash,
+        blockNumber: Number(receipt.blockNumber),
+        gasUsed: Number(receipt.gasUsed),
+        verified,
+        envVar: `MOLT_FEE_ROUTER_ADDRESS=${expectedAddress}`,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Transaction failed',
+        txHash: hash,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 function getHint(name) {
   const hints = {

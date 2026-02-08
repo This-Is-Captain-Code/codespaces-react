@@ -1,11 +1,13 @@
 {
   "name": "contracts",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
+    "deploy:base-sepolia": "node scripts/deploy-hook.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
