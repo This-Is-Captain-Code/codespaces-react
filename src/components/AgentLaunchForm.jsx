@@ -123,7 +123,7 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
               <div className="detail-item">
                 <span className="label">Contract</span>
                 <a 
-                  href={result.token.basescanUrl} 
+                  href={result.token.explorerUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="value mono link"
@@ -154,14 +154,14 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
           )}
         </div>
         
-        {result.token && (
+        {result.token && result.token.explorerUrl && (
           <a 
-            href={result.token.tradeUrl}
+            href={result.token.explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="trade-button"
           >
-            Trade on Clanker
+            View Token on Explorer
           </a>
         )}
         

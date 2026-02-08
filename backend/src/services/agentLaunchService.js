@@ -1,7 +1,7 @@
 import { db } from '../db/index.js';
 import { flyService } from './flyService.js';
 import { privyWalletService } from './privyWalletService.js';
-import { clankerService } from './clankerService.js';
+import { tokenDeployService } from './tokenDeployService.js';
 import { erc8004Service } from './erc8004Service.js';
 import { skillInstallerService } from './skillInstallerService.js';
 import { openrouterProvisioningService } from './openrouterProvisioningService.js';
@@ -166,8 +166,8 @@ export const agentLaunchService = {
       });
 
       sendProgress('installing_skills', 'in_progress', {
-        source: 'github.com/BankrBot/openclaw-skills',
-        targetSkills: ['bankr', 'erc-8004'],
+        source: 'openclaw-skills',
+        targetSkills: ['erc-8004', 'molt-fees'],
       });
       let skillsResult = { installedSkills: [], errors: [] };
       try {
@@ -182,7 +182,7 @@ export const agentLaunchService = {
         console.warn('Skill installation failed:', skillError.message);
       }
       sendProgress('installing_skills', 'completed', { 
-        source: 'github.com/BankrBot/openclaw-skills',
+        source: 'openclaw-skills',
         skills: skillsResult.installedSkills,
         errors: skillsResult.errors?.length || 0,
       });
@@ -216,16 +216,17 @@ export const agentLaunchService = {
         txHash: erc8004Result.txHash || null,
       });
 
+      const networkInfo = tokenDeployService.getNetworkInfo();
       sendProgress('deploying_token', 'in_progress', {
-        protocol: 'Clanker',
-        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+        protocol: 'ERC-20',
+        chain: networkInfo.chain,
         simulated: USE_TESTNET,
         symbol: tokenSymbol,
       });
       let tokenResult = null;
-      if (clankerService.isConfigured() && tokenSymbol) {
+      if (tokenDeployService.isConfigured() && tokenSymbol) {
         try {
-          tokenResult = await clankerService.deployToken({
+          tokenResult = await tokenDeployService.deployToken({
             name: tokenName || agentName,
             symbol: tokenSymbol,
             tokenAdminAddress: agentWallet?.address || userWalletAddress,
@@ -239,13 +240,12 @@ export const agentLaunchService = {
         }
       }
       sendProgress('deploying_token', 'completed', {
-        protocol: 'Clanker',
-        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+        protocol: 'ERC-20',
+        chain: networkInfo.chain,
         simulated: USE_TESTNET,
         tokenAddress: tokenResult?.tokenAddress,
         symbol: tokenSymbol,
-        tradeUrl: tokenResult?.tradeUrl,
-        basescanUrl: tokenResult?.basescanUrl,
+        explorerUrl: tokenResult?.explorerUrl,
         txHash: tokenResult?.txHash || null,
       });
 
@@ -335,8 +335,8 @@ export const agentLaunchService = {
           address: tokenResult.tokenAddress,
           symbol: tokenSymbol,
           name: tokenName || agentName,
-          tradeUrl: tokenResult.tradeUrl,
-          basescanUrl: tokenResult.basescanUrl,
+          chain: tokenResult.chain,
+          explorerUrl: tokenResult.explorerUrl,
         } : null,
         erc8004: erc8004Result.registered ? {
           agentId: erc8004Result.agentId,
@@ -429,7 +429,6 @@ export const agentLaunchService = {
         address: bot.token_address,
         symbol: bot.token_symbol,
         name: bot.token_name,
-        tradeUrl: `https://clanker.world/clanker/${bot.token_address}`,
       } : null,
       erc8004: bot.erc8004_id ? {
         agentId: bot.erc8004_id,

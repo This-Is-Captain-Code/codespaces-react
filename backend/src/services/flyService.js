@@ -489,7 +489,7 @@ export const flyService = {
     if (botName) contextParts.push(`Your name is ${botName}.`);
     if (tokenSymbol) contextParts.push(`You have a token called $${tokenSymbol}${tokenName ? ` (${tokenName})` : ''}.`);
     if (agentWalletAddress) contextParts.push(`Your wallet address is ${agentWalletAddress}.`);
-    contextParts.push(`You have access to the bankr skill for crypto trading. Use it when users ask about trading or swapping tokens.`);
+    contextParts.push(`You can manage dynamic trading fees for your token using the molt-fees skill.`);
     
     if (contextParts.length > 0) {
       enhancedSystemPrompt = contextParts.join(' ') + '\n\n' + systemPrompt;
@@ -526,16 +526,7 @@ export const flyService = {
         install: {
           nodeManager: 'npm'
         },
-        entries: {
-          bankr: {
-            enabled: true,
-            env: {
-              BANKR_API_KEY: process.env.BANKR_API_KEY || '',
-              BANKR_API_URL: 'https://api.bankr.bot',
-              WALLET_ADDRESS: agentWalletAddress || ''
-            }
-          }
-        }
+        entries: {}
       },
       ...(telegramBotToken ? {
         channels: {
@@ -552,167 +543,15 @@ export const flyService = {
     // Base64 encode the config to avoid shell escaping issues
     const configBase64 = Buffer.from(JSON.stringify(openclawConfig)).toString('base64');
     
-    // Build AGENTS.md content for agent identity (OpenClaw uses bootstrap files for system prompt)
-    // Bankr skill is pre-installed in workspace/skills/bankr/
-    const bankrUsageInstruction = `
-
-## Crypto Trading (Bankr Skill)
-
-The bankr skill is pre-installed and ready to use. To execute crypto commands, use the skill's scripts via exec:
-
-\`\`\`bash
-scripts/bankr.sh "What is the price of ETH?"
-\`\`\`
-
-The scripts are in your workspace at skills/bankr/scripts/. Use them for:
-- Check prices: scripts/bankr.sh "What is the price of ETH?"
-- Trade tokens: scripts/bankr.sh "Buy $10 of ETH on Base"
-- Portfolio: scripts/bankr.sh "Show my portfolio"
-- NFTs, leverage trading, Polymarket, and more
-
-The skill config with API credentials is at skills/bankr/config.json.
-`;
-    const agentsContent = (enhancedSystemPrompt || 'You are a helpful AI assistant.') + bankrUsageInstruction;
+    const agentsContent = (enhancedSystemPrompt || 'You are a helpful AI assistant.');
     const agentsBase64 = Buffer.from(agentsContent).toString('base64');
     
-    // Build bankr SKILL.md content
-    const bankrSkillMd = `---
-name: bankr
-description: AI-powered crypto trading agent via natural language. Use when the user wants to trade crypto (buy/sell/swap tokens), check portfolio balances, view token prices, transfer crypto, or manage DeFi operations.
-metadata:
-  openclaw:
-    emoji: "💰"
-    homepage: "https://bankr.bot"
-    requires: { "bins": ["curl", "jq"] }
----
-
-# Bankr Crypto Trading Skill
-
-Execute crypto trading and DeFi operations using natural language through the Bankr API.
-
-## IMPORTANT: How to Execute
-
-**ALWAYS use the \`exec\` tool to run shell commands. NEVER use sessions_spawn.**
-
-To use this skill, call exec with the bankr script:
-
-\`\`\`json
-{
-  "tool": "exec",
-  "arguments": {
-    "command": "{baseDir}/bin/bankr.sh",
-    "args": ["What is the price of ETH?"]
-  }
-}
-\`\`\`
-
-Or in a single command string:
-\`\`\`json
-{
-  "tool": "exec", 
-  "arguments": {
-    "command": "{baseDir}/bin/bankr.sh \\"What is the price of ETH?\\""
-  }
-}
-\`\`\`
-
-The script returns JSON. Parse it and respond to the user naturally.
-
-## When to Use
-
-Use this skill when the user asks about:
-- Crypto prices (e.g., "What's the price of ETH?", "How much is Bitcoin?")
-- Trading tokens (e.g., "Buy ETH", "Swap USDC for ETH")
-- Portfolio balances (e.g., "Show my portfolio", "What's my balance?")
-- Sending crypto (e.g., "Send 0.1 ETH to vitalik.eth")
-
-## Example Commands
-
-Check ETH price:
-\`\`\`
-exec: {baseDir}/bin/bankr.sh "What is the current price of Ethereum?"
-\`\`\`
-
-Check portfolio:
-\`\`\`
-exec: {baseDir}/bin/bankr.sh "Show my portfolio balances"
-\`\`\`
-
-Buy tokens:
-\`\`\`
-exec: {baseDir}/bin/bankr.sh "Buy $50 of ETH on Base"
-\`\`\`
-
-## Supported Operations
-
-- **Trading**: Buy/sell/swap tokens, limit orders, DCA
-- **Portfolio**: Check balances, view USD valuations
-- **Market Research**: Token prices, trending tokens
-- **Transfers**: Send to addresses, ENS, or social handles
-- **Chains**: Base, Ethereum, Polygon, Solana, Unichain
-`;
-    const bankrSkillBase64 = Buffer.from(bankrSkillMd).toString('base64');
-
-    // Build bankr.sh script
-    const bankrScript = `#!/bin/bash
-# Bankr Agent API wrapper
-set -euo pipefail
-export PATH="/home/node/.local/bin:\$PATH"
-SKILL_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG_FILE="\$SKILL_DIR/config.json"
-API_KEY=$(jq -r '.apiKey' "\$CONFIG_FILE")
-API_URL=$(jq -r '.apiUrl // "https://api.bankr.bot"' "\$CONFIG_FILE")
-PROMPT="\$*"
-[ -z "\$PROMPT" ] && { echo '{"error": "Usage: bankr.sh <prompt>"}'; exit 1; }
-RESULT=$(curl -sf -X POST "\${API_URL}/agent/prompt" -H "X-API-Key: \${API_KEY}" -H "Content-Type: application/json" -d "$(jq -nc --arg p "\$PROMPT" '{prompt:\$p}')")
-JOB_ID=$(echo "\$RESULT" | jq -r '.jobId // empty')
-[ -z "\$JOB_ID" ] && { echo "\$RESULT"; exit 1; }
-for i in {1..150}; do
-  sleep 2
-  STATUS=$(curl -sf -X GET "\${API_URL}/agent/job/\${JOB_ID}" -H "X-API-Key: \${API_KEY}")
-  STATE=$(echo "\$STATUS" | jq -r '.status')
-  case "\$STATE" in
-    completed|failed|cancelled) echo "\$STATUS"; exit 0;;
-  esac
-done
-echo '{"error": "Timeout"}'; exit 1
-`;
-    const bankrScriptBase64 = Buffer.from(bankrScript).toString('base64');
-    
-    // Init command: 
-    // 1. Decode base64 config using Node.js (guaranteed available in openclaw image)
-    // 2. Write auth-profiles.json with OpenRouter API key
-    // 3. Write AGENTS.md for agent identity
-    // 4. Install bankr skill files
-    // 5. Start gateway with --allow-unconfigured and --token
-    // Install bankr skill in workspace/skills directory (correct OpenClaw path)
     const initCmd = [
-      // Note: OpenClaw container runs as non-root 'node' user
-      // Install jq to user-writable location using Node.js (handles SSL properly)
-      'mkdir -p /home/node/.local/bin',
-      'export PATH="/home/node/.local/bin:$PATH"',
-      '(which jq >/dev/null 2>&1 || node -e "const https=require(\'https\'),fs=require(\'fs\');const f=fs.createWriteStream(\'/home/node/.local/bin/jq\');https.get(\'https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64\',r=>{if(r.statusCode===302){https.get(r.headers.location,r2=>r2.pipe(f).on(\'finish\',()=>{fs.chmodSync(\'/home/node/.local/bin/jq\',0o755);process.exit(0)}))}else{r.pipe(f).on(\'finish\',()=>{fs.chmodSync(\'/home/node/.local/bin/jq\',0o755);process.exit(0)})}})")',
-      'jq --version || echo "jq not available, bankr skill may have limited functionality"',
-      'mkdir -p /home/node/.openclaw/workspace/skills/bankr/scripts /data/agents/main/agent',
+      'mkdir -p /home/node/.openclaw/workspace/skills /data/agents/main/agent',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/openclaw.json\', Buffer.from(process.env.OPENCLAW_CONFIG_B64, \'base64\').toString())"',
       'node -e "require(\'fs\').writeFileSync(\'/home/node/.openclaw/workspace/AGENTS.md\', Buffer.from(process.env.AGENTS_MD_B64, \'base64\').toString())"',
       'printf \'{"version":1,"profiles":{"openrouter:default":{"type":"api_key","provider":"openrouter","key":"%s"}},"lastGood":{"openrouter":"openrouter:default"}}\' "$OPENROUTER_API_KEY" > /data/agents/main/agent/auth-profiles.json',
       'cp /data/agents/main/agent/auth-profiles.json /home/node/.openclaw/auth-profiles.json',
-      // Download bankr skill files from GitHub
-      'echo "=== INSTALLING BANKR SKILL ==="',
-      'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/SKILL.md -o /home/node/.openclaw/workspace/skills/bankr/SKILL.md',
-      'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr.sh',
-      'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-submit.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-submit.sh',
-      'curl -sL https://raw.githubusercontent.com/BankrBot/openclaw-skills/main/bankr/scripts/bankr-status.sh -o /home/node/.openclaw/workspace/skills/bankr/scripts/bankr-status.sh',
-      // Inject PATH into scripts so they can find jq, then make executable
-      'for f in /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh; do sed -i \'1a export PATH="/home/node/.local/bin:$PATH"\' "$f" 2>/dev/null || true; done',
-      'chmod +x /home/node/.openclaw/workspace/skills/bankr/scripts/*.sh',
-      // Create config.json with Bankr API key
-      'printf \'{"apiKey":"%s","apiUrl":"https://api.bankr.bot"}\' "$BANKR_API_KEY" > /home/node/.openclaw/workspace/skills/bankr/config.json',
-      'echo "=== BANKR SKILL INSTALLED ==="',
-      'ls -la /home/node/.openclaw/workspace/skills/bankr/',
-      'cat /home/node/.openclaw/workspace/skills/bankr/SKILL.md | head -50',
-      // Delete any existing Telegram webhook before starting (OpenClaw uses polling mode)
       '[ -n "$TELEGRAM_BOT_TOKEN" ] && curl -sf "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook" || true',
       'echo "=== STARTING GATEWAY ==="',
       'exec node dist/index.js gateway --allow-unconfigured --token "$OPENCLAW_GATEWAY_TOKEN"'
@@ -728,7 +567,6 @@ echo '{"error": "Timeout"}'; exit 1
           NODE_OPTIONS: '--max-old-space-size=3072',
           OPENCLAW_GATEWAY_TOKEN: gatewayToken,
           OPENROUTER_API_KEY: effectiveApiKey,
-          BANKR_API_KEY: process.env.BANKR_API_KEY || '',
           OPENCLAW_CONFIG_B64: configBase64,
           AGENTS_MD_B64: agentsBase64,
           ...(telegramBotToken ? { TELEGRAM_BOT_TOKEN: telegramBotToken } : {}),

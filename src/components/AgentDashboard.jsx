@@ -162,12 +162,12 @@ export function AgentDashboard({ userWalletAddress, onLogout }) {
               </div>
               <div className="token-actions">
                 <a 
-                  href={agent.token.tradeUrl}
+                  href={agent.token.explorerUrl || `https://basescan.org/token/${agent.token.address}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="trade-btn"
                 >
-                  Trade on Clanker
+                  View on Explorer
                 </a>
               </div>
             </div>

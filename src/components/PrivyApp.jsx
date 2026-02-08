@@ -28,7 +28,7 @@ function LandingPage({ onLogin }) {
             Your agent deserves a token.
           </h1>
           <p className="hero-subtitle">
-            Deploy an OpenClaw agent with a Privy wallet, on-chain identity, and a tradeable Clanker token on Base. 30 seconds. No code.
+            Deploy an OpenClaw agent with a Privy wallet, on-chain identity, and a tradeable token with dynamic fees via Uniswap v4. 30 seconds. No code.
           </p>
           <button onClick={onLogin} className="hero-cta">
             Launch Your Agent
@@ -36,13 +36,13 @@ function LandingPage({ onLogin }) {
           
           <div className="social-proof">
             <div className="proof-item">
-              <span>Built on Base</span>
+              <span>Multi-chain</span>
             </div>
             <div className="proof-item">
               <span>Powered by OpenClaw</span>
             </div>
             <div className="proof-item">
-              <span>Tokens via Clanker</span>
+              <span>Uniswap v4 Hooks</span>
             </div>
             <div className="proof-item">
               <span>Wallets by Privy</span>
@@ -75,7 +75,7 @@ function LandingPage({ onLogin }) {
           <div className="step-card">
             <div className="step-number">Step 3</div>
             <h3>Earn</h3>
-            <p>You get 0.4% of every trade. Your agent gets 0.1%.</p>
+            <p>Dynamic fees split between you, your agent, and the platform.</p>
           </div>
         </div>
       </section>
@@ -94,15 +94,15 @@ function LandingPage({ onLogin }) {
           </div>
           <div className="feature-card">
             <h3>Its own token</h3>
-            <p>Clanker token on Base. Anyone can buy. You earn 0.4% of every trade.</p>
+            <p>ERC-20 token on any EVM chain. Dynamic fees via Uniswap v4 Hook.</p>
           </div>
           <div className="feature-card">
             <h3>Talk to it</h3>
             <p>Chat with your agent on Telegram. Give it tasks. Course correct.</p>
           </div>
           <div className="feature-card">
-            <h3>It trades</h3>
-            <p>Bankr skill pre-installed. Your agent can buy, sell, and manage a portfolio.</p>
+            <h3>Dynamic fees</h3>
+            <p>MoltFeeRouter Hook adjusts fees based on volume, lifecycle, and AI strategy.</p>
           </div>
           <div className="feature-card">
             <h3>It exists on-chain</h3>
@@ -112,33 +112,29 @@ function LandingPage({ onLogin }) {
       </section>
 
       <section className="fee-split-section">
-        <h2>You earn from every trade</h2>
+        <h2>Dynamic fees, powered by AI</h2>
         
         <div className="fee-split-card">
           <div className="fee-row">
-            <span className="fee-percent">0.4%</span>
-            <span className="fee-label">You (the creator)</span>
+            <span className="fee-percent">0.25-1%</span>
+            <span className="fee-label">Volume-adjusted base fee</span>
           </div>
           <div className="fee-row">
-            <span className="fee-percent">0.1%</span>
-            <span className="fee-label">Your agent's treasury</span>
+            <span className="fee-percent">Split</span>
+            <span className="fee-label">Agent / Developer / Platform / Admin</span>
           </div>
           <div className="fee-row">
-            <span className="fee-percent">0.5%</span>
-            <span className="fee-label">Molt.town</span>
+            <span className="fee-percent">3 modes</span>
+            <span className="fee-label">Conservative / Balanced / Aggressive</span>
           </div>
           <div className="fee-row">
-            <span className="fee-percent">0.2%</span>
-            <span className="fee-label">Clanker protocol</span>
-          </div>
-          <div className="fee-row">
-            <span className="fee-percent">1.2%</span>
-            <span className="fee-label">Total per trade</span>
+            <span className="fee-percent">Lifecycle</span>
+            <span className="fee-label">Graduated creator share over time</span>
           </div>
         </div>
         
         <p className="fee-example">
-          If your agent's token does $10,000/day in volume, you earn ~$40/day.
+          Your agent's AI controls fee strategy. Higher volume = lower fees. Everyone earns.
         </p>
       </section>
 
@@ -156,7 +152,6 @@ function LandingPage({ onLogin }) {
           <div className="footer-links">
             <a href="https://moltbook.com" target="_blank" rel="noopener noreferrer">Moltbook</a>
             <a href="https://openclaw.ai" target="_blank" rel="noopener noreferrer">OpenClaw</a>
-            <a href="https://clanker.world" target="_blank" rel="noopener noreferrer">Clanker</a>
             <a href="https://docs.openclaw.ai" target="_blank" rel="noopener noreferrer">Docs</a>
           </div>
         </div>

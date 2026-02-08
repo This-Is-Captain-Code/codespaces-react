@@ -1,5 +1,5 @@
 import express from 'express';
-import { clankerService } from '../services/clankerService.js';
+import { tokenDeployService } from '../services/tokenDeployService.js';
 
 const router = express.Router();
 
@@ -7,15 +7,15 @@ const USE_TESTNET = process.env.USE_TESTNET === 'true';
 
 router.get('/generate-wallet', async (req, res) => {
   try {
-    const wallet = clankerService.generateWallet();
+    const wallet = tokenDeployService.generateWallet();
+    const networkInfo = tokenDeployService.getNetworkInfo();
     res.json({
       success: true,
       wallet: {
         address: wallet.address,
         privateKey: wallet.privateKey,
       },
-      network: USE_TESTNET ? 'Base Sepolia (testnet)' : 'Base (mainnet)',
-      faucet: USE_TESTNET ? 'https://www.alchemy.com/faucets/base-sepolia' : null,
+      network: networkInfo.chain,
       note: 'Save the private key securely! Add as ADMIN_WALLET_PRIVATE_KEY secret.',
     });
   } catch (error) {
@@ -32,11 +32,10 @@ router.get('/integrations', async (req, res) => {
   };
 
   const tests = [
-    { name: 'bankr', test: testBankr },
     { name: 'flyio', test: testFlyio },
     { name: 'privy', test: testPrivy },
     { name: 'openrouter', test: testOpenRouter },
-    { name: 'clanker', test: testClanker },
+    { name: 'token_deploy', test: testTokenDeploy },
     { name: 'erc8004_contracts', test: testERC8004Contracts },
   ];
 
@@ -59,29 +58,6 @@ router.get('/integrations', async (req, res) => {
   const statusCode = results.summary.failed > 0 ? 503 : 200;
   res.status(statusCode).json(results);
 });
-
-async function testBankr() {
-  const apiKey = process.env.BANKR_API_KEY;
-  if (!apiKey) {
-    throw new Error('BANKR_API_KEY not set');
-  }
-
-  const response = await fetch('https://api.bankr.bot/v1/health', {
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
-  if (response.status === 401) {
-    throw new Error('Invalid API key');
-  }
-
-  return { 
-    message: 'Bankr API key configured',
-    keyPrefix: apiKey.substring(0, 8) + '...'
-  };
-}
 
 async function testFlyio() {
   const token = process.env.FLY_API_TOKEN;
@@ -167,23 +143,26 @@ async function testOpenRouter() {
   };
 }
 
-async function testClanker() {
+async function testTokenDeploy() {
   const adminKey = process.env.ADMIN_WALLET_PRIVATE_KEY;
   if (!adminKey) {
     throw new Error('ADMIN_WALLET_PRIVATE_KEY not set');
   }
 
-  const moltRewardAddress = process.env.MOLT_REWARD_ADDRESS;
-  if (!moltRewardAddress && !USE_TESTNET) {
-    throw new Error('MOLT_REWARD_ADDRESS not set');
-  }
-
   try {
     const { createPublicClient, http } = await import('viem');
-    const { base, baseSepolia } = await import('viem/chains');
     const { privateKeyToAccount } = await import('viem/accounts');
     
-    const chain = USE_TESTNET ? baseSepolia : base;
+    const networkInfo = tokenDeployService.getNetworkInfo();
+    const viemChains = await import('viem/chains');
+    const chainNameMap = {
+      'Base': viemChains.base, 'Base Sepolia': viemChains.baseSepolia,
+      'Ethereum': viemChains.mainnet, 'Sepolia': viemChains.sepolia,
+      'Arbitrum One': viemChains.arbitrum, 'Arbitrum Sepolia': viemChains.arbitrumSepolia,
+      'OP Mainnet': viemChains.optimism, 'Optimism Sepolia': viemChains.optimismSepolia,
+      'Polygon': viemChains.polygon, 'Polygon Amoy': viemChains.polygonAmoy,
+    };
+    const chain = chainNameMap[networkInfo.chain] || viemChains.base;
     const account = privateKeyToAccount(adminKey);
     
     const publicClient = createPublicClient({
@@ -200,15 +179,15 @@ async function testClanker() {
     const ethBalance = formatEther(balance);
 
     return { 
-      message: USE_TESTNET ? 'Clanker ready (TESTNET mode)' : 'Clanker SDK ready',
-      network: chain.name,
+      message: `Token deploy ready (${networkInfo.chain})`,
+      network: networkInfo.chain,
+      deployChain: networkInfo.deployChain,
       walletAddress: account.address,
       balance: `${ethBalance} ETH`,
       latestBlock: Number(blockNumber),
-      rewardAddress: moltRewardAddress ? moltRewardAddress.substring(0, 10) + '...' : 'N/A (testnet)',
     };
   } catch (error) {
-    throw new Error(`Clanker SDK error: ${error.message}`);
+    throw new Error(`Token deploy error: ${error.message}`);
   }
 }
 
@@ -249,11 +228,10 @@ async function testERC8004Contracts() {
 
 function getHint(name) {
   const hints = {
-    bankr: 'Get API key from bankr.bot/api and add as BANKR_API_KEY secret',
     flyio: 'Get token from fly.io dashboard and add as FLY_API_TOKEN secret',
     privy: 'Set VITE_PRIVY_APP_ID and PRIVY_APP_SECRET from privy.io dashboard',
     openrouter: 'Get API key from openrouter.ai and add as OPENROUTER_API_KEY secret',
-    clanker: 'Set ADMIN_WALLET_PRIVATE_KEY (for signing) and MOLT_REWARD_ADDRESS (platform rewards)',
+    token_deploy: 'Set ADMIN_WALLET_PRIVATE_KEY (for signing). Set DEPLOY_CHAIN to target chain (base, ethereum, arbitrum, optimism, polygon).',
     erc8004_contracts: 'Contracts should be deployed on Ethereum mainnet'
   };
   return hints[name] || 'Check configuration';

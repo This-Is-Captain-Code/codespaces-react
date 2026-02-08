@@ -1,7 +1,7 @@
 # Molt.town
 
 ## Overview
-Molt.town is an automated AI agent launch platform designed to quickly deploy AI agents with integrated wallets and tradeable tokens. It enables users to create a dedicated AI agent in approximately 30 seconds, complete with its own Fly.io instance, server-side Privy wallet, and a custom Clanker token on Base with fee splits. The platform also registers the agent's identity on-chain via ERC-8004 and installs autonomous trading skills (bankr + erc-8004). The vision is to provide a dedicated, isolated AI agent environment for each user, fostering autonomous trading and on-chain identity for AI.
+Molt.town is an automated AI agent launch platform designed to quickly deploy AI agents with integrated wallets and tradeable tokens. It enables users to create a dedicated AI agent in approximately 30 seconds, complete with its own Fly.io instance, server-side Privy wallet, and a custom ERC-20 token on any EVM chain with dynamic fee management via a Uniswap v4 Hook. The platform also registers the agent's identity on-chain via ERC-8004 and installs autonomous skills (erc-8004 + molt-fees). The vision is to provide a dedicated, isolated AI agent environment for each user, fostering autonomous trading and on-chain identity for AI.
 
 ## User Preferences
 - Clean dark crypto-native design (near-black background #09090b)
@@ -13,22 +13,29 @@ Molt.town is an automated AI agent launch platform designed to quickly deploy AI
 - Minimal, confident design - no gradients or particles
 - Telegram integration should be configured upfront during agent launch
 - Twitter integration planned for future (currently disabled with "Coming Soon" badge)
+- Multi-chain token deployment (not locked to Base/Clanker)
 
 ## System Architecture
-Molt.town utilizes a per-user dedicated instance model. Each user's AI agent is deployed on its own OpenClaw gateway hosted on Fly.io, ensuring complete isolation. A server-side Privy wallet is provisioned for each agent, alongside a unique Clanker token. The frontend is built with React 18 and Vite, communicating with an Express.js backend. PostgreSQL is used for data persistence. Deployment of OpenClaw gateways is managed via the Fly.io Machines API. AI model access is handled through the OpenRouter API, with a provisioning system that assigns per-user API keys and spending limits. The system supports dual-mode authentication via Privy (for X/Twitter, Google, email login) or a fallback username-based system. Agents are equipped with skills installed from the BankrBot/openclaw-skills GitHub repository, including `bankr` for crypto trading and `erc-8004` for on-chain identity registration. OpenClaw gateways are configured to run with specific Docker images and commands, injecting configuration via base64-encoded environment variables and persisting agent data on Fly.io volumes.
+Molt.town utilizes a per-user dedicated instance model. Each user's AI agent is deployed on its own OpenClaw gateway hosted on Fly.io, ensuring complete isolation. A server-side Privy wallet is provisioned for each agent, alongside a custom ERC-20 token deployable on any supported EVM chain (Base, Ethereum, Arbitrum, Optimism, Polygon). The frontend is built with React 18 and Vite, communicating with an Express.js backend. PostgreSQL is used for data persistence. Deployment of OpenClaw gateways is managed via the Fly.io Machines API. AI model access is handled through the OpenRouter API, with a provisioning system that assigns per-user API keys and spending limits. The system supports dual-mode authentication via Privy (for X/Twitter, Google, email login) or a fallback username-based system. Agents are equipped with skills including `erc-8004` for on-chain identity registration and `molt-fees` for dynamic fee management. OpenClaw gateways are configured to run with specific Docker images and commands, injecting configuration via base64-encoded environment variables and persisting agent data on Fly.io volumes.
 
 ## External Dependencies
 - **Privy**: For user authentication (X/Twitter, Google, Email) and server-side wallet creation.
 - **Fly.io**: For deploying and managing dedicated OpenClaw gateway instances via its Machines API.
 - **OpenRouter API**: For providing access to various AI models and managing per-user API keys and spending limits.
-- **Clanker SDK**: For deploying custom tokens on the Base network.
+- **viem**: For EVM chain interaction, token deployment, and wallet management across multiple chains.
 - **ERC-8004**: For on-chain AI agent identity registration on Ethereum mainnet.
-- **BankrBot/openclaw-skills GitHub repository**: Source for agent skills like `bankr` (crypto trading) and `erc-8004` (on-chain identity).
+- **Uniswap v4**: MoltFeeRouter Hook for dynamic, AI-agent-controlled fee distribution.
+
+## Token Deployment
+Tokens are deployed as standard ERC-20 contracts via `tokenDeployService.js`. The deploy chain is configurable via the `DEPLOY_CHAIN` environment variable.
+
+Supported chains: `base`, `ethereum`, `arbitrum`, `optimism`, `polygon`
 
 ## Testnet Mode
 Set `USE_TESTNET=true` to run the entire platform in testnet mode:
-- **Clanker**: Uses Base Sepolia instead of Base mainnet (token deployment is simulated)
+- **Token Deploy**: Uses testnet chain (e.g., Base Sepolia for `base`)
 - **ERC-8004**: Uses Sepolia instead of Ethereum mainnet (registration is simulated)
+- **Uniswap v4 Hook**: Returns simulated analytics data
 - **Wallet**: Test wallet with no real funds needed
 
 To switch to mainnet, set `USE_TESTNET=false` (or remove the variable).
@@ -43,23 +50,24 @@ Required:
 - `OPENROUTER_API_KEY` - OpenRouter API key for AI models
 - `PRIVY_APP_SECRET` - Privy secret for server-side wallet creation
 - `ADMIN_WALLET_PRIVATE_KEY` - For signing on-chain transactions
-- `BANKR_API_KEY` - Bankr API key (shared across all agents). Get from https://bankr.bot/api and ensure **Agent API access** is enabled.
 
 Optional:
-- `USE_TESTNET` - Set to `true` for testnet mode (Base Sepolia + Sepolia)
+- `USE_TESTNET` - Set to `true` for testnet mode
+- `DEPLOY_CHAIN` - Target chain for token deployment (default: `base`). Options: `base`, `ethereum`, `arbitrum`, `optimism`, `polygon`
 - `MOLT_REWARD_ADDRESS` - Platform reward wallet address (required for mainnet)
 - `DEV_REWARD_ADDRESS` - Default developer reward address
 - `VITE_PRIVY_APP_ID` - Privy App ID for X/Twitter login
 - `ADMIN_TOKEN` - Token for admin dashboard access
-- `MOLT_FEE_ROUTER_ADDRESS` - Deployed MoltFeeRouter Hook contract address (required for Uniswap v4 fee management)
+- `MOLT_FEE_ROUTER_ADDRESS` - Deployed MoltFeeRouter Hook contract address (required for Uniswap v4 fee management on mainnet)
 
 ## Uniswap v4 Hook Integration (MoltFeeRouter)
-The platform integrates a custom Uniswap v4 Hook contract (`MoltFeeRouter.sol`) that replaces static Clanker fee splits with dynamic, AI-agent-controlled fee distribution.
+The platform integrates a custom Uniswap v4 Hook contract (`MoltFeeRouter.sol`) that provides dynamic, AI-agent-controlled fee distribution for token pools.
 
 ### Key Files
 - `contracts/src/MoltFeeRouter.sol` - Solidity Hook contract
 - `contracts/abi/MoltFeeRouter.json` - Contract ABI
 - `backend/src/services/uniswapV4Service.js` - Backend service for Hook interaction
+- `backend/src/services/tokenDeployService.js` - Chain-agnostic ERC-20 token deployment
 - `backend/src/routes/fees.js` - Fee management API routes
 - `src/components/FeeAnalytics.jsx` - Frontend fee dashboard component
 - `backend/src/skills/molt-fees/SKILL.md` - Agent skill for fee management

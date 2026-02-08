@@ -1,24 +1,15 @@
-// Skills are installed from the BankrBot/openclaw-skills GitHub repository
-// Bankr uses a SHARED PLATFORM API KEY (BANKR_API_KEY env var) for all agents
-// Each agent trades using their own Privy wallet - the API key just authenticates the platform
 const SKILLS_REPO = 'https://github.com/BankrBot/openclaw-skills';
 
 const AVAILABLE_SKILLS = {
-  bankr: {
-    name: 'bankr',
-    path: 'bankr',
-    description: 'AI-powered crypto trading agent via natural language',
-    requires: ['curl', 'jq'],
-  },
   'erc-8004': {
     name: 'erc-8004',
     path: 'erc-8004',
     description: 'Register AI agents on Ethereum mainnet using ERC-8004',
   },
-  clanker: {
-    name: 'clanker',
-    path: 'clanker',
-    description: 'Clanker SDK skill for token deployment on Base',
+  'molt-fees': {
+    name: 'molt-fees',
+    path: 'molt-fees',
+    description: 'Manage dynamic trading fees via Uniswap v4 MoltFeeRouter Hook',
   },
   botchan: {
     name: 'botchan',
@@ -34,9 +25,8 @@ export const skillInstallerService = {
 
   installSkills: async (gatewayEndpoint, gatewayToken, options = {}) => {
     const {
-      bankrApiKey,
       agentWalletAddress,
-      skillsToInstall = ['bankr', 'erc-8004'],
+      skillsToInstall = ['erc-8004', 'molt-fees'],
     } = options;
 
     console.log(`Installing skills to gateway ${gatewayEndpoint}...`);
@@ -44,38 +34,6 @@ export const skillInstallerService = {
 
     const installedSkills = [];
     const errors = [];
-
-    if (skillsToInstall.includes('bankr')) {
-      try {
-        const bankrSkillConfig = {
-          name: 'bankr',
-          source: `${SKILLS_REPO}/tree/main/bankr`,
-          enabled: true,
-          config: {
-            apiKey: bankrApiKey || process.env.BANKR_API_KEY || '',
-            apiUrl: 'https://api.bankr.bot',
-            walletAddress: agentWalletAddress,
-          },
-        };
-
-        const bankrResult = await installSkillToGateway(
-          gatewayEndpoint,
-          gatewayToken,
-          bankrSkillConfig
-        );
-
-        if (bankrResult.success) {
-          installedSkills.push('bankr');
-          console.log('Installed bankr skill');
-        } else {
-          errors.push({ skill: 'bankr', error: bankrResult.error });
-          console.warn('Failed to install bankr skill:', bankrResult.error);
-        }
-      } catch (error) {
-        errors.push({ skill: 'bankr', error: error.message });
-        console.warn('Bankr skill installation error:', error.message);
-      }
-    }
 
     if (skillsToInstall.includes('erc-8004')) {
       try {
@@ -107,6 +65,35 @@ export const skillInstallerService = {
       } catch (error) {
         errors.push({ skill: 'erc-8004', error: error.message });
         console.warn('ERC-8004 skill installation error:', error.message);
+      }
+    }
+
+    if (skillsToInstall.includes('molt-fees')) {
+      try {
+        const moltFeesConfig = {
+          name: 'molt-fees',
+          enabled: true,
+          config: {
+            walletAddress: agentWalletAddress,
+          },
+        };
+
+        const moltFeesResult = await installSkillToGateway(
+          gatewayEndpoint,
+          gatewayToken,
+          moltFeesConfig
+        );
+
+        if (moltFeesResult.success) {
+          installedSkills.push('molt-fees');
+          console.log('Installed molt-fees skill');
+        } else {
+          errors.push({ skill: 'molt-fees', error: moltFeesResult.error });
+          console.warn('Failed to install molt-fees skill:', moltFeesResult.error);
+        }
+      } catch (error) {
+        errors.push({ skill: 'molt-fees', error: error.message });
+        console.warn('molt-fees skill installation error:', error.message);
       }
     }
 
