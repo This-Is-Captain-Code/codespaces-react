@@ -206,10 +206,54 @@ function TestConsole() {
           body: JSON.stringify({ chain: 'base' }),
         }),
     },
+    {
+      id: 'yellow_status',
+      label: 'Yellow Network Status',
+      description: 'ClearSync state channel connection status, auth state, and buffer analytics',
+      category: 'yellow',
+      run: () => fetchJson(`${API_BASE}/liquidity/yellow/status`),
+    },
+    {
+      id: 'yellow_connect',
+      label: 'Connect to ClearNode',
+      description: 'Connects to Yellow Network ClearNode via WebSocket and authenticates with EIP-712',
+      category: 'yellow',
+      run: () =>
+        fetchJson(`${API_BASE}/liquidity/yellow/connect`, { method: 'POST' }),
+    },
+    {
+      id: 'yellow_gas',
+      label: 'Live Gas Prices',
+      description: 'Fetches real-time gas prices from Base, Arbitrum, and Ethereum via on-chain RPC',
+      category: 'yellow',
+      run: () => fetchJson(`${API_BASE}/liquidity/yellow/gas-prices`),
+    },
+    {
+      id: 'yellow_test_buffer',
+      label: 'Test Intent Buffer',
+      description: 'Creates an intent and buffers it through Yellow Network with real gas price condition checks',
+      category: 'yellow',
+      run: () =>
+        fetchJson(`${API_BASE}/liquidity/yellow/test-buffer`, {
+          method: 'POST',
+          body: JSON.stringify({
+            amount: '100',
+            conditions: { maxGasPriceGwei: 5.0, minFeeGainPercent: 0.3 },
+          }),
+        }),
+    },
+    {
+      id: 'yellow_config',
+      label: 'ClearNode Config',
+      description: 'Fetches ClearNode configuration (requires active connection)',
+      category: 'yellow',
+      run: () => fetchJson(`${API_BASE}/liquidity/yellow/config`),
+    },
   ];
 
   const categories = [
     { key: 'platform', label: 'Platform Health' },
+    { key: 'yellow', label: 'Yellow Network' },
     { key: 'liquidity', label: 'Liquidity Layers' },
     { key: 'pipeline', label: 'Full Pipeline' },
     { key: 'fees', label: 'Fee Management' },

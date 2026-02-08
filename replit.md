@@ -108,10 +108,11 @@ Primary chain: Arbitrum One (Uniswap v4 native), Source chain: Base (cheap trans
 
 ### Key Files
 - `backend/src/services/intentService.js` - Intent CRUD (create, list, update, observe)
-- `backend/src/services/yellowNetworkService.js` - ClearSync state channel buffering/batching
+- `backend/src/services/clearNodeClient.js` - Yellow Network ClearNode WebSocket client (Nitrolite SDK)
+- `backend/src/services/yellowNetworkService.js` - ClearSync state channel buffering/batching with real on-chain condition evaluation
 - `backend/src/services/lifiService.js` - LI.FI cross-chain quote/execution
 - `backend/src/services/uniswapV4Service.js` - Uniswap v4 liquidity deployment (multi-chain)
-- `backend/src/routes/liquidity.js` - Liquidity API routes
+- `backend/src/routes/liquidity.js` - Liquidity API routes (including `/yellow/*` endpoints)
 - `backend/src/skills/liquidity-manager/SKILL.md` - Agent skill for autonomous liquidity ops
 - `src/components/LiquidityDashboard.jsx` - Frontend liquidity management dashboard
 
@@ -131,10 +132,35 @@ Primary chain: Arbitrum One (Uniswap v4 native), Source chain: Base (cheap trans
 - `POST /api/liquidity/quote` - Get LI.FI cross-chain quote
 - `POST /api/liquidity/execute-move` - Execute cross-chain movement via LI.FI
 - `POST /api/liquidity/deploy` - Deploy liquidity into Uniswap v4 pool
+- `GET /api/liquidity/yellow/status` - Yellow Network connection status, auth state, buffer analytics
+- `POST /api/liquidity/yellow/connect` - Connect to ClearNode WebSocket and authenticate via EIP-712
+- `POST /api/liquidity/yellow/disconnect` - Disconnect from ClearNode
+- `GET /api/liquidity/yellow/gas-prices` - Real-time on-chain gas prices (Base, Arbitrum, Ethereum)
+- `POST /api/liquidity/yellow/test-buffer` - Create and buffer a test intent with real condition evaluation
+- `GET /api/liquidity/yellow/config` - ClearNode configuration (requires active connection)
+- `GET /api/liquidity/yellow/balances` - Ledger balances (requires active connection)
+
+### Yellow Network Integration (Nitrolite SDK)
+Uses `@erc7824/nitrolite` SDK for ERC-7824 state channel integration with Yellow Network ClearSync.
+
+**Dual mode operation:**
+- **Live mode**: WebSocket connection to ClearNode (`wss://clearnet.yellow.com/ws` mainnet, `wss://clearnet-sandbox.yellow.com/ws` sandbox), EIP-712 auth, app sessions for intent buffering
+- **Local batching**: Fallback when ClearNode not available. Uses DB-backed intent batching with real on-chain gas price condition evaluation
+
+**Prerequisites for live mode:**
+1. Create a channel at [apps.yellow.com](https://apps.yellow.com) with the admin wallet address
+2. Set `ADMIN_WALLET_PRIVATE_KEY` for EIP-712 signing
+3. Channel will auto-authenticate on connect
+
+**Condition evaluation uses real on-chain data:**
+- Gas prices fetched via viem public clients (Base, Arbitrum, Ethereum)
+- Fee gain estimation based on destination chain gas conditions
+- Time window conditions for scheduled execution
+- Minimum amount thresholds
 
 ### Testnet Mode
 When `USE_TESTNET=true`, all services use real testnet chains and APIs:
-- Yellow Network: Local intent batching with real DB writes (ClearSync has no public testnet)
+- Yellow Network: Connects to `wss://clearnet-sandbox.yellow.com/ws`. Falls back to local batching with real on-chain gas prices from testnets (Base Sepolia, Arbitrum Sepolia, Sepolia)
 - LI.FI: Calls real LI.FI API with testnet chain IDs (Base Sepolia 84532, Arbitrum Sepolia 421614). Bridges are typically unavailable between testnets - handled gracefully with `bridgeLimited` flag
 - Uniswap v4: Makes real RPC calls to testnet PoolManager contracts. Requires `MOLT_FEE_ROUTER_ADDRESS` deployed on testnet and `ADMIN_WALLET_PRIVATE_KEY` with testnet funds for write operations
 - No fake/mock data - services report actual capabilities and fail gracefully when testnet infrastructure doesn't support an operation

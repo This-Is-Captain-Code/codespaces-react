@@ -442,6 +442,82 @@ router.get('/observe', async (req, res) => {
   }
 });
 
+router.get('/yellow/status', async (req, res) => {
+  try {
+    const status = yellowNetworkService.getStatus();
+    const analytics = await yellowNetworkService.getBufferAnalytics();
+    res.json({ success: true, ...status, analytics });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/yellow/connect', async (req, res) => {
+  try {
+    const result = await yellowNetworkService.connect();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/yellow/disconnect', (req, res) => {
+  try {
+    const result = yellowNetworkService.disconnect();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/yellow/config', async (req, res) => {
+  try {
+    const config = await yellowNetworkService.getClearNodeConfig();
+    res.json(config);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/yellow/balances', async (req, res) => {
+  try {
+    const balances = await yellowNetworkService.getLedgerBalances();
+    res.json(balances);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/yellow/gas-prices', async (req, res) => {
+  try {
+    const prices = await yellowNetworkService.getGasPrices();
+    res.json({ success: true, prices });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/yellow/test-buffer', async (req, res) => {
+  try {
+    const intent = await intentService.createIntent({
+      botId: null,
+      intentType: 'MOVE_LIQUIDITY',
+      sourceChain: req.body.sourceChain || 'base',
+      destChain: req.body.destChain || 'arbitrum',
+      tokenAddress: null,
+      tokenSymbol: 'USDC',
+      amount: req.body.amount || '100',
+      conditions: req.body.conditions || { maxGasPriceGwei: 5.0, minFeeGainPercent: 0.3 },
+      executionParams: {},
+    });
+
+    const bufferResult = await yellowNetworkService.bufferIntent(intent);
+    res.json({ success: true, intent, buffer: bufferResult });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get('/analytics', async (req, res) => {
   try {
     const [intentStats, positionStats, movementStats] = await Promise.all([
