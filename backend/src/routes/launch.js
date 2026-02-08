@@ -88,9 +88,21 @@ router.post('/stream', authMiddleware, async (req, res) => {
   res.setHeader('X-Accel-Buffering', 'no');
 
   const sendEvent = (event, data) => {
-    res.write(`event: ${event}\n`);
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
+    try {
+      if (!res.writableEnded) {
+        res.write(`event: ${event}\n`);
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      }
+    } catch (writeErr) {
+      console.warn('[stream] Failed to write SSE event:', event, writeErr.message);
+    }
   };
+
+  let clientDisconnected = false;
+  req.on('close', () => {
+    clientDisconnected = true;
+    console.log('[stream] Client disconnected during launch');
+  });
 
   try {
     const userId = req.user.id;
@@ -149,12 +161,17 @@ router.post('/stream', authMiddleware, async (req, res) => {
       sendEvent('progress', progress);
     });
 
+    console.log('[stream] Launch completed successfully, botId:', result.botId);
     sendEvent('complete', { success: true, ...result });
-    res.end();
+    if (!clientDisconnected) {
+      try { res.end(); } catch {}
+    }
   } catch (error) {
-    console.error('Stream launch error:', error);
+    console.error('Stream launch error:', error.message);
     sendEvent('error', { error: error.message });
-    res.end();
+    if (!clientDisconnected) {
+      try { res.end(); } catch {}
+    }
   }
 });
 

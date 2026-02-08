@@ -333,38 +333,38 @@ export const uniswapV4Service = {
       const poolKey = buildPoolKey(tokenAddress, MOLT_FEE_ROUTER_ADDRESS);
       const weth = getWETH();
 
+      const safeRead = async (fn, fallback) => {
+        try {
+          return await publicClient.readContract({
+            address: MOLT_FEE_ROUTER_ADDRESS,
+            abi: MOLT_FEE_ROUTER_ABI,
+            functionName: fn,
+            args: fn === 'getAccruedFees' ? [poolKey, weth] : [poolKey],
+          });
+        } catch {
+          return fallback;
+        }
+      };
+
       const [config, currentFee, currentSplit, volumeInfo, fees] = await Promise.all([
-        publicClient.readContract({
-          address: MOLT_FEE_ROUTER_ADDRESS,
-          abi: MOLT_FEE_ROUTER_ABI,
-          functionName: 'getPoolConfig',
-          args: [poolKey],
-        }),
-        publicClient.readContract({
-          address: MOLT_FEE_ROUTER_ADDRESS,
-          abi: MOLT_FEE_ROUTER_ABI,
-          functionName: 'getCurrentFee',
-          args: [poolKey],
-        }),
-        publicClient.readContract({
-          address: MOLT_FEE_ROUTER_ADDRESS,
-          abi: MOLT_FEE_ROUTER_ABI,
-          functionName: 'getCurrentSplit',
-          args: [poolKey],
-        }),
-        publicClient.readContract({
-          address: MOLT_FEE_ROUTER_ADDRESS,
-          abi: MOLT_FEE_ROUTER_ABI,
-          functionName: 'getVolumeData',
-          args: [poolKey],
-        }),
-        publicClient.readContract({
-          address: MOLT_FEE_ROUTER_ADDRESS,
-          abi: MOLT_FEE_ROUTER_ABI,
-          functionName: 'getAccruedFees',
-          args: [poolKey, weth],
-        }),
+        safeRead('getPoolConfig', null),
+        safeRead('getCurrentFee', 3000n),
+        safeRead('getCurrentSplit', [2500n, 2500n, 2500n, 2500n]),
+        safeRead('getVolumeData', { dailyVolume: 0n, lastResetTimestamp: 0n }),
+        safeRead('getAccruedFees', { agentFees: 0n, devFees: 0n, platformFees: 0n, adminFees: 0n }),
       ]);
+
+      if (!config) {
+        return {
+          configured: true,
+          testnet: USE_TESTNET,
+          tokenAddress,
+          hookAddress: MOLT_FEE_ROUTER_ADDRESS,
+          poolRegistered: true,
+          analyticsAvailable: false,
+          reason: 'Pool registered but contract analytics not yet available',
+        };
+      }
 
       const feeModes = ['conservative', 'balanced', 'aggressive'];
       const poolAge = Math.floor(Date.now() / 1000) - Number(config.createdAt);

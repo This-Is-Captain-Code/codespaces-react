@@ -498,16 +498,14 @@ export const flyService = {
     // Create gateway config with model, skills, and enhanced system prompt
     const openclawConfig = {
       gateway: {
+        mode: 'local',
         bind: 'lan',
         port: 18789,
         auth: {
           mode: 'token',
           token: gatewayToken
         },
-        remote: {
-          token: gatewayToken
-        },
-        trustedProxies: ['0.0.0.0/0', '::/0'],
+        trustedProxies: ['0.0.0.0/0', '::/0', '172.16.0.0/12', '10.0.0.0/8', '192.168.0.0/16', '100.64.0.0/10'],
         controlUi: {
           enabled: true,
           allowInsecureAuth: true,

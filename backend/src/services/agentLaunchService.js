@@ -55,15 +55,19 @@ export const agentLaunchService = {
         launchState.completedSteps.push(step);
       }
       if (progressCallback) {
-        progressCallback({
-          step,
-          stepIndex: LAUNCH_STEPS.indexOf(step),
-          totalSteps: LAUNCH_STEPS.length,
-          status,
-          networkMode: getNetworkMode(),
-          timestamp: new Date().toISOString(),
-          ...data,
-        });
+        try {
+          progressCallback({
+            step,
+            stepIndex: LAUNCH_STEPS.indexOf(step),
+            totalSteps: LAUNCH_STEPS.length,
+            status,
+            networkMode: getNetworkMode(),
+            timestamp: new Date().toISOString(),
+            ...data,
+          });
+        } catch (cbErr) {
+          console.warn('[launch] Progress callback failed (client may have disconnected):', cbErr.message);
+        }
       }
     };
 
@@ -266,58 +270,84 @@ export const agentLaunchService = {
         simulated: hookResult.simulated || false,
       });
 
+      console.log('[launch] Starting finalizing step - DB save...');
       sendProgress('finalizing', 'in_progress');
 
       const token = crypto.randomBytes(32).toString('hex');
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
       const networkInfo2 = tokenDeployService.getNetworkInfo();
-      const botResult = await db.query(
-        `INSERT INTO bots (
-          user_id, bot_name, endpoint, model, system_prompt, status,
-          gateway_id, agent_id, fly_gateway_token, openrouter_key_hash, openrouter_limit_usd,
-          agent_wallet_address, agent_wallet_id, token_address, token_symbol, token_name,
-          user_wallet_address, token_hash,
-          token_deploy_tx, token_deploy_chain,
-          hook_tx, hook_chain,
-          fund_tx, fund_chain
-        ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
-        RETURNING id, bot_name, model, system_prompt, status, created_at`,
-        [
-          userId,
-          agentName,
-          userGateway.endpoint,
-          model,
-          systemPrompt,
-          userGateway.appName,
-          'main',
-          userGateway.gatewayToken,
-          openrouterKeyHash,
-          limitUsd,
-          agentWallet?.address || null,
-          agentWallet?.walletId || null,
-          tokenResult?.tokenAddress || null,
-          tokenSymbol || null,
-          tokenName || agentName,
-          userWalletAddress || null,
-          tokenHash,
-          tokenResult?.txHash || null,
-          tokenResult ? networkInfo2.chain : null,
-          hookResult.txHash || null,
-          hookResult.registered ? (USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum') : null,
-          fundingResult?.txHash || null,
-          fundingResult?.chain || null,
-        ]
-      );
+      console.log('[launch] DB insert params:', {
+        userId,
+        agentName,
+        endpoint: userGateway.endpoint,
+        model,
+        gatewayId: userGateway.appName,
+        tokenAddress: tokenResult?.tokenAddress,
+        hookTx: hookResult.txHash || null,
+        hookChain: hookResult.registered ? (USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum') : null,
+        fundTx: fundingResult?.txHash || null,
+        fundChain: fundingResult?.chain || null,
+      });
+      let botResult;
+      try {
+        botResult = await db.query(
+          `INSERT INTO bots (
+            user_id, bot_name, endpoint, model, system_prompt, status,
+            gateway_id, agent_id, fly_gateway_token, openrouter_key_hash, openrouter_limit_usd,
+            agent_wallet_address, agent_wallet_id, token_address, token_symbol, token_name,
+            user_wallet_address, token_hash,
+            token_deploy_tx, token_deploy_chain,
+            hook_tx, hook_chain,
+            fund_tx, fund_chain
+          ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+          RETURNING id, bot_name, model, system_prompt, status, created_at`,
+          [
+            userId,
+            agentName,
+            userGateway.endpoint,
+            model,
+            systemPrompt,
+            userGateway.appName,
+            'main',
+            userGateway.gatewayToken,
+            openrouterKeyHash,
+            limitUsd,
+            agentWallet?.address || null,
+            agentWallet?.walletId || null,
+            tokenResult?.tokenAddress || null,
+            tokenSymbol || null,
+            tokenName || agentName,
+            userWalletAddress || null,
+            tokenHash,
+            tokenResult?.txHash || null,
+            tokenResult ? networkInfo2.chain : null,
+            hookResult.txHash || null,
+            hookResult.registered ? (USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum') : null,
+            fundingResult?.txHash || null,
+            fundingResult?.chain || null,
+          ]
+        );
+        console.log('[launch] Bot saved to DB:', botResult.rows[0]?.id);
+      } catch (dbError) {
+        console.error('[launch] DB INSERT failed:', dbError.message, dbError.code, dbError.detail);
+        throw dbError;
+      }
 
       const bot = botResult.rows[0];
 
-      await db.query(
-        `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
-        [bot.id, tokenHash]
-      );
+      try {
+        await db.query(
+          `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
+          [bot.id, tokenHash]
+        );
+        console.log('[launch] Bot token saved');
+      } catch (tokenErr) {
+        console.error('[launch] bot_tokens INSERT failed:', tokenErr.message);
+      }
 
       sendProgress('finalizing', 'completed');
+      console.log('[launch] Launch complete for', agentName);
 
       return {
         success: true,
