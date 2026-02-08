@@ -4,8 +4,18 @@ import { yellowNetworkService } from '../services/yellowNetworkService.js';
 import { lifiService } from '../services/lifiService.js';
 import { uniswapV4Service } from '../services/uniswapV4Service.js';
 import { db } from '../db/index.js';
+import { privateKeyToAccount } from 'viem/accounts';
 
 const router = Router();
+
+function getAdminWalletAddress() {
+  const key = process.env.ADMIN_WALLET_PRIVATE_KEY;
+  if (!key) return null;
+  try {
+    const account = privateKeyToAccount(key);
+    return account.address;
+  } catch { return null; }
+}
 
 router.get('/status', (req, res) => {
   res.json({
@@ -178,7 +188,7 @@ router.post('/execute', async (req, res) => {
       fromToken: intent.token_address || undefined,
       toToken: intent.token_address || undefined,
       fromAmount: intent.amount,
-      fromAddress: intent.execution_params?.fromAddress || '0x0000000000000000000000000000000000000000',
+      fromAddress: intent.execution_params?.fromAddress || getAdminWalletAddress() || '0x0000000000000000000000000000000000000001',
     });
 
     await db.query(
@@ -294,7 +304,7 @@ router.post('/execute-pipeline', async (req, res) => {
       await intentService.updateIntentStatus(intent.id, 'executing');
     }
 
-    const fromAddress = executionParams?.fromAddress || '0x0000000000000000000000000000000000000000';
+    const fromAddress = executionParams?.fromAddress || getAdminWalletAddress() || '0x0000000000000000000000000000000000000001';
 
     const quote = await lifiService.getQuote({
       fromChain: sourceChain || 'base',
