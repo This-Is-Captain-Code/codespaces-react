@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { launchAPI } from '../api/client';
 import { AgentLaunchForm } from './AgentLaunchForm';
+import { FeeAnalytics } from './FeeAnalytics';
 import './AgentDashboard.css';
 
 export function AgentDashboard({ userWalletAddress, onLogout }) {
@@ -171,6 +172,14 @@ export function AgentDashboard({ userWalletAddress, onLogout }) {
               </div>
             </div>
           </div>
+        )}
+
+        {agent.token && (
+          <FeeAnalytics
+            tokenAddress={agent.token.address}
+            agentName={agent.agentName}
+            tokenSymbol={agent.token.symbol}
+          />
         )}
 
         {agent.erc8004 && (

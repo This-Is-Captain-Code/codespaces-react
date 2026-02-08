@@ -51,3 +51,34 @@ Optional:
 - `DEV_REWARD_ADDRESS` - Default developer reward address
 - `VITE_PRIVY_APP_ID` - Privy App ID for X/Twitter login
 - `ADMIN_TOKEN` - Token for admin dashboard access
+- `MOLT_FEE_ROUTER_ADDRESS` - Deployed MoltFeeRouter Hook contract address (required for Uniswap v4 fee management)
+
+## Uniswap v4 Hook Integration (MoltFeeRouter)
+The platform integrates a custom Uniswap v4 Hook contract (`MoltFeeRouter.sol`) that replaces static Clanker fee splits with dynamic, AI-agent-controlled fee distribution.
+
+### Key Files
+- `contracts/src/MoltFeeRouter.sol` - Solidity Hook contract
+- `contracts/abi/MoltFeeRouter.json` - Contract ABI
+- `backend/src/services/uniswapV4Service.js` - Backend service for Hook interaction
+- `backend/src/routes/fees.js` - Fee management API routes
+- `src/components/FeeAnalytics.jsx` - Frontend fee dashboard component
+- `backend/src/skills/molt-fees/SKILL.md` - Agent skill for fee management
+
+### Architecture
+- Hook uses `beforeSwap` for dynamic fee calculation and `afterSwap` for fee routing
+- Volume-tiered base fees: 1% (low), 0.5% (medium), 0.25% (high volume)
+- Three fee modes: conservative, balanced, aggressive (agent-controlled)
+- Graduated creator fee share over token lifecycle (early/growth/mature phases)
+- Four-way fee split: Agent Treasury, Developer, Platform, Admin
+- Pool registration happens during agent launch (`registering_fee_hook` step)
+
+### API Endpoints
+- `GET /api/fees/info` - Hook configuration status
+- `GET /api/fees/analytics/:tokenAddress` - Pool fee analytics
+- `POST /api/fees/set-mode` - Change fee mode (conservative/balanced/aggressive)
+- `POST /api/fees/set-agent-share` - Adjust agent share (200-5000 BPS)
+- `GET /api/fees/agent/:botId` - Agent-specific fee analytics
+
+### Contract Addresses
+- Uniswap v4 PoolManager (Base mainnet): `0x498581ff718922c3f8e6a244956af099b2652b2b`
+- Uniswap v4 PoolManager (Base Sepolia): `0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408`

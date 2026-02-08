@@ -5,6 +5,7 @@ import { clankerService } from './clankerService.js';
 import { erc8004Service } from './erc8004Service.js';
 import { skillInstallerService } from './skillInstallerService.js';
 import { openrouterProvisioningService } from './openrouterProvisioningService.js';
+import { uniswapV4Service } from './uniswapV4Service.js';
 import crypto from 'crypto';
 
 const USE_TESTNET = process.env.USE_TESTNET === 'true';
@@ -18,6 +19,7 @@ const LAUNCH_STEPS = [
   'installing_skills',
   'registering_identity',
   'deploying_token',
+  'registering_fee_hook',
   'finalizing',
 ];
 
@@ -247,6 +249,33 @@ export const agentLaunchService = {
         txHash: tokenResult?.txHash || null,
       });
 
+      sendProgress('registering_fee_hook', 'in_progress', {
+        protocol: 'Uniswap v4 Hook',
+        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+        hookType: 'MoltFeeRouter',
+      });
+      let hookResult = { registered: false };
+      if (uniswapV4Service.isConfigured() && tokenResult?.tokenAddress) {
+        try {
+          hookResult = await uniswapV4Service.registerPool({
+            tokenAddress: tokenResult.tokenAddress,
+            agentTreasuryAddress: agentWallet?.address || userWalletAddress,
+            developerAddress: devRewardAddress || userWalletAddress,
+            tokenAdminAddress: agentWallet?.address || userWalletAddress,
+          });
+        } catch (hookError) {
+          console.warn('Hook registration failed:', hookError.message);
+        }
+      }
+      sendProgress('registering_fee_hook', 'completed', {
+        protocol: 'Uniswap v4 Hook',
+        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+        registered: hookResult.registered,
+        hookAddress: hookResult.hookAddress || null,
+        txHash: hookResult.txHash || null,
+        simulated: hookResult.simulated || false,
+      });
+
       sendProgress('finalizing', 'in_progress');
 
       const token = crypto.randomBytes(32).toString('hex');
@@ -312,6 +341,11 @@ export const agentLaunchService = {
         erc8004: erc8004Result.registered ? {
           agentId: erc8004Result.agentId,
           registryAddress: erc8004Result.registryAddress,
+        } : null,
+        feeHook: hookResult.registered ? {
+          hookAddress: hookResult.hookAddress,
+          registered: true,
+          simulated: hookResult.simulated || false,
         } : null,
         telegram: telegramResult.configured ? {
           configured: true,

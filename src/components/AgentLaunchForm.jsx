@@ -18,6 +18,7 @@ const LAUNCH_STEPS = [
   { key: 'installing_skills', label: 'Installing skills' },
   { key: 'registering_identity', label: 'Registering on-chain identity' },
   { key: 'deploying_token', label: 'Deploying token' },
+  { key: 'registering_fee_hook', label: 'Registering Uniswap v4 fee hook' },
   { key: 'finalizing', label: 'Finalizing' },
 ];
 
@@ -279,12 +280,12 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
           </button>
 
           <div className="fee-info">
-            <p>Fee breakdown (1.2% total):</p>
+            <p>Dynamic fees via Uniswap v4 Hook:</p>
             <ul>
-              <li>0.2% - Clanker</li>
-              <li>0.1% - Agent treasury</li>
-              <li>0.4% - You (dev)</li>
-              <li>0.5% - Molt.town</li>
+              <li>0.25% - 1.0% base fee (volume-adjusted)</li>
+              <li>Split: Agent / Dev / Platform / Admin</li>
+              <li>Agent AI controls fee mode and optimization</li>
+              <li>Graduated creator share over token lifecycle</li>
             </ul>
           </div>
         </form>

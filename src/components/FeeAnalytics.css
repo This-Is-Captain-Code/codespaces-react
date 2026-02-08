@@ -1,0 +1,273 @@
+.fee-analytics {
+  background: var(--bg-card, #111);
+  border: 1px solid var(--border-color, #222);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 16px;
+}
+
+.fee-analytics.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary, #888);
+  font-size: 0.9rem;
+}
+
+.fee-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color, #333);
+  border-top-color: var(--accent-primary, #ff4d00);
+  border-radius: 50%;
+  animation: fee-spin 0.8s linear infinite;
+}
+
+@keyframes fee-spin {
+  to { transform: rotate(360deg); }
+}
+
+.fee-analytics.not-configured {
+  opacity: 0.6;
+}
+
+.fee-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.fee-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary, #fff);
+  font-weight: 600;
+}
+
+.fee-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.fee-badge.live {
+  background: rgba(0, 255, 106, 0.1);
+  color: #00ff6a;
+  border: 1px solid rgba(0, 255, 106, 0.2);
+}
+
+.fee-badge.pending {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary, #888);
+  border: 1px solid var(--border-color, #333);
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background: #00ff6a;
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.fee-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.fee-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color, #222);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.fee-card-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.fee-card-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.fee-card-sub {
+  font-size: 0.7rem;
+  color: var(--text-secondary, #666);
+  margin-top: 2px;
+}
+
+.fee-description {
+  color: var(--text-secondary, #888);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.fee-split-section,
+.fee-accrued-section,
+.fee-mode-section {
+  margin-top: 20px;
+}
+
+.fee-split-section h4,
+.fee-accrued-section h4,
+.fee-mode-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #aaa);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fee-split-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.fee-split-segment {
+  transition: width 0.3s ease;
+}
+
+.fee-split-segment.agent { background: #ff4d00; }
+.fee-split-segment.dev { background: #3b82f6; }
+.fee-split-segment.platform { background: #00ff6a; }
+.fee-split-segment.admin { background: #8b5cf6; }
+
+.fee-split-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #aaa);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.agent { background: #ff4d00; }
+.legend-dot.dev { background: #3b82f6; }
+.legend-dot.platform { background: #00ff6a; }
+.legend-dot.admin { background: #8b5cf6; }
+
+.fee-accrued-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.accrued-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.accrued-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #888);
+}
+
+.accrued-value {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary, #fff);
+  font-family: 'Space Grotesk', monospace;
+}
+
+.fee-mode-description {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #888);
+  margin: 0 0 12px 0;
+}
+
+.fee-mode-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.fee-mode-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid var(--border-color, #333);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary, #888);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.fee-mode-btn:hover:not(:disabled) {
+  border-color: var(--accent-primary, #ff4d00);
+  color: var(--text-primary, #fff);
+}
+
+.fee-mode-btn.active {
+  background: rgba(255, 77, 0, 0.1);
+  border-color: var(--accent-primary, #ff4d00);
+  color: var(--accent-primary, #ff4d00);
+}
+
+.fee-mode-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.fee-testnet-badge {
+  margin-top: 16px;
+  padding: 8px 12px;
+  background: rgba(255, 200, 0, 0.1);
+  border: 1px solid rgba(255, 200, 0, 0.2);
+  border-radius: 6px;
+  color: #ffc800;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .fee-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-accrued-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-mode-buttons {
+    flex-direction: column;
+  }
+}

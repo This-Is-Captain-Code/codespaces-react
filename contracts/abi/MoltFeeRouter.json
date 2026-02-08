@@ -1,0 +1,281 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      { "name": "_poolManager", "type": "address" },
+      { "name": "_moltAdmin", "type": "address" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "registerPool",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          { "name": "currency0", "type": "address" },
+          { "name": "currency1", "type": "address" },
+          { "name": "fee", "type": "uint24" },
+          { "name": "tickSpacing", "type": "int24" },
+          { "name": "hooks", "type": "address" }
+        ]
+      },
+      { "name": "agentTreasury", "type": "address" },
+      { "name": "developer", "type": "address" },
+      { "name": "platform", "type": "address" },
+      { "name": "tokenAdmin", "type": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setFeeMode",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          { "name": "currency0", "type": "address" },
+          { "name": "currency1", "type": "address" },
+          { "name": "fee", "type": "uint24" },
+          { "name": "tickSpacing", "type": "int24" },
+          { "name": "hooks", "type": "address" }
+        ]
+      },
+      { "name": "mode", "type": "uint8" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setAgentShare",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          { "name": "currency0", "type": "address" },
+          { "name": "currency1", "type": "address" },
+          { "name": "fee", "type": "uint24" },
+          { "name": "tickSpacing", "type": "int24" },
+          { "name": "hooks", "type": "address" }
+        ]
+      },
+      { "name": "newShareBps", "type": "uint16" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimFees",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          { "name": "currency0", "type": "address" },
+          { "name": "currency1", "type": "address" },
+          { "name": "fee", "type": "uint24" },
+          { "name": "tickSpacing", "type": "int24" },
+          { "name": "hooks", "type": "address" }
+        ]
+      },
+      { "name": "currency", "type": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getPoolConfig",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          { "name": "currency0", "type": "address" },
+          { "name": "currency1", "type": "address" },
+          { "name": "fee", "type": "uint24" },
+          { "name": "tickSpacing", "type": "int24" },
+          { "name": "hooks", "type": "address" }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          { "name": "agentTreasury", "type": "address" },
+          { "name": "developer", "type": "address" },
+          { "name": "platform", "type": "address" },
+          { "name": "tokenAdmin", "type": "address" },
+          { "name": "createdAt", "type": "uint64" },
+          { "name": "feeMode", "type": "uint8" },
+          { "name": "agentShareBps", "type": "uint16" },
+          { "name": "devShareBps", "type": "uint16" },
+          { "name": "platformShareBps", "type": "uint16" },
+          { "name": "adminShareBps", "type": "uint16" },
+          { "name": "baseFee", "type": "uint16" },
+          { "name": "initialized", "type": "bool" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAccruedFees",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          { "name": "currency0", "type": "address" },
+          { "name": "currency1", "type": "address" },
+          { "name": "fee", "type": "uint24" },
+          { "name": "tickSpacing", "type": "int24" },
+          { "name": "hooks", "type": "address" }
+        ]
+      },
+      { "name": "currency", "type": "address" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          { "name": "agentFees", "type": "uint256" },
+          { "name": "devFees", "type": "uint256" },
+          { "name": "platformFees", "type": "uint256" },
+          { "name": "adminFees", "type": "uint256" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getVolumeData",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          { "name": "currency0", "type": "address" },
+          { "name": "currency1", "type": "address" },
+          { "name": "fee", "type": "uint24" },
+          { "name": "tickSpacing", "type": "int24" },
+          { "name": "hooks", "type": "address" }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          { "name": "dailyVolume", "type": "uint128" },
+          { "name": "lastResetTimestamp", "type": "uint64" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCurrentFee",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          { "name": "currency0", "type": "address" },
+          { "name": "currency1", "type": "address" },
+          { "name": "fee", "type": "uint24" },
+          { "name": "tickSpacing", "type": "int24" },
+          { "name": "hooks", "type": "address" }
+        ]
+      }
+    ],
+    "outputs": [{ "name": "", "type": "uint24" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCurrentSplit",
+    "inputs": [
+      {
+        "name": "key",
+        "type": "tuple",
+        "components": [
+          { "name": "currency0", "type": "address" },
+          { "name": "currency1", "type": "address" },
+          { "name": "fee", "type": "uint24" },
+          { "name": "tickSpacing", "type": "int24" },
+          { "name": "hooks", "type": "address" }
+        ]
+      }
+    ],
+    "outputs": [
+      { "name": "agentBps", "type": "uint16" },
+      { "name": "devBps", "type": "uint16" },
+      { "name": "platformBps", "type": "uint16" },
+      { "name": "adminBps", "type": "uint16" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "PoolRegistered",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "indexed": true },
+      { "name": "agentTreasury", "type": "address", "indexed": false },
+      { "name": "developer", "type": "address", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "FeeModeChanged",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "indexed": true },
+      { "name": "newMode", "type": "uint8", "indexed": false },
+      { "name": "changedBy", "type": "address", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "AgentShareUpdated",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "indexed": true },
+      { "name": "newShareBps", "type": "uint16", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "FeeRouted",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "indexed": true },
+      { "name": "currency", "type": "address", "indexed": false },
+      { "name": "totalFee", "type": "uint256", "indexed": false },
+      { "name": "agentAmount", "type": "uint256", "indexed": false },
+      { "name": "devAmount", "type": "uint256", "indexed": false },
+      { "name": "platformAmount", "type": "uint256", "indexed": false },
+      { "name": "adminAmount", "type": "uint256", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "FeesClaimed",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "indexed": true },
+      { "name": "currency", "type": "address", "indexed": false },
+      { "name": "recipient", "type": "address", "indexed": false },
+      { "name": "amount", "type": "uint256", "indexed": false }
+    ]
+  }
+]
