@@ -2,7 +2,7 @@ import express from 'express';
 import { tokenDeployService } from '../services/tokenDeployService.js';
 import { createPublicClient, createWalletClient, http, keccak256, encodeAbiParameters, parseAbiParameters, concat, formatEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { baseSepolia, arbitrumSepolia } from 'viem/chains';
+import { base, baseSepolia, arbitrum, arbitrumSepolia } from 'viem/chains';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -200,8 +200,18 @@ async function testTokenDeploy() {
 
 const HOOK_CONSTANTS = {
   CREATE2_DEPLOYER: '0x4e59b44847b379578588920cA78FbF26c0B4956C',
-  POOL_MANAGER_BASE_SEPOLIA: '0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408',
-  POOL_MANAGER_ARBITRUM_SEPOLIA: '0xFB3e0C6F74eB1a21CC1Da29aeC80D2Dfe6C9a317',
+  POOL_MANAGERS: {
+    base: '0x498581ff718922c3f8e6a244956af099b2652b2b',
+    'base-sepolia': '0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408',
+    arbitrum: '0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32',
+    'arbitrum-sepolia': '0xFB3e0C6F74eB1a21CC1Da29aeC80D2Dfe6C9a317',
+  },
+  CHAINS: {
+    base: base,
+    'base-sepolia': baseSepolia,
+    arbitrum: arbitrum,
+    'arbitrum-sepolia': arbitrumSepolia,
+  },
   AFTER_INITIALIZE_FLAG: 1n << 12n,
   BEFORE_SWAP_FLAG: 1n << 7n,
   AFTER_SWAP_FLAG: 1n << 6n,
@@ -210,6 +220,17 @@ const HOOK_CONSTANTS = {
 };
 
 HOOK_CONSTANTS.REQUIRED_FLAGS = HOOK_CONSTANTS.AFTER_INITIALIZE_FLAG | HOOK_CONSTANTS.BEFORE_SWAP_FLAG | HOOK_CONSTANTS.AFTER_SWAP_FLAG | HOOK_CONSTANTS.AFTER_SWAP_RETURNS_DELTA_FLAG;
+
+function resolveChainConfig(chainParam) {
+  const defaultChain = USE_TESTNET ? 'base-sepolia' : 'base';
+  const chainKey = chainParam || defaultChain;
+  const chain = HOOK_CONSTANTS.CHAINS[chainKey];
+  const poolManager = HOOK_CONSTANTS.POOL_MANAGERS[chainKey];
+  if (!chain || !poolManager) {
+    throw new Error(`Unsupported chain: ${chainKey}. Options: ${Object.keys(HOOK_CONSTANTS.CHAINS).join(', ')}`);
+  }
+  return { chain, poolManager, chainKey };
+}
 
 function mineCreate2Salt(deployerAddress, initCodeHash, maxAttempts = 5000000) {
   const deployerBytes = Buffer.from(deployerAddress.slice(2), 'hex');
@@ -233,15 +254,13 @@ router.get('/hook-status', async (req, res) => {
   try {
     const existingAddress = process.env.MOLT_FEE_ROUTER_ADDRESS;
     const adminKey = process.env.ADMIN_WALLET_PRIVATE_KEY;
-    const chain = req.query.chain === 'arbitrum' ? arbitrumSepolia : baseSepolia;
-    const poolManager = req.query.chain === 'arbitrum'
-      ? HOOK_CONSTANTS.POOL_MANAGER_ARBITRUM_SEPOLIA
-      : HOOK_CONSTANTS.POOL_MANAGER_BASE_SEPOLIA;
+    const { chain, poolManager, chainKey } = resolveChainConfig(req.query.chain);
 
     const result = {
       deployed: false,
       address: existingAddress || null,
       chain: chain.name,
+      chainKey,
       poolManager,
       walletAddress: null,
       walletBalance: null,
@@ -279,11 +298,8 @@ router.post('/deploy-hook', async (req, res) => {
       return res.status(400).json({ success: false, error: 'ADMIN_WALLET_PRIVATE_KEY not set' });
     }
 
-    const targetChain = req.body?.chain || 'base';
-    const chain = targetChain === 'arbitrum' ? arbitrumSepolia : baseSepolia;
-    const poolManager = targetChain === 'arbitrum'
-      ? HOOK_CONSTANTS.POOL_MANAGER_ARBITRUM_SEPOLIA
-      : HOOK_CONSTANTS.POOL_MANAGER_BASE_SEPOLIA;
+    const targetChain = req.body?.chain;
+    const { chain, poolManager, chainKey } = resolveChainConfig(targetChain);
 
     const formattedKey = adminKey.startsWith('0x') ? adminKey : `0x${adminKey}`;
     const account = privateKeyToAccount(formattedKey);
@@ -299,9 +315,7 @@ router.post('/deploy-hook', async (req, res) => {
         walletAddress: account.address,
         balance: formatEther(balance),
         needed: '0.001 ETH minimum',
-        faucet: targetChain === 'arbitrum'
-          ? 'https://faucet.quicknode.com/arbitrum/sepolia'
-          : 'https://www.alchemy.com/faucets/base-sepolia',
+        chain: chain.name,
       });
     }
 
@@ -324,7 +338,9 @@ router.post('/deploy-hook', async (req, res) => {
     const initCode = concat([bytecode, constructorArgs]);
     const initCodeHash = keccak256(initCode);
 
+    console.log(`[deploy-hook] Mining CREATE2 salt for ${chain.name} with PoolManager ${poolManager}...`);
     const { salt, address: expectedAddress } = mineCreate2Salt(HOOK_CONSTANTS.CREATE2_DEPLOYER, initCodeHash);
+    console.log(`[deploy-hook] Found salt, expected address: ${expectedAddress}`);
 
     const existingCode = await publicClient.getCode({ address: expectedAddress });
     if (existingCode && existingCode !== '0x') {
@@ -333,10 +349,13 @@ router.post('/deploy-hook', async (req, res) => {
         alreadyDeployed: true,
         address: expectedAddress,
         chain: chain.name,
+        chainKey,
+        poolManager,
         message: 'Hook already deployed at this address',
       });
     }
 
+    console.log(`[deploy-hook] Deploying MoltFeeRouter to ${chain.name}...`);
     const deployData = concat([salt, initCode]);
     const hash = await walletClient.sendTransaction({
       to: HOOK_CONSTANTS.CREATE2_DEPLOYER,
@@ -344,16 +363,20 @@ router.post('/deploy-hook', async (req, res) => {
       gas: 5000000n,
     });
 
+    console.log(`[deploy-hook] Transaction sent: ${hash}, waiting for receipt...`);
     const receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: 120_000 });
 
     if (receipt.status === 'success') {
       const code = await publicClient.getCode({ address: expectedAddress });
       const verified = code && code !== '0x';
 
+      console.log(`[deploy-hook] Deployed at ${expectedAddress}, verified: ${verified}`);
       res.json({
         success: true,
         address: expectedAddress,
         chain: chain.name,
+        chainKey,
+        poolManager,
         txHash: hash,
         blockNumber: Number(receipt.blockNumber),
         gasUsed: Number(receipt.gasUsed),
@@ -365,9 +388,11 @@ router.post('/deploy-hook', async (req, res) => {
         success: false,
         error: 'Transaction failed',
         txHash: hash,
+        chain: chain.name,
       });
     }
   } catch (error) {
+    console.error('[deploy-hook] Error:', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });

@@ -4,8 +4,10 @@
 Molt.town is an automated AI agent launch platform designed to quickly deploy AI agents with integrated wallets and tradeable tokens. It enables users to create a dedicated AI agent in approximately 30 seconds, complete with its own Fly.io instance, server-side Privy wallet, and a custom ERC-20 token on any EVM chain with dynamic fee management via a Uniswap v4 Hook. The platform also registers the agent's identity on-chain via ERC-8004 and installs autonomous skills (erc-8004 + molt-fees). The vision is to provide a dedicated, isolated AI agent environment for each user, fostering autonomous trading and on-chain identity for AI.
 
 ## Recent Changes
+- **2026-02-08**: Deployed MoltFeeRouter Hook contract to Base mainnet at `0x997078d73eee40f0ccd56a00a42dc09fa9b290c4` (tx: `0x503f7372bbd032910988175aa5ed3a4ea877951f0ccb1ad61699faa85e344e62`)
+- **2026-02-08**: Updated deploy-hook and hook-status endpoints for multi-chain mainnet support (Base, Arbitrum, Base Sepolia, Arbitrum Sepolia)
 - **2026-02-08**: Switched to mainnet mode (`USE_TESTNET=false`), cleaned all test data from DB
-- **2026-02-08**: Added transaction hash tracking for all on-chain operations (token deploy, ERC-8004, hook registration)
+- **2026-02-08**: Added transaction hash tracking for all on-chain operations (token deploy, hook registration)
 - **2026-02-08**: Removed ERC-8004 on-chain identity registration from agent launch (saves Ethereum mainnet gas)
 - **2026-02-08**: New DB columns: `token_deploy_tx`, `hook_tx` + chain columns on `bots` table
 - **2026-02-08**: Frontend shows tx hashes with explorer links in both launch success screen and bot dashboard
