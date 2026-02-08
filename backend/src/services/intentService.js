@@ -113,7 +113,10 @@ export const intentService = {
 
   getRecentIntents: async (limit = 20) => {
     const result = await db.query(
-      'SELECT * FROM liquidity_intents ORDER BY created_at DESC LIMIT $1',
+      `SELECT li.*, ccm.tx_hash_source, ccm.tx_hash_dest 
+       FROM liquidity_intents li 
+       LEFT JOIN cross_chain_movements ccm ON ccm.intent_id = li.id 
+       ORDER BY li.created_at DESC LIMIT $1`,
       [limit]
     );
     return result.rows;

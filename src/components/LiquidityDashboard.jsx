@@ -3,6 +3,19 @@ import './LiquidityDashboard.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+const CHAIN_EXPLORERS = {
+  base: 'https://basescan.org/tx/',
+  ethereum: 'https://etherscan.io/tx/',
+  arbitrum: 'https://arbiscan.io/tx/',
+  optimism: 'https://optimistic.etherscan.io/tx/',
+  polygon: 'https://polygonscan.com/tx/',
+};
+
+function getExplorerUrl(chain, txHash) {
+  const base = CHAIN_EXPLORERS[chain?.toLowerCase()] || 'https://etherscan.io/tx/';
+  return `${base}${txHash}`;
+}
+
 export function LiquidityDashboard({ botId }) {
   const [status, setStatus] = useState(null);
   const [observation, setObservation] = useState(null);
@@ -341,6 +354,17 @@ export function LiquidityDashboard({ botId }) {
                 <span className={`liq-intent-status status-${intent.status}`}>
                   {intent.status}
                 </span>
+                {intent.tx_hash_source && (
+                  <a
+                    href={getExplorerUrl(intent.source_chain, intent.tx_hash_source)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="liq-intent-tx-link"
+                    title="View transaction on explorer"
+                  >
+                    TX
+                  </a>
+                )}
               </div>
             ))}
           </div>
