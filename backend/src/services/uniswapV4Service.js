@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, formatEther, parseEther, getAddress } from 'viem';
+import { createPublicClient, createWalletClient, http, formatEther, parseEther, getAddress, encodeAbiParameters, encodePacked, maxUint128 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base, baseSepolia, arbitrum, arbitrumSepolia } from 'viem/chains';
 import { readFileSync } from 'fs';
@@ -18,6 +18,9 @@ const CHAIN_CONFIG = {
     testnet: baseSepolia,
     poolManager: '0x498581ff718922c3f8e6a244956af099b2652b2b',
     poolManagerTestnet: '0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408',
+    positionManager: '0x7c5f5a4bbd8fd63184577525326123b519429bdc',
+    positionManagerTestnet: '0xC81462Fec8B23319F288047f8A03A57682a35C1A',
+    permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
     weth: '0x4200000000000000000000000000000000000006',
     wethTestnet: '0x4200000000000000000000000000000000000006',
   },
@@ -26,6 +29,9 @@ const CHAIN_CONFIG = {
     testnet: arbitrumSepolia,
     poolManager: '0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32',
     poolManagerTestnet: '0xFB3e0C6F74eB1a21CC1Da29aeC80D2Dfe6C9a317',
+    positionManager: '0xd88f38f930b7952f2db2432cb002e7abbf3dd869',
+    positionManagerTestnet: '0xC81462Fec8B23319F288047f8A03A57682a35C1A',
+    permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
     weth: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
     wethTestnet: '0x980B62Da83eFf3D4576C647993b0c1D7faf17c73',
   },
@@ -38,6 +44,8 @@ const MOLT_FEE_ROUTER_ADDRESS = process.env.MOLT_FEE_ROUTER_ADDRESS || null;
 const getChainConfig = (chainName = PRIMARY_CHAIN) => CHAIN_CONFIG[chainName] || CHAIN_CONFIG.arbitrum;
 const getChain = (chainName = PRIMARY_CHAIN) => USE_TESTNET ? getChainConfig(chainName).testnet : getChainConfig(chainName).mainnet;
 const getPoolManager = (chainName = PRIMARY_CHAIN) => USE_TESTNET ? getChainConfig(chainName).poolManagerTestnet : getChainConfig(chainName).poolManager;
+const getPositionManager = (chainName = PRIMARY_CHAIN) => USE_TESTNET ? getChainConfig(chainName).positionManagerTestnet : getChainConfig(chainName).positionManager;
+const getPermit2 = (chainName = PRIMARY_CHAIN) => getChainConfig(chainName).permit2;
 const getWETH = (chainName = PRIMARY_CHAIN) => USE_TESTNET ? getChainConfig(chainName).wethTestnet : getChainConfig(chainName).weth;
 
 let MOLT_FEE_ROUTER_ABI;
@@ -61,6 +69,82 @@ const POOL_MANAGER_ABI = [
     inputs: [{ name: 'id', type: 'bytes32' }, { name: 'tick', type: 'int24' }],
     name: 'getTickLiquidity',
     outputs: [{ name: '', type: 'uint128' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+];
+
+const POSITION_MANAGER_ABI = [
+  {
+    inputs: [
+      { name: 'unlockData', type: 'bytes' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+    name: 'modifyLiquidities',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'tokenId', type: 'uint256' }],
+    name: 'ownerOf',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'nextTokenId',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+];
+
+const ACTIONS = {
+  MINT_POSITION: 0x00,
+  INCREASE_LIQUIDITY: 0x01,
+  DECREASE_LIQUIDITY: 0x02,
+  BURN_POSITION: 0x03,
+  SETTLE_PAIR: 0x09,
+  TAKE_PAIR: 0x0a,
+  CLOSE_CURRENCY: 0x12,
+  SWEEP: 0x13,
+};
+
+const PERMIT2_ABI = [
+  {
+    inputs: [
+      { name: 'token', type: 'address' },
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint160' },
+      { name: 'expiration', type: 'uint48' },
+    ],
+    name: 'approve',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+];
+
+const ERC20_APPROVE_ABI = [
+  {
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' },
+    ],
+    name: 'allowance',
+    outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -119,6 +203,8 @@ export const uniswapV4Service = {
     chain: getChain(chainName).name,
     chainId: getChain(chainName).id,
     poolManager: getPoolManager(chainName),
+    positionManager: getPositionManager(chainName),
+    permit2: getPermit2(chainName),
     hookAddress: MOLT_FEE_ROUTER_ADDRESS,
     weth: getWETH(chainName),
     primaryChain: PRIMARY_CHAIN,
@@ -330,11 +416,13 @@ export const uniswapV4Service = {
     }
   },
 
-  addLiquidity: async ({ tokenAddress, amount, chainName = PRIMARY_CHAIN, hookAddress }) => {
+  addLiquidity: async ({ tokenAddress, amount, chainName = PRIMARY_CHAIN, hookAddress, tickLower = -887220, tickUpper = 887220 }) => {
     console.log(`[Uniswap V4] Adding liquidity: ${amount} to pool for ${tokenAddress} on ${chainName} (testnet: ${USE_TESTNET})`);
 
     const chain = getChain(chainName);
     const hook = hookAddress || MOLT_FEE_ROUTER_ADDRESS;
+    const positionManagerAddr = getPositionManager(chainName);
+    const permit2Addr = getPermit2(chainName);
 
     if (!hook) {
       throw new Error('No hook address configured. Set MOLT_FEE_ROUTER_ADDRESS or pass hookAddress.');
@@ -344,22 +432,132 @@ export const uniswapV4Service = {
       throw new Error('ADMIN_WALLET_PRIVATE_KEY not configured - cannot sign transactions');
     }
 
+    const zeroAddr = '0x0000000000000000000000000000000000000000';
+    if (!tokenAddress || tokenAddress === zeroAddr) {
+      throw new Error('Valid ERC-20 token address required for liquidity provisioning. Deploy a token first.');
+    }
+
     try {
       const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
       const publicClient = createPublicClient({ chain, transport: http() });
       const walletClient = createWalletClient({ account, chain, transport: http() });
 
       const poolKey = buildPoolKey(tokenAddress, hook, chainName);
+      const tokenAmount = parseEther(amount);
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+      const weth = getWETH(chainName);
+      const isToken0 = BigInt(getAddress(tokenAddress)) < BigInt(getAddress(weth));
+      const tokenToApprove = getAddress(tokenAddress);
+
+      const tokenApprovalTx = await walletClient.writeContract({
+        address: tokenToApprove,
+        abi: ERC20_APPROVE_ABI,
+        functionName: 'approve',
+        args: [permit2Addr, tokenAmount * 2n],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: tokenApprovalTx });
+      console.log(`[Uniswap V4] Token approved to Permit2`);
+
+      const wethApprovalTx = await walletClient.writeContract({
+        address: getAddress(weth),
+        abi: ERC20_APPROVE_ABI,
+        functionName: 'approve',
+        args: [permit2Addr, tokenAmount * 2n],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: wethApprovalTx });
+      console.log(`[Uniswap V4] WETH approved to Permit2`);
+
+      const permit2Expiry = BigInt(Math.floor(Date.now() / 1000) + 86400 * 30);
+      const maxPermit2Amount = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF');
+
+      const permit2TokenTx = await walletClient.writeContract({
+        address: permit2Addr,
+        abi: PERMIT2_ABI,
+        functionName: 'approve',
+        args: [tokenToApprove, getAddress(positionManagerAddr), maxPermit2Amount, permit2Expiry],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: permit2TokenTx });
+
+      const permit2WethTx = await walletClient.writeContract({
+        address: permit2Addr,
+        abi: PERMIT2_ABI,
+        functionName: 'approve',
+        args: [getAddress(weth), getAddress(positionManagerAddr), maxPermit2Amount, permit2Expiry],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: permit2WethTx });
+      console.log(`[Uniswap V4] Permit2 approved for both tokens to PositionManager`);
+
+      const poolKeyTuple = {
+        currency0: poolKey.currency0,
+        currency1: poolKey.currency1,
+        fee: poolKey.fee,
+        tickSpacing: poolKey.tickSpacing,
+        hooks: poolKey.hooks,
+      };
+
+      const mintParams = encodeAbiParameters(
+        [
+          { name: 'poolKey', type: 'tuple', components: [
+            { name: 'currency0', type: 'address' },
+            { name: 'currency1', type: 'address' },
+            { name: 'fee', type: 'uint24' },
+            { name: 'tickSpacing', type: 'int24' },
+            { name: 'hooks', type: 'address' },
+          ]},
+          { name: 'tickLower', type: 'int24' },
+          { name: 'tickUpper', type: 'int24' },
+          { name: 'liquidity', type: 'uint256' },
+          { name: 'amount0Max', type: 'uint128' },
+          { name: 'amount1Max', type: 'uint128' },
+          { name: 'owner', type: 'address' },
+          { name: 'hookData', type: 'bytes' },
+        ],
+        [
+          poolKeyTuple,
+          tickLower,
+          tickUpper,
+          tokenAmount,
+          tokenAmount * 2n,
+          tokenAmount * 2n,
+          account.address,
+          '0x',
+        ]
+      );
+
+      const settleParams = encodeAbiParameters(
+        [
+          { name: 'currency0', type: 'address' },
+          { name: 'currency1', type: 'address' },
+        ],
+        [poolKey.currency0, poolKey.currency1]
+      );
+
+      const actions = encodePacked(
+        ['uint8', 'uint8'],
+        [ACTIONS.MINT_POSITION, ACTIONS.SETTLE_PAIR]
+      );
+
+      const params = [mintParams, settleParams];
+
+      const unlockData = encodeAbiParameters(
+        [
+          { name: 'actions', type: 'bytes' },
+          { name: 'params', type: 'bytes[]' },
+        ],
+        [actions, params]
+      );
 
       const txHash = await walletClient.writeContract({
-        address: hook,
-        abi: MOLT_FEE_ROUTER_ABI,
-        functionName: 'addLiquidity',
-        args: [poolKey, parseEther(amount)],
+        address: getAddress(positionManagerAddr),
+        abi: POSITION_MANAGER_ABI,
+        functionName: 'modifyLiquidities',
+        args: [unlockData, deadline],
+        value: 0n,
       });
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-      console.log(`[Uniswap V4] Liquidity added in block ${receipt.blockNumber}`);
+      console.log(`[Uniswap V4] Liquidity minted via PositionManager in block ${receipt.blockNumber}`);
 
       return {
         success: true,
@@ -370,6 +568,7 @@ export const uniswapV4Service = {
         amount,
         poolKey,
         hookAddress: hook,
+        positionManager: positionManagerAddr,
         txHash,
         blockNumber: Number(receipt.blockNumber),
       };
@@ -379,11 +578,12 @@ export const uniswapV4Service = {
     }
   },
 
-  removeLiquidity: async ({ tokenAddress, amount, chainName = PRIMARY_CHAIN, hookAddress }) => {
+  removeLiquidity: async ({ tokenAddress, amount, chainName = PRIMARY_CHAIN, hookAddress, tokenId }) => {
     console.log(`[Uniswap V4] Removing liquidity: ${amount} from pool for ${tokenAddress} on ${chainName} (testnet: ${USE_TESTNET})`);
 
     const chain = getChain(chainName);
     const hook = hookAddress || MOLT_FEE_ROUTER_ADDRESS;
+    const positionManagerAddr = getPositionManager(chainName);
 
     if (!hook) {
       throw new Error('No hook address configured');
@@ -393,18 +593,59 @@ export const uniswapV4Service = {
       throw new Error('ADMIN_WALLET_PRIVATE_KEY not configured');
     }
 
+    if (!tokenId) {
+      throw new Error('tokenId is required for removeLiquidity - pass the NFT position ID');
+    }
+
     try {
       const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
       const publicClient = createPublicClient({ chain, transport: http() });
       const walletClient = createWalletClient({ account, chain, transport: http() });
 
       const poolKey = buildPoolKey(tokenAddress, hook, chainName);
+      const liquidityAmount = parseEther(amount);
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+      const decreaseParams = encodeAbiParameters(
+        [
+          { name: 'tokenId', type: 'uint256' },
+          { name: 'liquidity', type: 'uint256' },
+          { name: 'amount0Min', type: 'uint128' },
+          { name: 'amount1Min', type: 'uint128' },
+          { name: 'hookData', type: 'bytes' },
+        ],
+        [BigInt(tokenId), liquidityAmount, 0n, 0n, '0x']
+      );
+
+      const takeParams = encodeAbiParameters(
+        [
+          { name: 'currency0', type: 'address' },
+          { name: 'currency1', type: 'address' },
+          { name: 'recipient', type: 'address' },
+        ],
+        [poolKey.currency0, poolKey.currency1, account.address]
+      );
+
+      const actions = encodePacked(
+        ['uint8', 'uint8'],
+        [ACTIONS.DECREASE_LIQUIDITY, ACTIONS.TAKE_PAIR]
+      );
+
+      const params = [decreaseParams, takeParams];
+
+      const unlockData = encodeAbiParameters(
+        [
+          { name: 'actions', type: 'bytes' },
+          { name: 'params', type: 'bytes[]' },
+        ],
+        [actions, params]
+      );
 
       const txHash = await walletClient.writeContract({
-        address: hook,
-        abi: MOLT_FEE_ROUTER_ABI,
-        functionName: 'removeLiquidity',
-        args: [poolKey, parseEther(amount)],
+        address: getAddress(positionManagerAddr),
+        abi: POSITION_MANAGER_ABI,
+        functionName: 'modifyLiquidities',
+        args: [unlockData, deadline],
       });
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -416,12 +657,14 @@ export const uniswapV4Service = {
         chain: chain.name,
         tokenAddress,
         amount,
+        tokenId,
+        positionManager: positionManagerAddr,
         txHash,
         blockNumber: Number(receipt.blockNumber),
       };
     } catch (error) {
-      console.error('[Uniswap V4] Remove liquidity failed:', error);
-      throw new Error(`Remove liquidity failed: ${error.message}`);
+      console.error('[Uniswap V4] Remove liquidity failed:', error.message);
+      throw new Error(`Remove liquidity failed on ${chain.name}: ${error.message}`);
     }
   },
 

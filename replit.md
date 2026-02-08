@@ -80,6 +80,8 @@ The platform integrates a custom Uniswap v4 Hook contract (`MoltFeeRouter.sol`) 
 - Graduated creator fee share over token lifecycle (early/growth/mature phases)
 - Four-way fee split: Agent Treasury, Developer, Platform, Admin
 - Pool registration happens during agent launch (`registering_fee_hook` step)
+- Liquidity is managed via Uniswap v4 PositionManager `modifyLiquidities` (not on the Hook contract)
+- Token approvals flow: ERC-20 → Permit2 → PositionManager
 
 ### API Endpoints
 - `GET /api/fees/info` - Hook configuration status
@@ -89,10 +91,18 @@ The platform integrates a custom Uniswap v4 Hook contract (`MoltFeeRouter.sol`) 
 - `GET /api/fees/agent/:botId` - Agent-specific fee analytics
 
 ### Contract Addresses
-- Uniswap v4 PoolManager (Base mainnet): `0x498581ff718922c3f8e6a244956af099b2652b2b`
-- Uniswap v4 PoolManager (Base Sepolia): `0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408`
-- Uniswap v4 PoolManager (Arbitrum mainnet): `0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32`
-- Uniswap v4 PoolManager (Arbitrum Sepolia): `0xFB3e0C6F74eB1a21CC1Da29aeC80D2Dfe6C9a317`
+**PoolManager:**
+- Base mainnet: `0x498581ff718922c3f8e6a244956af099b2652b2b`
+- Base Sepolia: `0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408`
+- Arbitrum mainnet: `0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32`
+- Arbitrum Sepolia: `0xFB3e0C6F74eB1a21CC1Da29aeC80D2Dfe6C9a317`
+
+**PositionManager (for liquidity operations):**
+- Base mainnet: `0x7c5f5a4bbd8fd63184577525326123b519429bdc`
+- Arbitrum mainnet: `0xd88f38f930b7952f2db2432cb002e7abbf3dd869`
+- Base Sepolia / Arbitrum Sepolia: `0xC81462Fec8B23319F288047f8A03A57682a35C1A`
+
+**Permit2 (all chains):** `0x000000000022D473030F116dDEE9F6B43aC78BA3`
 
 ## Cross-Chain Liquidity Management
 
