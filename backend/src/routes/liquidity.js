@@ -182,13 +182,27 @@ router.post('/execute', async (req, res) => {
       await intentService.updateIntentStatus(intentId, 'executing');
     }
 
+    let fromAddress = intent.execution_params?.fromAddress;
+    if (!fromAddress && intent.bot_id) {
+      const botResult = await db.query('SELECT agent_wallet_address FROM bots WHERE id = $1', [intent.bot_id]);
+      if (botResult.rows[0]?.agent_wallet_address) {
+        fromAddress = botResult.rows[0].agent_wallet_address;
+      }
+    }
+    if (!fromAddress) {
+      fromAddress = getAdminWalletAddress();
+    }
+    if (!fromAddress) {
+      return res.status(400).json({ error: 'No wallet address available. The agent needs a provisioned wallet to execute transactions.' });
+    }
+
     const quote = await lifiService.getQuote({
       fromChain: intent.source_chain,
       toChain: intent.dest_chain,
       fromToken: intent.token_address || undefined,
       toToken: intent.token_address || undefined,
       fromAmount: intent.amount,
-      fromAddress: intent.execution_params?.fromAddress || getAdminWalletAddress() || '0x0000000000000000000000000000000000000001',
+      fromAddress,
     });
 
     await db.query(
@@ -304,7 +318,19 @@ router.post('/execute-pipeline', async (req, res) => {
       await intentService.updateIntentStatus(intent.id, 'executing');
     }
 
-    const fromAddress = executionParams?.fromAddress || getAdminWalletAddress() || '0x0000000000000000000000000000000000000001';
+    let fromAddress = executionParams?.fromAddress;
+    if (!fromAddress && botId) {
+      const botResult = await db.query('SELECT agent_wallet_address FROM bots WHERE id = $1', [botId]);
+      if (botResult.rows[0]?.agent_wallet_address) {
+        fromAddress = botResult.rows[0].agent_wallet_address;
+      }
+    }
+    if (!fromAddress) {
+      fromAddress = getAdminWalletAddress();
+    }
+    if (!fromAddress) {
+      return res.status(400).json({ error: 'No wallet address available. Provide a botId with a provisioned wallet or set ADMIN_WALLET_PRIVATE_KEY.' });
+    }
 
     const quote = await lifiService.getQuote({
       fromChain: sourceChain || 'base',
