@@ -57,6 +57,7 @@ function buildPoolKey(tokenAddress, hookAddress) {
 
 export const uniswapV4Service = {
   isConfigured: () => {
+    if (USE_TESTNET) return true;
     return !!ADMIN_WALLET_PRIVATE_KEY && !!MOLT_FEE_ROUTER_ADDRESS;
   },
 
@@ -140,17 +141,11 @@ export const uniswapV4Service = {
   },
 
   setFeeMode: async ({ tokenAddress, feeMode, walletId }) => {
-    if (!MOLT_FEE_ROUTER_ADDRESS) {
-      throw new Error('MOLT_FEE_ROUTER_ADDRESS not configured');
-    }
-
     const modeMap = { conservative: 0, balanced: 1, aggressive: 2 };
     const modeValue = modeMap[feeMode.toLowerCase()];
     if (modeValue === undefined) {
       throw new Error(`Invalid fee mode: ${feeMode}. Must be: conservative, balanced, aggressive`);
     }
-
-    const chain = getChain();
 
     if (USE_TESTNET) {
       return {
@@ -161,6 +156,12 @@ export const uniswapV4Service = {
         tokenAddress,
       };
     }
+
+    if (!MOLT_FEE_ROUTER_ADDRESS) {
+      throw new Error('MOLT_FEE_ROUTER_ADDRESS not configured');
+    }
+
+    const chain = getChain();
 
     const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
     const walletClient = createWalletClient({ account, chain, transport: http() });
@@ -177,19 +178,19 @@ export const uniswapV4Service = {
   },
 
   setAgentShare: async ({ tokenAddress, shareBps }) => {
-    if (!MOLT_FEE_ROUTER_ADDRESS) {
-      throw new Error('MOLT_FEE_ROUTER_ADDRESS not configured');
-    }
-
     if (shareBps < 200 || shareBps > 5000) {
       throw new Error('Agent share must be between 200 (2%) and 5000 (50%) BPS');
     }
 
-    const chain = getChain();
-
     if (USE_TESTNET) {
       return { success: true, simulated: true, shareBps, tokenAddress };
     }
+
+    if (!MOLT_FEE_ROUTER_ADDRESS) {
+      throw new Error('MOLT_FEE_ROUTER_ADDRESS not configured');
+    }
+
+    const chain = getChain();
 
     const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
     const walletClient = createWalletClient({ account, chain, transport: http() });
@@ -206,20 +207,13 @@ export const uniswapV4Service = {
   },
 
   getPoolAnalytics: async (tokenAddress) => {
-    if (!MOLT_FEE_ROUTER_ADDRESS) {
-      return {
-        configured: false,
-        reason: 'Hook contract not deployed',
-      };
-    }
-
-    const chain = getChain();
-
     if (USE_TESTNET) {
+      const poolAge = 3 * 86400;
       return {
         configured: true,
         simulated: true,
         tokenAddress,
+        hookAddress: MOLT_FEE_ROUTER_ADDRESS || '0x0000000000000000000000000000000000000000',
         currentFee: 100,
         currentSplit: {
           agentBps: 833,
@@ -228,20 +222,29 @@ export const uniswapV4Service = {
           adminBps: 1667,
         },
         volume: {
-          dailyVolume: '0',
+          dailyVolume: '2.4518',
           lastReset: new Date().toISOString(),
         },
         accruedFees: {
-          agentFees: '0',
-          devFees: '0',
-          platformFees: '0',
-          adminFees: '0',
+          agentFees: '0.00204',
+          devFees: '0.00816',
+          platformFees: '0.01020',
+          adminFees: '0.00408',
         },
         feeMode: 'balanced',
-        poolAge: 0,
+        poolAge,
         poolPhase: 'early',
       };
     }
+
+    if (!MOLT_FEE_ROUTER_ADDRESS) {
+      return {
+        configured: false,
+        reason: 'Hook contract not deployed',
+      };
+    }
+
+    const chain = getChain();
 
     try {
       const publicClient = createPublicClient({ chain, transport: http() });
