@@ -140,7 +140,7 @@ export const botService = {
     const result = await db.query(
       `SELECT b.id, b.bot_name, b.gateway_id, b.agent_id, b.endpoint, b.model, b.system_prompt, b.status, b.created_at, b.token_hash, b.fly_gateway_token, b.openrouter_key_hash, b.openrouter_limit_usd,
               b.token_address, b.token_symbol, b.token_name, b.agent_wallet_address,
-              b.token_deploy_tx, b.token_deploy_chain, b.hook_tx, b.hook_chain
+              b.token_deploy_tx, b.token_deploy_chain, b.hook_tx, b.hook_chain, b.fund_tx, b.fund_chain
        FROM bots b
        WHERE b.user_id = $1`,
       [userId]
@@ -180,6 +180,7 @@ export const botService = {
       transactions: {
         tokenDeploy: bot.token_deploy_tx ? { txHash: bot.token_deploy_tx, chain: bot.token_deploy_chain } : null,
         hookRegistration: bot.hook_tx ? { txHash: bot.hook_tx, chain: bot.hook_chain } : null,
+        walletFunding: bot.fund_tx ? { txHash: bot.fund_tx, chain: bot.fund_chain } : null,
       },
     };
   },

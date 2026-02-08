@@ -50,6 +50,7 @@ const AI_MODELS = [
 const LAUNCH_STEPS = [
   { key: 'creating_openrouter_key', label: 'Setting up AI model' },
   { key: 'creating_wallet', label: 'Creating agent wallet' },
+  { key: 'funding_wallet', label: 'Funding agent wallet' },
   { key: 'deploying_agent', label: 'Deploying agent server' },
   { key: 'configuring_telegram', label: 'Configuring Telegram bot' },
   { key: 'installing_skills', label: 'Installing skills' },
@@ -184,10 +185,11 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
           )}
         </div>
 
-        {(result.token?.txHash || result.feeHook?.txHash) && (
+        {(result.walletFunding?.txHash || result.token?.txHash || result.feeHook?.txHash) && (
           <div className="tx-hashes-section">
             <h3>On-Chain Transactions</h3>
             <div className="tx-hashes-list">
+              <TxHashLink txHash={result.walletFunding?.txHash} chain={result.walletFunding?.chain} label={`Wallet Funded (${result.walletFunding?.amount || '0.0001'} ETH)`} />
               <TxHashLink txHash={result.token?.txHash} chain={result.token?.chain} label="Token Deploy" />
               <TxHashLink txHash={result.feeHook?.txHash} chain={result.feeHook?.chain} label="Fee Hook Registration" />
             </div>

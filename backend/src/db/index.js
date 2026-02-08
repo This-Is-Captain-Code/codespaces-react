@@ -141,6 +141,14 @@ export async function initializeDatabase() {
   `).catch(() => {});
 
   await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS fund_tx VARCHAR(255)
+  `).catch(() => {});
+
+  await db.query(`
+    ALTER TABLE bots ADD COLUMN IF NOT EXISTS fund_chain VARCHAR(50)
+  `).catch(() => {});
+
+  await db.query(`
     CREATE TABLE IF NOT EXISTS bot_tokens (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       bot_id UUID NOT NULL REFERENCES bots(id) ON DELETE CASCADE,

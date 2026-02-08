@@ -5,6 +5,7 @@ import { tokenDeployService } from './tokenDeployService.js';
 import { skillInstallerService } from './skillInstallerService.js';
 import { openrouterProvisioningService } from './openrouterProvisioningService.js';
 import { uniswapV4Service } from './uniswapV4Service.js';
+import { walletFundingService } from './walletFundingService.js';
 import crypto from 'crypto';
 
 const USE_TESTNET = process.env.USE_TESTNET === 'true';
@@ -13,6 +14,7 @@ const getNetworkMode = () => USE_TESTNET ? 'TESTNET' : 'MAINNET';
 const LAUNCH_STEPS = [
   'creating_openrouter_key',
   'creating_wallet',
+  'funding_wallet',
   'deploying_agent',
   'configuring_telegram',
   'installing_skills',
@@ -117,6 +119,26 @@ export const agentLaunchService = {
         chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
         walletAddress: agentWallet?.address || null,
         walletId: agentWallet?.walletId || null,
+      });
+
+      let fundingResult = null;
+      sendProgress('funding_wallet', 'in_progress', {
+        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
+        targetAddress: agentWallet?.address || null,
+      });
+      if (agentWallet?.address && walletFundingService.isConfigured()) {
+        try {
+          fundingResult = await walletFundingService.fundWallet(agentWallet.address);
+          launchState.fundTx = fundingResult.txHash;
+        } catch (fundError) {
+          console.warn('Wallet funding failed, continuing without:', fundError.message);
+        }
+      }
+      sendProgress('funding_wallet', 'completed', {
+        chain: fundingResult?.chain || (USE_TESTNET ? 'Base Sepolia' : 'Base'),
+        funded: !!fundingResult,
+        amount: fundingResult?.amount || '0',
+        txHash: fundingResult?.txHash || null,
       });
 
       sendProgress('deploying_agent', 'in_progress', {
@@ -257,8 +279,9 @@ export const agentLaunchService = {
           agent_wallet_address, agent_wallet_id, token_address, token_symbol, token_name,
           user_wallet_address, token_hash,
           token_deploy_tx, token_deploy_chain,
-          hook_tx, hook_chain
-        ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+          hook_tx, hook_chain,
+          fund_tx, fund_chain
+        ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
         RETURNING id, bot_name, model, system_prompt, status, created_at`,
         [
           userId,
@@ -282,6 +305,8 @@ export const agentLaunchService = {
           tokenResult ? networkInfo2.chain : null,
           hookResult.txHash || null,
           hookResult.registered ? (USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum') : null,
+          fundingResult?.txHash || null,
+          fundingResult?.chain || null,
         ]
       );
 
@@ -312,6 +337,11 @@ export const agentLaunchService = {
           chain: tokenResult.chain,
           explorerUrl: tokenResult.explorerUrl,
           txHash: tokenResult.txHash || null,
+        } : null,
+        walletFunding: fundingResult ? {
+          txHash: fundingResult.txHash,
+          amount: fundingResult.amount,
+          chain: fundingResult.chain,
         } : null,
         feeHook: hookResult.registered ? {
           hookAddress: hookResult.hookAddress,

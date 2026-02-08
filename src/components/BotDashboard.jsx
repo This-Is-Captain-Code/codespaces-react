@@ -279,10 +279,24 @@ export function BotDashboard({ userId }) {
           </div>
         )}
 
-        {bot.transactions && (bot.transactions.tokenDeploy || bot.transactions.hookRegistration) && (
+        {bot.transactions && (bot.transactions.walletFunding || bot.transactions.tokenDeploy || bot.transactions.hookRegistration) && (
           <div className="tx-section">
             <h3>Transaction Hashes</h3>
             <div className="tx-list">
+              {bot.transactions.walletFunding && (
+                <div className="tx-row">
+                  <span className="tx-label">Wallet Funded</span>
+                  <a
+                    href={getTxExplorerUrl(bot.transactions.walletFunding.chain, bot.transactions.walletFunding.txHash)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="tx-link"
+                  >
+                    {bot.transactions.walletFunding.txHash.slice(0, 10)}...{bot.transactions.walletFunding.txHash.slice(-8)}
+                    <span className="chain-tag">{bot.transactions.walletFunding.chain || 'Base'}</span>
+                  </a>
+                </div>
+              )}
               {bot.transactions.tokenDeploy && (
                 <div className="tx-row">
                   <span className="tx-label">Token Deploy</span>
