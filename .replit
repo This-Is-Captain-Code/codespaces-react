@@ -69,3 +69,4 @@ build = ["npm", "run", "build"]
 ADMIN_TOKEN = "moltrock-admin-2026"
 USE_TESTNET = "true"
 MOLT_REWARD_ADDRESS = "0x3A0C26b2c37e6C98e959ceace8a7be819f219E71"
+MOLT_FEE_ROUTER_ADDRESS = "0x3218767391004a0b6df314f981e9056cdadf90c4"
