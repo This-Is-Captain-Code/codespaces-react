@@ -11,6 +11,11 @@ const AVAILABLE_SKILLS = {
     path: 'molt-fees',
     description: 'Manage dynamic trading fees via Uniswap v4 MoltFeeRouter Hook',
   },
+  'liquidity-manager': {
+    name: 'liquidity-manager',
+    path: 'liquidity-manager',
+    description: 'Cross-chain liquidity management: OpenClaw → Yellow Network → LI.FI → Uniswap v4',
+  },
   botchan: {
     name: 'botchan',
     path: 'botchan',
@@ -26,7 +31,7 @@ export const skillInstallerService = {
   installSkills: async (gatewayEndpoint, gatewayToken, options = {}) => {
     const {
       agentWalletAddress,
-      skillsToInstall = ['erc-8004', 'molt-fees'],
+      skillsToInstall = ['erc-8004', 'molt-fees', 'liquidity-manager'],
     } = options;
 
     console.log(`Installing skills to gateway ${gatewayEndpoint}...`);
@@ -94,6 +99,38 @@ export const skillInstallerService = {
       } catch (error) {
         errors.push({ skill: 'molt-fees', error: error.message });
         console.warn('molt-fees skill installation error:', error.message);
+      }
+    }
+
+    if (skillsToInstall.includes('liquidity-manager')) {
+      try {
+        const liquidityManagerConfig = {
+          name: 'liquidity-manager',
+          enabled: true,
+          config: {
+            walletAddress: agentWalletAddress,
+            sourceChain: 'base',
+            destChain: 'arbitrum',
+            layers: ['openclaw', 'yellow-network', 'lifi', 'uniswap-v4'],
+          },
+        };
+
+        const lmResult = await installSkillToGateway(
+          gatewayEndpoint,
+          gatewayToken,
+          liquidityManagerConfig
+        );
+
+        if (lmResult.success) {
+          installedSkills.push('liquidity-manager');
+          console.log('Installed liquidity-manager skill');
+        } else {
+          errors.push({ skill: 'liquidity-manager', error: lmResult.error });
+          console.warn('Failed to install liquidity-manager skill:', lmResult.error);
+        }
+      } catch (error) {
+        errors.push({ skill: 'liquidity-manager', error: error.message });
+        console.warn('liquidity-manager skill installation error:', error.message);
       }
     }
 

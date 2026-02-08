@@ -90,3 +90,56 @@ The platform integrates a custom Uniswap v4 Hook contract (`MoltFeeRouter.sol`) 
 ### Contract Addresses
 - Uniswap v4 PoolManager (Base mainnet): `0x498581ff718922c3f8e6a244956af099b2652b2b`
 - Uniswap v4 PoolManager (Base Sepolia): `0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408`
+- Uniswap v4 PoolManager (Arbitrum mainnet): `0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32`
+- Uniswap v4 PoolManager (Arbitrum Sepolia): `0xFB3e0C6F74eB1a21CC1Da29aeC80D2Dfe6C9a317`
+
+## Cross-Chain Liquidity Management
+
+### Architecture (4-Layer Pipeline)
+The platform includes a 4-layer cross-chain liquidity management system that enables agents to autonomously move and deploy capital across chains:
+
+1. **OpenClaw (Decision Layer)** - Agent observes market conditions and decides when/how to move liquidity
+2. **Yellow Network (Intent Buffering)** - ClearSync state channels batch intents off-chain before execution
+3. **LI.FI (Cross-Chain Movement)** - Aggregates bridges/DEXs for optimal cross-chain token transfers
+4. **Uniswap v4 (Liquidity Deployment)** - Deploys liquidity into pools with MoltFeeRouter Hook
+
+Primary chain: Arbitrum One (Uniswap v4 native), Source chain: Base (cheap transactions)
+
+### Key Files
+- `backend/src/services/intentService.js` - Intent CRUD (create, list, update, observe)
+- `backend/src/services/yellowNetworkService.js` - ClearSync state channel buffering/batching
+- `backend/src/services/lifiService.js` - LI.FI cross-chain quote/execution
+- `backend/src/services/uniswapV4Service.js` - Uniswap v4 liquidity deployment (multi-chain)
+- `backend/src/routes/liquidity.js` - Liquidity API routes
+- `backend/src/skills/liquidity-manager/SKILL.md` - Agent skill for autonomous liquidity ops
+- `src/components/LiquidityDashboard.jsx` - Frontend liquidity management dashboard
+
+### Database Tables
+- `liquidity_intents` - Tracks intent lifecycle (pending → buffered → executing → completed)
+- `liquidity_positions` - Active liquidity positions on destination chains
+- `cross_chain_movements` - Cross-chain transfer tracking (bridge, amounts, fees)
+
+### API Endpoints
+- `GET /api/liquidity/status` - Layer configuration and health status
+- `GET /api/liquidity/observe` - Pool state, buffer status, recent intents, positions
+- `GET /api/liquidity/analytics` - Aggregate analytics (intent counts, positions, movements)
+- `POST /api/liquidity/intents` - Create a new liquidity intent
+- `GET /api/liquidity/intents` - List intents (filterable by status, botId)
+- `GET /api/liquidity/intents/:id` - Get specific intent details
+- `POST /api/liquidity/execute-pipeline` - Full pipeline execution (buffer → move → deploy)
+- `POST /api/liquidity/quote` - Get LI.FI cross-chain quote
+- `POST /api/liquidity/execute-move` - Execute cross-chain movement via LI.FI
+- `POST /api/liquidity/deploy` - Deploy liquidity into Uniswap v4 pool
+
+### Testnet/Simulation Mode
+All services run in simulation mode when `USE_TESTNET=true`:
+- Yellow Network: Simulated state channel batching (no real ClearSync)
+- LI.FI: Simulated quotes and execution (no real bridge calls)
+- Uniswap v4: Simulated liquidity deployment (no real pool operations)
+
+### Agent Skill: liquidity-manager
+Installed during agent launch alongside erc-8004 and molt-fees skills. Provides 11 tools:
+- Observation: `observe_pool`, `check_buffer`, `get_analytics`
+- Intent Management: `create_intent`, `list_intents`
+- Execution: `get_quote`, `execute_move`, `deploy_liquidity`, `execute_pipeline`
+- Position Management: `list_positions`, `rebalance_position`

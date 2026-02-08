@@ -1,6 +1,6 @@
 import { createPublicClient, createWalletClient, http, formatEther, parseEther, getAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { base, baseSepolia } from 'viem/chains';
+import { base, baseSepolia, arbitrum, arbitrumSepolia } from 'viem/chains';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -12,17 +12,33 @@ const USE_TESTNET = process.env.USE_TESTNET === 'true';
 const ADMIN_WALLET_PRIVATE_KEY = process.env.ADMIN_WALLET_PRIVATE_KEY;
 const MOLT_REWARD_ADDRESS = process.env.MOLT_REWARD_ADDRESS || '0x0000000000000000000000000000000000000000';
 
-const POOL_MANAGER_BASE = '0x498581ff718922c3f8e6a244956af099b2652b2b';
-const POOL_MANAGER_BASE_SEPOLIA = '0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408';
+const CHAIN_CONFIG = {
+  base: {
+    mainnet: base,
+    testnet: baseSepolia,
+    poolManager: '0x498581ff718922c3f8e6a244956af099b2652b2b',
+    poolManagerTestnet: '0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408',
+    weth: '0x4200000000000000000000000000000000000006',
+    wethTestnet: '0x4200000000000000000000000000000000000006',
+  },
+  arbitrum: {
+    mainnet: arbitrum,
+    testnet: arbitrumSepolia,
+    poolManager: '0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32',
+    poolManagerTestnet: '0xFB3e0C6F74eB1a21CC1Da29aeC80D2Dfe6C9a317',
+    weth: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    wethTestnet: '0x980B62Da83eFf3D4576C647993b0c1D7faf17c73',
+  },
+};
 
-const WETH_BASE = '0x4200000000000000000000000000000000000006';
-const WETH_BASE_SEPOLIA = '0x4200000000000000000000000000000000000006';
+const PRIMARY_CHAIN = 'arbitrum';
 
 const MOLT_FEE_ROUTER_ADDRESS = process.env.MOLT_FEE_ROUTER_ADDRESS || null;
 
-const getChain = () => USE_TESTNET ? baseSepolia : base;
-const getPoolManager = () => USE_TESTNET ? POOL_MANAGER_BASE_SEPOLIA : POOL_MANAGER_BASE;
-const getWETH = () => USE_TESTNET ? WETH_BASE_SEPOLIA : WETH_BASE;
+const getChainConfig = (chainName = PRIMARY_CHAIN) => CHAIN_CONFIG[chainName] || CHAIN_CONFIG.arbitrum;
+const getChain = (chainName = PRIMARY_CHAIN) => USE_TESTNET ? getChainConfig(chainName).testnet : getChainConfig(chainName).mainnet;
+const getPoolManager = (chainName = PRIMARY_CHAIN) => USE_TESTNET ? getChainConfig(chainName).poolManagerTestnet : getChainConfig(chainName).poolManager;
+const getWETH = (chainName = PRIMARY_CHAIN) => USE_TESTNET ? getChainConfig(chainName).wethTestnet : getChainConfig(chainName).weth;
 
 let MOLT_FEE_ROUTER_ABI;
 try {
@@ -65,12 +81,18 @@ export const uniswapV4Service = {
 
   getHookAddress: () => MOLT_FEE_ROUTER_ADDRESS,
 
-  getNetworkInfo: () => ({
+  getPrimaryChain: () => PRIMARY_CHAIN,
+
+  getSupportedChains: () => Object.keys(CHAIN_CONFIG),
+
+  getNetworkInfo: (chainName) => ({
     isTestnet: USE_TESTNET,
-    chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
-    poolManager: getPoolManager(),
+    chain: getChain(chainName).name,
+    chainId: getChain(chainName).id,
+    poolManager: getPoolManager(chainName),
     hookAddress: MOLT_FEE_ROUTER_ADDRESS,
-    weth: getWETH(),
+    weth: getWETH(chainName),
+    primaryChain: PRIMARY_CHAIN,
   }),
 
   registerPool: async ({ tokenAddress, agentTreasuryAddress, developerAddress, tokenAdminAddress }) => {
@@ -329,5 +351,148 @@ export const uniswapV4Service = {
         error: error.message,
       };
     }
+  },
+
+  addLiquidity: async ({ tokenAddress, amount, chainName = PRIMARY_CHAIN, hookAddress }) => {
+    console.log(`[Uniswap V4] Adding liquidity: ${amount} to pool for ${tokenAddress} on ${chainName}`);
+
+    const chain = getChain(chainName);
+    const hook = hookAddress || MOLT_FEE_ROUTER_ADDRESS;
+
+    if (USE_TESTNET) {
+      console.log('[Uniswap V4/Sim] Simulating liquidity deployment...');
+      const poolKey = buildPoolKey(tokenAddress, hook);
+      return {
+        success: true,
+        simulated: true,
+        chain: chain.name,
+        chainId: chain.id,
+        tokenAddress,
+        amount,
+        poolKey,
+        hookAddress: hook,
+        positionId: `pos_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        txHash: `0x${'liq'.repeat(21).slice(0, 64)}`,
+      };
+    }
+
+    if (!ADMIN_WALLET_PRIVATE_KEY) {
+      throw new Error('ADMIN_WALLET_PRIVATE_KEY not configured');
+    }
+
+    try {
+      const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
+      const publicClient = createPublicClient({ chain, transport: http() });
+      const walletClient = createWalletClient({ account, chain, transport: http() });
+
+      const poolKey = buildPoolKey(tokenAddress, hook);
+
+      const txHash = await walletClient.writeContract({
+        address: hook,
+        abi: MOLT_FEE_ROUTER_ABI,
+        functionName: 'addLiquidity',
+        args: [poolKey, parseEther(amount)],
+      });
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+      console.log(`[Uniswap V4] Liquidity added in block ${receipt.blockNumber}`);
+
+      return {
+        success: true,
+        simulated: false,
+        chain: chain.name,
+        chainId: chain.id,
+        tokenAddress,
+        amount,
+        poolKey,
+        hookAddress: hook,
+        txHash,
+        blockNumber: Number(receipt.blockNumber),
+      };
+    } catch (error) {
+      console.error('[Uniswap V4] Add liquidity failed:', error);
+      throw new Error(`Add liquidity failed: ${error.message}`);
+    }
+  },
+
+  removeLiquidity: async ({ tokenAddress, amount, chainName = PRIMARY_CHAIN, hookAddress }) => {
+    console.log(`[Uniswap V4] Removing liquidity: ${amount} from pool for ${tokenAddress} on ${chainName}`);
+
+    const chain = getChain(chainName);
+    const hook = hookAddress || MOLT_FEE_ROUTER_ADDRESS;
+
+    if (USE_TESTNET) {
+      console.log('[Uniswap V4/Sim] Simulating liquidity removal...');
+      return {
+        success: true,
+        simulated: true,
+        chain: chain.name,
+        tokenAddress,
+        amount,
+        txHash: `0x${'rem'.repeat(21).slice(0, 64)}`,
+      };
+    }
+
+    if (!ADMIN_WALLET_PRIVATE_KEY) {
+      throw new Error('ADMIN_WALLET_PRIVATE_KEY not configured');
+    }
+
+    try {
+      const account = privateKeyToAccount(ADMIN_WALLET_PRIVATE_KEY);
+      const publicClient = createPublicClient({ chain, transport: http() });
+      const walletClient = createWalletClient({ account, chain, transport: http() });
+
+      const poolKey = buildPoolKey(tokenAddress, hook);
+
+      const txHash = await walletClient.writeContract({
+        address: hook,
+        abi: MOLT_FEE_ROUTER_ABI,
+        functionName: 'removeLiquidity',
+        args: [poolKey, parseEther(amount)],
+      });
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+      console.log(`[Uniswap V4] Liquidity removed in block ${receipt.blockNumber}`);
+
+      return {
+        success: true,
+        simulated: false,
+        chain: chain.name,
+        tokenAddress,
+        amount,
+        txHash,
+        blockNumber: Number(receipt.blockNumber),
+      };
+    } catch (error) {
+      console.error('[Uniswap V4] Remove liquidity failed:', error);
+      throw new Error(`Remove liquidity failed: ${error.message}`);
+    }
+  },
+
+  observePoolState: async ({ tokenAddress, chainName = PRIMARY_CHAIN }) => {
+    const chain = getChain(chainName);
+
+    if (USE_TESTNET) {
+      return {
+        simulated: true,
+        chain: chain.name,
+        tokenAddress,
+        liquidity: '15000.00',
+        volume24h: '2451.80',
+        feeRate: '0.30',
+        feeMode: 'balanced',
+        tvl: '45000.00',
+        apy: '12.5',
+        hookActive: !!MOLT_FEE_ROUTER_ADDRESS,
+      };
+    }
+
+    const analytics = await uniswapV4Service.getPoolAnalytics(tokenAddress);
+    return {
+      simulated: false,
+      chain: chain.name,
+      tokenAddress,
+      ...analytics,
+    };
   },
 };

@@ -139,6 +139,70 @@ export async function initializeDatabase() {
     )
   `);
 
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS liquidity_intents (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      bot_id UUID REFERENCES bots(id) ON DELETE CASCADE,
+      intent_type VARCHAR(50) NOT NULL,
+      status VARCHAR(50) DEFAULT 'pending',
+      source_chain VARCHAR(50),
+      dest_chain VARCHAR(50),
+      token_address VARCHAR(255),
+      token_symbol VARCHAR(50),
+      amount VARCHAR(255),
+      conditions JSONB DEFAULT '{}',
+      execution_params JSONB DEFAULT '{}',
+      yellow_batch_id VARCHAR(255),
+      lifi_route_id VARCHAR(255),
+      pool_address VARCHAR(255),
+      hook_address VARCHAR(255),
+      error_message TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      buffered_at TIMESTAMP,
+      executed_at TIMESTAMP,
+      completed_at TIMESTAMP
+    )
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS liquidity_positions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      bot_id UUID REFERENCES bots(id) ON DELETE CASCADE,
+      chain VARCHAR(50) NOT NULL,
+      pool_address VARCHAR(255),
+      token_address VARCHAR(255),
+      token_symbol VARCHAR(50),
+      amount VARCHAR(255) DEFAULT '0',
+      hook_address VARCHAR(255),
+      pool_key JSONB DEFAULT '{}',
+      status VARCHAR(50) DEFAULT 'active',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS cross_chain_movements (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      intent_id UUID REFERENCES liquidity_intents(id) ON DELETE CASCADE,
+      source_chain VARCHAR(50) NOT NULL,
+      dest_chain VARCHAR(50) NOT NULL,
+      token_in VARCHAR(255),
+      token_out VARCHAR(255),
+      amount_in VARCHAR(255),
+      amount_out VARCHAR(255),
+      lifi_quote JSONB DEFAULT '{}',
+      tx_hash_source VARCHAR(255),
+      tx_hash_dest VARCHAR(255),
+      bridge_used VARCHAR(100),
+      status VARCHAR(50) DEFAULT 'pending',
+      gas_cost VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      completed_at TIMESTAMP
+    )
+  `);
+
   console.log('Database initialized successfully');
 }
 

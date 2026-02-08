@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { launchAPI } from '../api/client';
 import { AgentLaunchForm } from './AgentLaunchForm';
 import { FeeAnalytics } from './FeeAnalytics';
+import { LiquidityDashboard } from './LiquidityDashboard';
 import './AgentDashboard.css';
 
 export function AgentDashboard({ userWalletAddress, onLogout }) {
@@ -181,6 +182,8 @@ export function AgentDashboard({ userWalletAddress, onLogout }) {
             tokenSymbol={agent.token.symbol}
           />
         )}
+
+        <LiquidityDashboard botId={agent.botId} />
 
         {agent.erc8004 && (
           <div className="info-section">
