@@ -1,11 +1,10 @@
 import { db } from '../db/index.js';
 import { flyService } from './flyService.js';
 import { privyWalletService } from './privyWalletService.js';
-import { tokenDeployService } from './tokenDeployService.js';
+import { clankerService } from './clankerService.js';
+import { erc8004Service } from './erc8004Service.js';
 import { skillInstallerService } from './skillInstallerService.js';
 import { openrouterProvisioningService } from './openrouterProvisioningService.js';
-import { uniswapV4Service } from './uniswapV4Service.js';
-import { walletFundingService } from './walletFundingService.js';
 import crypto from 'crypto';
 
 const USE_TESTNET = process.env.USE_TESTNET === 'true';
@@ -14,12 +13,11 @@ const getNetworkMode = () => USE_TESTNET ? 'TESTNET' : 'MAINNET';
 const LAUNCH_STEPS = [
   'creating_openrouter_key',
   'creating_wallet',
-  'funding_wallet',
   'deploying_agent',
   'configuring_telegram',
   'installing_skills',
+  'registering_identity',
   'deploying_token',
-  'registering_fee_hook',
   'finalizing',
 ];
 
@@ -47,6 +45,7 @@ export const agentLaunchService = {
       flyAppName: null,
       agentWalletId: null,
       tokenAddress: null,
+      erc8004Id: null,
     };
 
     const sendProgress = (step, status, data = {}) => {
@@ -55,19 +54,15 @@ export const agentLaunchService = {
         launchState.completedSteps.push(step);
       }
       if (progressCallback) {
-        try {
-          progressCallback({
-            step,
-            stepIndex: LAUNCH_STEPS.indexOf(step),
-            totalSteps: LAUNCH_STEPS.length,
-            status,
-            networkMode: getNetworkMode(),
-            timestamp: new Date().toISOString(),
-            ...data,
-          });
-        } catch (cbErr) {
-          console.warn('[launch] Progress callback failed (client may have disconnected):', cbErr.message);
-        }
+        progressCallback({
+          step,
+          stepIndex: LAUNCH_STEPS.indexOf(step),
+          totalSteps: LAUNCH_STEPS.length,
+          status,
+          networkMode: getNetworkMode(),
+          timestamp: new Date().toISOString(),
+          ...data,
+        });
       }
     };
 
@@ -125,26 +120,6 @@ export const agentLaunchService = {
         walletId: agentWallet?.walletId || null,
       });
 
-      let fundingResult = null;
-      sendProgress('funding_wallet', 'in_progress', {
-        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
-        targetAddress: agentWallet?.address || null,
-      });
-      if (agentWallet?.address && walletFundingService.isConfigured()) {
-        try {
-          fundingResult = await walletFundingService.fundWallet(agentWallet.address);
-          launchState.fundTx = fundingResult.txHash;
-        } catch (fundError) {
-          console.warn('Wallet funding failed, continuing without:', fundError.message);
-        }
-      }
-      sendProgress('funding_wallet', 'completed', {
-        chain: fundingResult?.chain || (USE_TESTNET ? 'Base Sepolia' : 'Base'),
-        funded: !!fundingResult,
-        amount: fundingResult?.amount || '0',
-        txHash: fundingResult?.txHash || null,
-      });
-
       sendProgress('deploying_agent', 'in_progress', {
         provider: 'fly.io',
         region: 'iad',
@@ -189,8 +164,8 @@ export const agentLaunchService = {
       });
 
       sendProgress('installing_skills', 'in_progress', {
-        source: 'openclaw-skills',
-        targetSkills: ['molt-fees', 'liquidity-manager'],
+        source: 'github.com/BankrBot/openclaw-skills',
+        targetSkills: ['bankr', 'erc-8004'],
       });
       let skillsResult = { installedSkills: [], errors: [] };
       try {
@@ -205,22 +180,50 @@ export const agentLaunchService = {
         console.warn('Skill installation failed:', skillError.message);
       }
       sendProgress('installing_skills', 'completed', { 
-        source: 'openclaw-skills',
+        source: 'github.com/BankrBot/openclaw-skills',
         skills: skillsResult.installedSkills,
         errors: skillsResult.errors?.length || 0,
       });
 
-      const networkInfo = tokenDeployService.getNetworkInfo();
+      sendProgress('registering_identity', 'in_progress', {
+        protocol: 'ERC-8004',
+        chain: USE_TESTNET ? 'Sepolia' : 'Ethereum Mainnet',
+        simulated: USE_TESTNET,
+      });
+      let erc8004Result = { registered: false, agentId: null };
+      if (erc8004Service.isConfigured()) {
+        try {
+          erc8004Result = await erc8004Service.registerAgent({
+            name: agentName,
+            description: `${agentName} - AI Agent on Molt.town`,
+            agentEndpoint: userGateway.endpoint,
+            tokenAddress: null,
+            agentWalletAddress: agentWallet?.address,
+          });
+          launchState.erc8004Id = erc8004Result.agentId;
+        } catch (identityError) {
+          console.warn('ERC-8004 registration failed:', identityError.message);
+        }
+      }
+      sendProgress('registering_identity', 'completed', { 
+        protocol: 'ERC-8004',
+        chain: USE_TESTNET ? 'Sepolia' : 'Ethereum Mainnet',
+        simulated: USE_TESTNET,
+        agentId: erc8004Result.agentId,
+        registered: erc8004Result.registered,
+        txHash: erc8004Result.txHash || null,
+      });
+
       sendProgress('deploying_token', 'in_progress', {
-        protocol: 'ERC-20',
-        chain: networkInfo.chain,
+        protocol: 'Clanker',
+        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
         simulated: USE_TESTNET,
         symbol: tokenSymbol,
       });
       let tokenResult = null;
-      if (tokenDeployService.isConfigured() && tokenSymbol) {
+      if (clankerService.isConfigured() && tokenSymbol) {
         try {
-          tokenResult = await tokenDeployService.deployToken({
+          tokenResult = await clankerService.deployToken({
             name: tokenName || agentName,
             symbol: tokenSymbol,
             tokenAdminAddress: agentWallet?.address || userWalletAddress,
@@ -234,120 +237,59 @@ export const agentLaunchService = {
         }
       }
       sendProgress('deploying_token', 'completed', {
-        protocol: 'ERC-20',
-        chain: networkInfo.chain,
+        protocol: 'Clanker',
+        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
         simulated: USE_TESTNET,
         tokenAddress: tokenResult?.tokenAddress,
         symbol: tokenSymbol,
-        explorerUrl: tokenResult?.explorerUrl,
+        tradeUrl: tokenResult?.tradeUrl,
+        basescanUrl: tokenResult?.basescanUrl,
         txHash: tokenResult?.txHash || null,
       });
 
-      sendProgress('registering_fee_hook', 'in_progress', {
-        protocol: 'Uniswap v4 Hook',
-        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
-        hookType: 'MoltFeeRouter',
-      });
-      let hookResult = { registered: false };
-      if (uniswapV4Service.isConfigured() && tokenResult?.tokenAddress) {
-        try {
-          hookResult = await uniswapV4Service.registerPool({
-            tokenAddress: tokenResult.tokenAddress,
-            agentTreasuryAddress: agentWallet?.address || userWalletAddress,
-            developerAddress: devRewardAddress || userWalletAddress,
-            tokenAdminAddress: agentWallet?.address || userWalletAddress,
-          });
-        } catch (hookError) {
-          console.warn('Hook registration failed:', hookError.message);
-        }
-      }
-      sendProgress('registering_fee_hook', 'completed', {
-        protocol: 'Uniswap v4 Hook',
-        chain: USE_TESTNET ? 'Base Sepolia' : 'Base',
-        registered: hookResult.registered,
-        hookAddress: hookResult.hookAddress || null,
-        txHash: hookResult.txHash || null,
-        simulated: hookResult.simulated || false,
-      });
-
-      console.log('[launch] Starting finalizing step - DB save...');
       sendProgress('finalizing', 'in_progress');
 
       const token = crypto.randomBytes(32).toString('hex');
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-      const networkInfo2 = tokenDeployService.getNetworkInfo();
-      console.log('[launch] DB insert params:', {
-        userId,
-        agentName,
-        endpoint: userGateway.endpoint,
-        model,
-        gatewayId: userGateway.appName,
-        tokenAddress: tokenResult?.tokenAddress,
-        hookTx: hookResult.txHash || null,
-        hookChain: hookResult.registered ? (USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum') : null,
-        fundTx: fundingResult?.txHash || null,
-        fundChain: fundingResult?.chain || null,
-      });
-      let botResult;
-      try {
-        botResult = await db.query(
-          `INSERT INTO bots (
-            user_id, bot_name, endpoint, model, system_prompt, status,
-            gateway_id, agent_id, fly_gateway_token, openrouter_key_hash, openrouter_limit_usd,
-            agent_wallet_address, agent_wallet_id, token_address, token_symbol, token_name,
-            user_wallet_address, token_hash,
-            token_deploy_tx, token_deploy_chain,
-            hook_tx, hook_chain,
-            fund_tx, fund_chain
-          ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
-          RETURNING id, bot_name, model, system_prompt, status, created_at`,
-          [
-            userId,
-            agentName,
-            userGateway.endpoint,
-            model,
-            systemPrompt,
-            userGateway.appName,
-            'main',
-            userGateway.gatewayToken,
-            openrouterKeyHash,
-            limitUsd,
-            agentWallet?.address || null,
-            agentWallet?.walletId || null,
-            tokenResult?.tokenAddress || null,
-            tokenSymbol || null,
-            tokenName || agentName,
-            userWalletAddress || null,
-            tokenHash,
-            tokenResult?.txHash || null,
-            tokenResult ? networkInfo2.chain : null,
-            hookResult.txHash || null,
-            hookResult.registered ? (USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum') : null,
-            fundingResult?.txHash || null,
-            fundingResult?.chain || null,
-          ]
-        );
-        console.log('[launch] Bot saved to DB:', botResult.rows[0]?.id);
-      } catch (dbError) {
-        console.error('[launch] DB INSERT failed:', dbError.message, dbError.code, dbError.detail);
-        throw dbError;
-      }
+      const botResult = await db.query(
+        `INSERT INTO bots (
+          user_id, bot_name, endpoint, model, system_prompt, status,
+          gateway_id, agent_id, fly_gateway_token, openrouter_key_hash, openrouter_limit_usd,
+          agent_wallet_address, agent_wallet_id, token_address, token_symbol, token_name,
+          erc8004_id, user_wallet_address, token_hash
+        ) VALUES ($1, $2, $3, $4, $5, 'running', $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+        RETURNING id, bot_name, model, system_prompt, status, created_at`,
+        [
+          userId,
+          agentName,
+          userGateway.endpoint,
+          model,
+          systemPrompt,
+          userGateway.appName,
+          'main',
+          userGateway.gatewayToken,
+          openrouterKeyHash,
+          limitUsd,
+          agentWallet?.address || null,
+          agentWallet?.walletId || null,
+          tokenResult?.tokenAddress || null,
+          tokenSymbol || null,
+          tokenName || agentName,
+          erc8004Result.agentId || null,
+          userWalletAddress || null,
+          tokenHash,
+        ]
+      );
 
       const bot = botResult.rows[0];
 
-      try {
-        await db.query(
-          `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
-          [bot.id, tokenHash]
-        );
-        console.log('[launch] Bot token saved');
-      } catch (tokenErr) {
-        console.error('[launch] bot_tokens INSERT failed:', tokenErr.message);
-      }
+      await db.query(
+        `INSERT INTO bot_tokens (bot_id, token) VALUES ($1, $2)`,
+        [bot.id, tokenHash]
+      );
 
       sendProgress('finalizing', 'completed');
-      console.log('[launch] Launch complete for', agentName);
 
       return {
         success: true,
@@ -364,21 +306,12 @@ export const agentLaunchService = {
           address: tokenResult.tokenAddress,
           symbol: tokenSymbol,
           name: tokenName || agentName,
-          chain: tokenResult.chain,
-          explorerUrl: tokenResult.explorerUrl,
-          txHash: tokenResult.txHash || null,
+          tradeUrl: tokenResult.tradeUrl,
+          basescanUrl: tokenResult.basescanUrl,
         } : null,
-        walletFunding: fundingResult ? {
-          txHash: fundingResult.txHash,
-          amount: fundingResult.amount,
-          chain: fundingResult.chain,
-        } : null,
-        feeHook: hookResult.registered ? {
-          hookAddress: hookResult.hookAddress,
-          registered: true,
-          simulated: hookResult.simulated || false,
-          txHash: hookResult.txHash || null,
-          chain: USE_TESTNET ? 'Arbitrum Sepolia' : 'Arbitrum',
+        erc8004: erc8004Result.registered ? {
+          agentId: erc8004Result.agentId,
+          registryAddress: erc8004Result.registryAddress,
         } : null,
         telegram: telegramResult.configured ? {
           configured: true,
@@ -431,10 +364,8 @@ export const agentLaunchService = {
         b.id, b.bot_name, b.endpoint, b.status, b.model,
         b.agent_wallet_address, b.agent_wallet_id,
         b.token_address, b.token_symbol, b.token_name,
-        b.user_wallet_address,
-        b.gateway_id, b.fly_gateway_token, b.created_at,
-        b.token_deploy_tx, b.token_deploy_chain,
-        b.hook_tx, b.hook_chain
+        b.erc8004_id, b.user_wallet_address,
+        b.gateway_id, b.fly_gateway_token, b.created_at
       FROM bots b
       WHERE b.user_id = $1`,
       [userId]
@@ -464,11 +395,11 @@ export const agentLaunchService = {
         address: bot.token_address,
         symbol: bot.token_symbol,
         name: bot.token_name,
+        tradeUrl: `https://clanker.world/clanker/${bot.token_address}`,
       } : null,
-      transactions: {
-        tokenDeploy: bot.token_deploy_tx ? { txHash: bot.token_deploy_tx, chain: bot.token_deploy_chain } : null,
-        hookRegistration: bot.hook_tx ? { txHash: bot.hook_tx, chain: bot.hook_chain } : null,
-      },
+      erc8004: bot.erc8004_id ? {
+        agentId: bot.erc8004_id,
+      } : null,
       userWallet: bot.user_wallet_address,
       flyAppName: bot.gateway_id,
       createdAt: bot.created_at,

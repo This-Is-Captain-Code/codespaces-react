@@ -2,39 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { botAPI } from '../api/client';
 import './BotDashboard.css';
 
-const TX_EXPLORER_URLS = {
-  'Base': 'https://basescan.org/tx/',
-  'Ethereum': 'https://etherscan.io/tx/',
-  'Arbitrum': 'https://arbiscan.io/tx/',
-  'Arbitrum One': 'https://arbiscan.io/tx/',
-  'OP Mainnet': 'https://optimistic.etherscan.io/tx/',
-  'Polygon': 'https://polygonscan.com/tx/',
-  'Base Sepolia': 'https://sepolia.basescan.org/tx/',
-  'Sepolia': 'https://sepolia.etherscan.io/tx/',
-  'Arbitrum Sepolia': 'https://sepolia.arbiscan.io/tx/',
-};
-
-const ADDRESS_EXPLORER_URLS = {
-  'Base': 'https://basescan.org/address/',
-  'Ethereum': 'https://etherscan.io/address/',
-  'Arbitrum': 'https://arbiscan.io/address/',
-  'Arbitrum One': 'https://arbiscan.io/address/',
-  'OP Mainnet': 'https://optimistic.etherscan.io/address/',
-  'Polygon': 'https://polygonscan.com/address/',
-};
-
-function getTxExplorerUrl(chain, txHash) {
-  const base = TX_EXPLORER_URLS[chain];
-  if (base) return `${base}${txHash}`;
-  return `https://etherscan.io/tx/${txHash}`;
-}
-
-function getAddressExplorerUrl(chain, address) {
-  const base = ADDRESS_EXPLORER_URLS[chain];
-  if (base) return `${base}${address}`;
-  return `https://etherscan.io/address/${address}`;
-}
-
 function buildChatUrl(controlUrl) {
   try {
     const url = new URL(controlUrl);
@@ -52,7 +19,6 @@ export function BotDashboard({ userId }) {
   const [gatewayToken, setGatewayToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [reprovisioning, setReprovisioning] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     botName: '',
@@ -95,19 +61,6 @@ export function BotDashboard({ userId }) {
       setError(err.response?.data?.error || 'Failed to create bot');
     } finally {
       setCreating(false);
-    }
-  };
-
-  const handleReprovision = async () => {
-    setReprovisioning(true);
-    setError('');
-    try {
-      await botAPI.reprovision();
-      await loadBot();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to reprovision gateway');
-    } finally {
-      setReprovisioning(false);
     }
   };
 
@@ -251,84 +204,6 @@ export function BotDashboard({ userId }) {
           </div>
         </div>
 
-        {(bot.tokenAddress || bot.agentWalletAddress) && (
-          <div className="onchain-section">
-            <h3>On-Chain</h3>
-            <div className="onchain-details">
-              {bot.agentWalletAddress && (
-                <div className="detail-row">
-                  <span className="label">Agent Wallet:</span>
-                  <div className="value-with-copy">
-                    <span className="value endpoint">{bot.agentWalletAddress}</span>
-                    <button onClick={() => copyToClipboard(bot.agentWalletAddress)} className="copy-btn">Copy</button>
-                  </div>
-                </div>
-              )}
-              {bot.tokenAddress && (
-                <div className="detail-row">
-                  <span className="label">Token ({bot.tokenSymbol}):</span>
-                  <div className="value-with-copy">
-                    <a href={getAddressExplorerUrl(bot.transactions?.tokenDeploy?.chain || 'Base', bot.tokenAddress)} target="_blank" rel="noopener noreferrer" className="link-button mono-link">
-                      {bot.tokenAddress.slice(0, 10)}...{bot.tokenAddress.slice(-8)}
-                    </a>
-                    <button onClick={() => copyToClipboard(bot.tokenAddress)} className="copy-btn">Copy</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {bot.transactions && (bot.transactions.walletFunding || bot.transactions.tokenDeploy || bot.transactions.hookRegistration) && (
-          <div className="tx-section">
-            <h3>Transaction Hashes</h3>
-            <div className="tx-list">
-              {bot.transactions.walletFunding && (
-                <div className="tx-row">
-                  <span className="tx-label">Wallet Funded</span>
-                  <a
-                    href={getTxExplorerUrl(bot.transactions.walletFunding.chain, bot.transactions.walletFunding.txHash)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="tx-link"
-                  >
-                    {bot.transactions.walletFunding.txHash.slice(0, 10)}...{bot.transactions.walletFunding.txHash.slice(-8)}
-                    <span className="chain-tag">{bot.transactions.walletFunding.chain || 'Base'}</span>
-                  </a>
-                </div>
-              )}
-              {bot.transactions.tokenDeploy && (
-                <div className="tx-row">
-                  <span className="tx-label">Token Deploy</span>
-                  <a
-                    href={getTxExplorerUrl(bot.transactions.tokenDeploy.chain, bot.transactions.tokenDeploy.txHash)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="tx-link"
-                  >
-                    {bot.transactions.tokenDeploy.txHash.slice(0, 10)}...{bot.transactions.tokenDeploy.txHash.slice(-8)}
-                    <span className="chain-tag">{bot.transactions.tokenDeploy.chain || 'Base'}</span>
-                  </a>
-                </div>
-              )}
-              {bot.transactions.hookRegistration && (
-                <div className="tx-row">
-                  <span className="tx-label">Fee Hook Registration</span>
-                  <a
-                    href={getTxExplorerUrl(bot.transactions.hookRegistration.chain, bot.transactions.hookRegistration.txHash)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="tx-link"
-                  >
-                    {bot.transactions.hookRegistration.txHash.slice(0, 10)}...{bot.transactions.hookRegistration.txHash.slice(-8)}
-                    <span className="chain-tag">{bot.transactions.hookRegistration.chain || 'Arbitrum'}</span>
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {bot.status === 'demo_mode' && (
           <div className="demo-notice">
             Your bot is in demo mode. A gateway needs to be configured to deploy a live agent.
@@ -344,21 +219,6 @@ export function BotDashboard({ userId }) {
         {bot.status === 'running' && (
           <div className="success-notice">
             Your bot is live! Access the OpenClaw control panel for advanced integrations.
-          </div>
-        )}
-
-        {error && <div className="error-notice">{error}</div>}
-
-        {bot.endpoint && bot.status === 'running' && (
-          <div className="reprovision-section">
-            <button
-              onClick={handleReprovision}
-              disabled={reprovisioning}
-              className="reprovision-button"
-            >
-              {reprovisioning ? 'Fixing Connection...' : 'Fix Gateway Connection'}
-            </button>
-            <span className="reprovision-hint">Use this if the agent shows "gateway token missing" error</span>
           </div>
         )}
       </div>

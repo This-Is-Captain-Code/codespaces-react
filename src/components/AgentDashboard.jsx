@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { launchAPI } from '../api/client';
 import { AgentLaunchForm } from './AgentLaunchForm';
-import { FeeAnalytics } from './FeeAnalytics';
-import { LiquidityDashboard } from './LiquidityDashboard';
 import './AgentDashboard.css';
 
 export function AgentDashboard({ userWalletAddress, onLogout }) {
@@ -163,28 +161,29 @@ export function AgentDashboard({ userWalletAddress, onLogout }) {
               </div>
               <div className="token-actions">
                 <a 
-                  href={agent.token.explorerUrl || `https://basescan.org/token/${agent.token.address}`}
+                  href={agent.token.tradeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="trade-btn"
                 >
-                  View on Explorer
+                  Trade on Clanker
                 </a>
               </div>
             </div>
           </div>
         )}
 
-        {agent.token && (
-          <FeeAnalytics
-            tokenAddress={agent.token.address}
-            agentName={agent.agentName}
-            tokenSymbol={agent.token.symbol}
-          />
+        {agent.erc8004 && (
+          <div className="info-section">
+            <h3>On-Chain Identity (ERC-8004)</h3>
+            <div className="info-grid">
+              <div className="info-item">
+                <span className="label">Agent ID</span>
+                <span className="value">#{agent.erc8004.agentId}</span>
+              </div>
+            </div>
+          </div>
         )}
-
-        <LiquidityDashboard botId={agent.botId} />
-
 
         {agent.userWallet && (
           <div className="info-section">

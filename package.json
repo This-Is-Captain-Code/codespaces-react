@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@erc7824/nitrolite": "^0.5.3",
     "@privy-io/node": "^0.8.0",
     "@privy-io/react-auth": "^3.13.0",
     "@privy-io/server-auth": "^1.32.5",
@@ -13,13 +12,12 @@
     "@testing-library/user-event": "^14.4.3",
     "axios": "^1.6.5",
     "bcrypt": "^6.0.0",
+    "clanker-sdk": "^4.2.10",
     "pg": "^8.18.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "solc": "^0.8.33",
     "viem": "^2.45.1",
-    "web-vitals": "^3.1.0",
-    "ws": "^8.19.0"
+    "web-vitals": "^3.1.0"
   },
   "overrides": {
     "@svgr/webpack": "^8.0.1",

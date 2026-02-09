@@ -2,43 +2,6 @@ import React, { useState } from 'react';
 import { launchAPI } from '../api/client';
 import './AgentLaunchForm.css';
 
-const TX_EXPLORER_URLS = {
-  'Base': 'https://basescan.org/tx/',
-  'Ethereum': 'https://etherscan.io/tx/',
-  'Arbitrum': 'https://arbiscan.io/tx/',
-  'Arbitrum One': 'https://arbiscan.io/tx/',
-  'OP Mainnet': 'https://optimistic.etherscan.io/tx/',
-  'Polygon': 'https://polygonscan.com/tx/',
-  'Base Sepolia': 'https://sepolia.basescan.org/tx/',
-  'Sepolia': 'https://sepolia.etherscan.io/tx/',
-  'Arbitrum Sepolia': 'https://sepolia.arbiscan.io/tx/',
-};
-
-function getExplorerTxUrl(chain, txHash) {
-  const base = TX_EXPLORER_URLS[chain];
-  if (base) return `${base}${txHash}`;
-  return `https://etherscan.io/tx/${txHash}`;
-}
-
-function TxHashLink({ txHash, chain, label }) {
-  if (!txHash) return null;
-  const displayChain = chain || 'Unknown';
-  return (
-    <div className="detail-item">
-      <span className="label">{label}</span>
-      <a
-        href={getExplorerTxUrl(displayChain, txHash)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="value mono link tx-hash-link"
-      >
-        {txHash.slice(0, 10)}...{txHash.slice(-8)}
-        <span className="chain-badge">{displayChain}</span>
-      </a>
-    </div>
-  );
-}
-
 const AI_MODELS = [
   { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', provider: 'Anthropic' },
   { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'Anthropic' },
@@ -50,12 +13,11 @@ const AI_MODELS = [
 const LAUNCH_STEPS = [
   { key: 'creating_openrouter_key', label: 'Setting up AI model' },
   { key: 'creating_wallet', label: 'Creating agent wallet' },
-  { key: 'funding_wallet', label: 'Funding agent wallet' },
   { key: 'deploying_agent', label: 'Deploying agent server' },
   { key: 'configuring_telegram', label: 'Configuring Telegram bot' },
   { key: 'installing_skills', label: 'Installing skills' },
+  { key: 'registering_identity', label: 'Registering on-chain identity' },
   { key: 'deploying_token', label: 'Deploying token' },
-  { key: 'registering_fee_hook', label: 'Registering Uniswap v4 fee hook' },
   { key: 'finalizing', label: 'Finalizing' },
 ];
 
@@ -160,7 +122,7 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
               <div className="detail-item">
                 <span className="label">Contract</span>
                 <a 
-                  href={result.token.explorerUrl} 
+                  href={result.token.basescanUrl} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="value mono link"
@@ -169,6 +131,12 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
                 </a>
               </div>
             </>
+          )}
+          {result.erc8004 && (
+            <div className="detail-item">
+              <span className="label">ERC-8004 ID</span>
+              <span className="value">#{result.erc8004.agentId}</span>
+            </div>
           )}
           {result.telegram && result.telegram.configured && (
             <div className="detail-item">
@@ -184,26 +152,15 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
             </div>
           )}
         </div>
-
-        {(result.walletFunding?.txHash || result.token?.txHash || result.feeHook?.txHash) && (
-          <div className="tx-hashes-section">
-            <h3>On-Chain Transactions</h3>
-            <div className="tx-hashes-list">
-              <TxHashLink txHash={result.walletFunding?.txHash} chain={result.walletFunding?.chain} label={`Wallet Funded (${result.walletFunding?.amount || '0.0001'} ETH)`} />
-              <TxHashLink txHash={result.token?.txHash} chain={result.token?.chain} label="Token Deploy" />
-              <TxHashLink txHash={result.feeHook?.txHash} chain={result.feeHook?.chain} label="Fee Hook Registration" />
-            </div>
-          </div>
-        )}
         
-        {result.token && result.token.explorerUrl && (
+        {result.token && (
           <a 
-            href={result.token.explorerUrl}
+            href={result.token.tradeUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="trade-button"
           >
-            View Token on Explorer
+            Trade on Clanker
           </a>
         )}
         
@@ -322,12 +279,12 @@ export function AgentLaunchForm({ onLaunchComplete, userWalletAddress }) {
           </button>
 
           <div className="fee-info">
-            <p>Dynamic fees via Uniswap v4 Hook:</p>
+            <p>Fee breakdown (1.2% total):</p>
             <ul>
-              <li>0.25% - 1.0% base fee (volume-adjusted)</li>
-              <li>Split: Agent / Dev / Platform / Admin</li>
-              <li>Agent AI controls fee mode and optimization</li>
-              <li>Graduated creator share over token lifecycle</li>
+              <li>0.2% - Clanker</li>
+              <li>0.1% - Agent treasury</li>
+              <li>0.4% - You (dev)</li>
+              <li>0.5% - Molt.town</li>
             </ul>
           </div>
         </form>
